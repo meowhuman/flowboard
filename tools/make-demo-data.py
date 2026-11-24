@@ -132,7 +132,7 @@ def main():
         if s.get('lyrics'): song['lyrics'] = s['lyrics']
         songs.append(song)
         print(num, s['title'], f'{dur}s', 'boundaries', bounds, 'tiers', tier_list, file=sys.stderr)
-    (ROOT / 'songs.json').write_text(json.dumps(songs, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
+    (ROOT / 'songs.json').write_text(json.dumps(songs + [dict(x) for x in CFG.get('tracks', [])], ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
     (ROOT / 'stage-cues.json').write_text(json.dumps({'cues': cues}, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
     videos = []
     for v in CFG['loops']:

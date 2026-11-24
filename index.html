@@ -35,6 +35,15 @@
           />
         </header>
         <div id="songs" class="songs"></div>
+        <div class="trackadd">
+          <button id="trackAdd" type="button" class="smallbtn" aria-expanded="false" aria-controls="trackForm" title="貼 Suno 或 Spotify 連結，加入歌單">＋ 加 Suno／Spotify 歌</button>
+          <form id="trackForm" class="trackform" hidden>
+            <input name="url" class="search" type="url" required aria-label="Suno 或 Spotify 連結" placeholder="貼 suno.com／open.spotify.com 連結" />
+            <input name="title" class="search" type="text" aria-label="歌名（可留空）" placeholder="歌名（可留空）" />
+            <button type="submit" class="smallbtn">加入歌單</button>
+            <div class="trackerr" role="alert"></div>
+          </form>
+        </div>
         <details class="mi-list" id="miList" hidden>
           <summary id="miListTitle">M+ MI list</summary>
           <div class="mi-list-content" id="miListContent"></div>

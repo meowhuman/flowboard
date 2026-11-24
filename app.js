@@ -46,6 +46,25 @@ window.__showEmbed = { parse: EMBED.parse };
       if (!r.ok) throw Error('songs.json ' + r.status);
       return r.json();
     });
+    // 歌單入面嘅 Suno／Spotify 歌：songs.json 可寫 track（長期），亦可喺板上「＋加歌」貼連結（只存喺呢個瀏覽器）
+    const TRACKS_KEY = 'cuesheet-board-tracks-v1';
+    const TRACK_NAME = { suno: 'Suno', spotify: 'Spotify' };
+    const trackUrl = (s) => (s && s.track ? (typeof s.track === 'string' ? s.track : s.track.url) : null);
+    const readTracks = () => {
+      try {
+        const a = JSON.parse(localStorage.getItem(TRACKS_KEY));
+        return Array.isArray(a) ? a.filter((t) => t && t.number && EMBED.parse(t.url)) : [];
+      } catch {
+        return [];
+      }
+    };
+    const writeTracks = (a) => {
+      try {
+        localStorage.setItem(TRACKS_KEY, JSON.stringify(a));
+      } catch {}
+    };
+    const userTrackSong = (t) => ({ number: t.number, title: t.title, section: TRACK_NAME[EMBED.parse(t.url).provider], credit: '', parts: [], track: { url: t.url }, userAdded: true });
+    for (const t of readTracks()) if (!songs.some((s) => s.number === t.number)) songs.push(userTrackSong(t));
     const inventory = await fetch('source-materials/drive-video-inventory.json').then((r) => {
       if (!r.ok) throw Error('影片清單 ' + r.status);
       return r.json();
@@ -243,7 +262,7 @@ window.__showEmbed = { parse: EMBED.parse };
         const s = song(n),
           row = document.createElement('article');
         row.className =
-          'song' + (active === n ? ' selected' : '') + (defaultIds(n).length ? '' : ' no-ref');
+          'song' + (active === n ? ' selected' : '') + (s.track ? ' track' : defaultIds(n).length ? '' : ' no-ref');
         row.draggable = true;
         row.tabIndex = 0;
         row.setAttribute('aria-label', s.title + '歌曲列；按 Enter 選擇');
@@ -263,7 +282,11 @@ window.__showEmbed = { parse: EMBED.parse };
           num = defaultOrder[i];
           sub = `<div class="songdesc">${esc(match)} · ${esc(s.section)}</div>`;
         }
-        row.innerHTML = `<span class="num">${num}</span><div><div class="songname">${esc(s.title)}</div>${sub}</div><div class="songbuttons"><button data-act="up" aria-label="${esc(s.title)}上移">↑</button><button data-act="down" aria-label="${esc(s.title)}下移">↓</button></div>`;
+        const tp = s.track ? EMBED.parse(trackUrl(s)) : null;
+        if (tp) sub = `<div class="songdesc">${esc(TRACK_NAME[tp.provider])} 連結 · 喺下欄播放</div>`;
+        const badge = tp ? `<span class="srcbadge ${tp.provider}" title="${esc(TRACK_NAME[tp.provider])} 歌曲">${esc(TRACK_NAME[tp.provider])}</span>` : '';
+        const del = s.userAdded ? `<button data-act="del" aria-label="${esc(s.title)}移除" title="移除呢首（只喺呢個瀏覽器）">✕</button>` : '';
+        row.innerHTML = `<span class="num">${num}</span><div><div class="songname">${esc(s.title)}${badge}</div>${sub}</div><div class="songbuttons"><button data-act="up" aria-label="${esc(s.title)}上移">↑</button><button data-act="down" aria-label="${esc(s.title)}下移">↓</button>${del}</div>`;
         row.addEventListener('keydown', (e) => {
           if ((e.key === 'Enter' || e.key === ' ') && e.target === row) {
             e.preventDefault();
@@ -272,7 +295,17 @@ window.__showEmbed = { parse: EMBED.parse };
         });
         row.addEventListener('click', (e) => {
           const a = e.target.dataset.act;
-          if (a === 'up' || a === 'down') {
+          if (a === 'del') {
+            e.stopPropagation();
+            writeTracks(readTracks().filter((t) => t.number !== n));
+            songs.splice(songs.findIndex((x) => x.number === n), 1);
+            defaultOrder.splice(defaultOrder.indexOf(n), 1);
+            state.order = state.order.filter((x) => x !== n);
+            delete state.clips[n];
+            save();
+            if (active === n) setActive(state.order[0]);
+            else renderSongs();
+          } else if (a === 'up' || a === 'down') {
             const j = i + (a === 'up' ? -1 : 1);
             if (j >= 0 && j < state.order.length) {
               [state.order[i], state.order[j]] = [state.order[j], state.order[i]];
@@ -310,10 +343,46 @@ window.__showEmbed = { parse: EMBED.parse };
         });
         songRoot.append(row);
       }
-      const withLoop = state.order.filter((n) => (state.clips[n] || []).length).length;
+      const withLoop = state.order.filter((n) => (state.clips[n] || []).length).length,
+        nTracks = songs.filter((s) => s.track).length;
       document.querySelector('#loopCount').textContent =
-        withLoop + ' / ' + songs.length + ' 首已有 loop';
+        withLoop + ' / ' + (songs.length - nTracks) + ' 首已有 loop' + (nTracks ? ' · ' + nTracks + ' 首 Suno／Spotify' : '');
       document.querySelector('.panelhead h2').textContent = songs.length + ' 首歌曲';
+    }
+    // ＋加歌：貼 Suno／Spotify 連結入歌單（即時加入、即時揀、冇 reload）
+    const trackForm = document.querySelector('#trackForm'),
+      trackAddBtn = document.querySelector('#trackAdd');
+    if (trackForm && trackAddBtn) {
+      const turl = trackForm.querySelector('[name=url]'),
+        ttitle = trackForm.querySelector('[name=title]'),
+        terr = trackForm.querySelector('.trackerr');
+      trackAddBtn.onclick = () => {
+        trackForm.hidden = !trackForm.hidden;
+        trackAddBtn.setAttribute('aria-expanded', String(!trackForm.hidden));
+        if (!trackForm.hidden) turl.focus();
+      };
+      trackForm.onsubmit = (e) => {
+        e.preventDefault();
+        const url = turl.value.trim(),
+          p = EMBED.parse(url);
+        if (!p) {
+          terr.textContent = '連結唔啱：只收 suno.com／open.spotify.com 嘅歌曲、專輯或 playlist 連結。';
+          return;
+        }
+        const next = Math.max(0, ...songs.map((s) => /^T(\d+)$/.exec(String(s.number))).filter(Boolean).map((m) => +m[1])) + 1,
+          t = { number: 'T' + next, url, title: ttitle.value.trim() || TRACK_NAME[p.provider] + ' 歌曲' };
+        writeTracks([...readTracks(), t]);
+        songs.push(userTrackSong(t));
+        defaultOrder.push(t.number);
+        state.order.push(t.number);
+        state.clips[t.number] = [];
+        save();
+        terr.textContent = '';
+        trackForm.reset();
+        trackForm.hidden = true;
+        trackAddBtn.setAttribute('aria-expanded', 'false');
+        setActive(t.number);
+      };
     }
     function stopPreview(message = '已停止並卸載 Drive 預覽。') {
       previewGeneration++;
@@ -336,7 +405,7 @@ window.__showEmbed = { parse: EMBED.parse };
       renderAssigned();
       document.querySelector('#nowTitle').textContent = n + ' · ' + song(n).title;
       document.querySelector('#npTitle').textContent = n + ' · ' + song(n).title;
-      document.querySelector('#npSub').textContent = song(n).credit || '歌曲排練音訊';
+      document.querySelector('#npSub').textContent = song(n).track ? TRACK_NAME[(EMBED.parse(trackUrl(song(n))) || {}).provider] + ' 內嵌播放器：用上面嘅播放掣' : song(n).credit || '歌曲排練音訊';
       document.querySelector('#nowMeta').textContent = [song(n).credit, song(n).section].filter(Boolean).join(' · ');
       const sel = songRoot.querySelector('.song.selected');
       if (sel) sel.scrollIntoView({ block: 'nearest' });
@@ -357,7 +426,7 @@ window.__showEmbed = { parse: EMBED.parse };
         if (audio.getAttribute('src')) {
           if (audio.readyState > 0) audio.currentTime = 0;
           audio.play().catch(() => toast('歌曲未能自動播放；請按播放掣重試。'));
-        } else {
+        } else if (!s.track) {
           toast('此歌未有音檔；如有配對影片，影片會播放。');
         }
       }
@@ -829,6 +898,10 @@ window.__showEmbed = { parse: EMBED.parse };
       if (embedRow) embedRow.hidden = true;
     }
     function songVersions(s) {
+      if (s.track) {
+        const p = EMBED.parse(trackUrl(s));
+        return p ? [{ label: p.provider, embed: p }] : [];
+      }
       if (!s.demo) return [];
       const list = [{ label: s.demoLabel || 'demo', src: s.demo }];
       (s.alternates || []).forEach((a) => {

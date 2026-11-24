@@ -49,16 +49,7 @@
     "voc"
    ],
    "lyricsSource": true,
-   "lyricsLang": "zh",
-   "alternates": [
-    {
-     "label": "suno",
-     "embed": {
-      "provider": "suno",
-      "url": "https://suno.com/song/55167b0c-fcec-4005-aa47-7fb32c81d1a2"
-     }
-    }
-   ]
+   "lyricsLang": "zh"
   },
   {
    "title": "被遺忘",
@@ -74,22 +65,6 @@
     "bs",
     "dr",
     "voc"
-   ],
-   "alternates": [
-    {
-     "label": "suno",
-     "embed": {
-      "provider": "suno",
-      "url": "https://suno.com/song/557e3cb8-6d92-4362-8b05-c8508c007717"
-     }
-    },
-    {
-     "label": "spotify",
-     "embed": {
-      "provider": "spotify",
-      "url": "https://open.spotify.com/track/4Vkk3iD1VrENHJEACNddvt"
-     }
-    }
    ]
   },
   {
@@ -106,15 +81,6 @@
     "bs",
     "dr",
     "voc"
-   ],
-   "alternates": [
-    {
-     "label": "suno",
-     "embed": {
-      "provider": "suno",
-      "url": "https://suno.com/song/1fc0840a-53cd-40e9-8852-427806bfb720"
-     }
-    }
    ]
   },
   {
@@ -131,22 +97,6 @@
     "bs",
     "dr",
     "voc"
-   ],
-   "alternates": [
-    {
-     "label": "suno",
-     "embed": {
-      "provider": "suno",
-      "url": "https://suno.com/song/fe8b4198-f7a6-45dd-92ce-1e9ac1ef2299"
-     }
-    },
-    {
-     "label": "spotify",
-     "embed": {
-      "provider": "spotify",
-      "url": "https://open.spotify.com/track/0K9rIsZfdlzAoOEWyeFQYM"
-     }
-    }
    ]
   },
   {
@@ -163,15 +113,6 @@
     "bs",
     "dr",
     "voc"
-   ],
-   "alternates": [
-    {
-     "label": "suno",
-     "embed": {
-      "provider": "suno",
-      "url": "https://suno.com/song/698b02a5-9f76-465e-a502-5f280f582e43"
-     }
-    }
    ]
   },
   {
@@ -213,6 +154,40 @@
    "id": "clouds",
    "filename": "Clouds (14s).mp4",
    "folder": "Sample loops"
+  }
+ ],
+ "tracks": [
+  {
+   "number": "T1",
+   "title": "我冇學壞 v2",
+   "section": "Suno",
+   "track": {
+    "url": "https://suno.com/song/55167b0c-fcec-4005-aa47-7fb32c81d1a2"
+   }
+  },
+  {
+   "number": "T2",
+   "title": "被遺忘 v2",
+   "section": "Suno",
+   "track": {
+    "url": "https://suno.com/song/557e3cb8-6d92-4362-8b05-c8508c007717"
+   }
+  },
+  {
+   "number": "T3",
+   "title": "Moanin'",
+   "section": "Spotify",
+   "track": {
+    "url": "https://open.spotify.com/track/4Vkk3iD1VrENHJEACNddvt"
+   }
+  },
+  {
+   "number": "T4",
+   "title": "Plastic Love",
+   "section": "Spotify",
+   "track": {
+    "url": "https://open.spotify.com/track/0K9rIsZfdlzAoOEWyeFQYM"
+   }
   }
  ]
 }

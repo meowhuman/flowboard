@@ -2692,3 +2692,57 @@ html {
 #dockBtn[hidden] {
   display: none;
 }
+
+/* 歌單入面嘅 Suno／Spotify 歌：細標記 ＋ 加歌表單 */
+.srcbadge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 5px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  font: 600 10px/16px var(--mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+.srcbadge.suno {
+  color: #e8c26a;
+  border-color: #6b5a2c;
+}
+.srcbadge.spotify {
+  color: #5fcf8a;
+  border-color: #2c6b45;
+}
+.trackadd {
+  margin-top: 6px;
+}
+.trackform {
+  display: grid;
+  gap: 4px;
+  margin-top: 4px;
+}
+.trackform[hidden] {
+  display: none;
+}
+.trackerr {
+  color: var(--accent-fg);
+  font-size: var(--fs-small);
+  overflow-wrap: anywhere;
+}
+.trackerr:empty {
+  display: none;
+}
+.threebar .venuesel {
+  min-height: 24px;
+  max-width: 17em;
+  padding: 1px 6px;
+  font-size: 12px;
+  color: inherit;
+  background: #202420;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.trackform .search {
+  width: 100%;
+  box-sizing: border-box;
+}

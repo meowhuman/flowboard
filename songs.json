@@ -21,16 +21,7 @@
   "bpm": 70,
   "lyrics": {
    "zh": "[Verse 1]\nMy mama said\n阿仔你很壞\n人人慢了你偏腳步快\n嘴巴偏偏要亂講\n罰你掌嘴要坐入房\n\n[Verse 1 continued]\n盡快收聲 喂冇人想聽\n盡快熄燈 冇你嘅事\n罰到老師都不再 管教\n怕你日日做壞事\n\n[Pre-Chorus 1]\n當初生個叉燒比較好\n叉燒跟個白飯醫下肚\n\n[Verse 2]\n今天只想好好的去休息吓\n後悔頂帽我沒有戴好\n\n[Bridge]\nAnd that is my mama's story\nCan I try 返入溫暖嗰肚度\n\n[Break]\n喂 hold it\n\n[Verse 3]\n我也想乖乖地走去修補\n那傷口 我有努力去試\nBut the world just go against me\n我都不想再費力再試\n\n[Chorus]\n來吧媽媽聽我 say sorry\nI am sorry and I'll learn\n原諒我 肯改變在今天\n錯不再多 mom I gonna learn\n\n[Reprise]\nAnd that is my mama's story\n\n[Chorus 2]\n當初生個叉燒比較好\n叉燒跟個白飯醫下肚\n今天只想好好的去休息吓\n後悔頂帽我沒有戴好\n\n[Outro]\n媽媽 don't cry 我冇學壞\nWoo let me change your mind"
-  },
-  "alternates": [
-   {
-    "label": "suno",
-    "embed": {
-     "provider": "suno",
-     "url": "https://suno.com/song/55167b0c-fcec-4005-aa47-7fb32c81d1a2"
-    }
-   }
-  ]
+  }
  },
  {
   "number": "02",
@@ -50,23 +41,7 @@
   "demoLabel": "mix",
   "charts": {
    "form": "media/charts/forgotten-dream-pop-form.svg"
-  },
-  "alternates": [
-   {
-    "label": "suno",
-    "embed": {
-     "provider": "suno",
-     "url": "https://suno.com/song/557e3cb8-6d92-4362-8b05-c8508c007717"
-    }
-   },
-   {
-    "label": "spotify",
-    "embed": {
-     "provider": "spotify",
-     "url": "https://open.spotify.com/track/4Vkk3iD1VrENHJEACNddvt"
-    }
-   }
-  ]
+  }
  },
  {
   "number": "03",
@@ -86,16 +61,7 @@
   "demoLabel": "mix",
   "charts": {
    "form": "media/charts/floor-breathing-form.svg"
-  },
-  "alternates": [
-   {
-    "label": "suno",
-    "embed": {
-     "provider": "suno",
-     "url": "https://suno.com/song/1fc0840a-53cd-40e9-8852-427806bfb720"
-    }
-   }
-  ]
+  }
  },
  {
   "number": "04",
@@ -115,23 +81,7 @@
   "demoLabel": "mix",
   "charts": {
    "form": "media/charts/saudade-do-teu-olhar-form.svg"
-  },
-  "alternates": [
-   {
-    "label": "suno",
-    "embed": {
-     "provider": "suno",
-     "url": "https://suno.com/song/fe8b4198-f7a6-45dd-92ce-1e9ac1ef2299"
-    }
-   },
-   {
-    "label": "spotify",
-    "embed": {
-     "provider": "spotify",
-     "url": "https://open.spotify.com/track/0K9rIsZfdlzAoOEWyeFQYM"
-    }
-   }
-  ]
+  }
  },
  {
   "number": "05",
@@ -151,16 +101,7 @@
   "demoLabel": "mix",
   "charts": {
    "form": "media/charts/le-dernier-bal-form.svg"
-  },
-  "alternates": [
-   {
-    "label": "suno",
-    "embed": {
-     "provider": "suno",
-     "url": "https://suno.com/song/698b02a5-9f76-465e-a502-5f280f582e43"
-    }
-   }
-  ]
+  }
  },
  {
   "number": "06",
@@ -187,5 +128,37 @@
     "src": "media/music/slow-dying-keep-vocals.mp3"
    }
   ]
+ },
+ {
+  "number": "T1",
+  "title": "我冇學壞 v2",
+  "section": "Suno",
+  "track": {
+   "url": "https://suno.com/song/55167b0c-fcec-4005-aa47-7fb32c81d1a2"
+  }
+ },
+ {
+  "number": "T2",
+  "title": "被遺忘 v2",
+  "section": "Suno",
+  "track": {
+   "url": "https://suno.com/song/557e3cb8-6d92-4362-8b05-c8508c007717"
+  }
+ },
+ {
+  "number": "T3",
+  "title": "Moanin'",
+  "section": "Spotify",
+  "track": {
+   "url": "https://open.spotify.com/track/4Vkk3iD1VrENHJEACNddvt"
+  }
+ },
+ {
+  "number": "T4",
+  "title": "Plastic Love",
+  "section": "Spotify",
+  "track": {
+   "url": "https://open.spotify.com/track/0K9rIsZfdlzAoOEWyeFQYM"
+  }
  }
 ]

@@ -1,0 +1,27 @@
+{
+  "_說明": "場地選單：每個場地係一張由基準舞台圖（stage-plans.json 第一張）縮放出嚟嘅舞台圖。stage／room 單位米；room 冇 seatRows 就係空房（只有牆同地）；room 為 null 就係開放舞台（淨係地同後牆）。",
+  "baseTitle": "Black box (18 × 14 m, 465 seats)",
+  "venues": [
+    {
+      "id": "club",
+      "title": "Jazz club (small stage)",
+      "venue": "Sample jazz club: stage 8 × 5 m, room 12 × 14 m",
+      "stage": { "w": 8, "d": 5, "lw": 6, "lo": 0.3, "sh": 3, "sy": 0.4 },
+      "room": { "w": 12, "l": 14, "h": 4 }
+    },
+    {
+      "id": "hall",
+      "title": "Concert hall (medium stage)",
+      "venue": "Sample concert hall: stage 14 × 10 m, room 22 × 28 m",
+      "stage": { "w": 14, "d": 10, "lw": 12, "lo": 0.4, "sh": 6, "sy": 0.5 },
+      "room": { "w": 22, "l": 28, "h": 9 }
+    },
+    {
+      "id": "open",
+      "title": "Open stage (no walls)",
+      "venue": "Sample open-air stage: 12 × 8 m",
+      "stage": { "w": 12, "d": 8, "lw": 10, "lo": 0.4, "sh": 5, "sy": 0.5 },
+      "room": null
+    }
+  ]
+}

@@ -26,7 +26,9 @@ async function open(w = 1440, h = 900, mobile = false) {
 const { page: p, errs, ext } = await open();
 ok('冇密碼閘', (await p.locator('#gate').count()) === 0 && (await p.locator('#songs .song').count()) > 0);
 const titles = await p.locator('#songs .songname').allInnerTexts();
-ok('歌單 6 首（來自 songs.json）', titles.length === 6 && titles.includes('Le Dernier Bal'), titles.join(' / '));
+ok('歌單 10 首（6 首有音訊 ＋ 4 首 Suno／Spotify，來自 songs.json）', titles.length === 10 && titles.some((x) => x.startsWith('Le Dernier Bal')), titles.join(' / '));
+const badges = await p.$$eval('#songs .srcbadge', (e) => e.map((x) => x.textContent));
+ok('歌單：Suno／Spotify 歌有細標記（Suno ×2、Spotify ×2），本地歌冇', badges.filter((x) => x === 'Suno').length === 2 && badges.filter((x) => x === 'Spotify').length === 2 && badges.length === 4, badges.join(','));
 ok('標題列由 stage-plans.json 設定', (await p.title()) === 'cuesheet-board — Show Flow' && /CUESHEET/.test(await p.locator('.top .brand').innerText()));
 
 await p.click('.song[data-num="01"]'); await p.waitForTimeout(1200);
@@ -69,6 +71,15 @@ ok('燈光：舞台燈位由 MVR（Capture 匯出）匯入，76 支', nfix >= 76
 await p.click('.threebar [data-light]'); await p.click('[data-preset="warm"]'); await p.waitForTimeout(2500);
 const lit = await p.evaluate(() => window.__stage3d.lighting.fixtures.filter((f) => f.level > 0.05).length);
 ok('燈光：揀「暖色 Jazz」→ 多支燈亮起', lit >= 20, 'lit=' + lit);
+const venues = await p.$$eval('.threebar .venuesel option', (e) => e.map((x) => x.value));
+ok('場地選單：3D 工具列有 4 個場地（黑箱／club／hall／open）', venues.join() === 'A,club,hall,open', venues.join());
+const fx0 = await p.evaluate(() => window.__stage3d.lighting.fixtures[0].x);
+await p.selectOption('.threebar .venuesel', 'club'); await p.waitForTimeout(2500);
+const fx1 = await p.evaluate(() => window.__stage3d.lighting.fixtures[0].x);
+ok('場地選單：揀 club → 舞台圖換咗、燈位跟住縮', (await p.evaluate(() => window.StageView.planId())) === 'club' && Math.abs(fx1) < Math.abs(fx0) * 0.6, fx0 + ' -> ' + fx1);
+await p.selectOption('.threebar .venuesel', 'open'); await p.waitForTimeout(2000);
+ok('場地選單：揀 open（冇牆）→ 仍然有 76 支燈、冇錯誤', (await p.evaluate(() => window.__stage3d.lighting.fixtures.length)) >= 76 && errs.length === 0, errs.join(' | ').slice(0, 200));
+await p.selectOption('.threebar .venuesel', 'A'); await p.waitForTimeout(1500);
 await p.click('#viewbar [data-view="stage"]');
 
 await p.click('#export'); await p.waitForSelector('.exp-card');
@@ -84,18 +95,25 @@ ok('冇外部網絡請求（淨係同源）', ext.length === 0, ext.slice(0, 3).
 // ---- 內嵌版本（Suno）：攔截 iframe 目標，唔真係連外網 ----
 await p.route(/^https:\/\/suno\.com\/embed\/.*/, (r) => r.fulfill({ contentType: 'text/html', body: '<!doctype html><title>fake embed</title><button>play</button>' }));
 await p.route(/^https:\/\/open\.spotify\.com\/embed\/.*/, (r) => r.fulfill({ contentType: 'text/html', body: '<!doctype html><title>fake embed</title><button>play</button>' }));
-await p.click('.song[data-num="02"]'); await p.waitForTimeout(500);
-const chips02 = await p.$$eval('#versions .vchip', (e) => e.map((x) => x.textContent));
-ok('內嵌版本：02 有 spotify chip，揀咗 → iframe 指向 open.spotify.com/embed/track', chips02.includes('spotify') && (await p.click('#versions .vchip:has-text("spotify")'), await p.waitForTimeout(500), (await p.$$eval('iframe.embedframe', (e) => e.map((x) => x.src))).join() === 'https://open.spotify.com/embed/track/4Vkk3iD1VrENHJEACNddvt'), chips02.join(','));
-await p.click('#versions .vchip >> nth=0'); await p.waitForTimeout(300);
+const SPOT = 'https://open.spotify.com/embed/track/';
+await p.click('.song[data-num="T3"]'); await p.waitForTimeout(500);
+const ifs3 = await p.$$eval('iframe.embedframe', (e) => e.map((x) => ({ src: x.src, sandbox: x.getAttribute('sandbox') })));
+ok('歌單 Spotify 歌：撳 T3 → iframe 指向 open.spotify.com/embed/track、有 sandbox、本地音訊暫停、冇版本 chip', ifs3.length === 1 && ifs3[0].src === SPOT + '4Vkk3iD1VrENHJEACNddvt' && !!ifs3[0].sandbox && await p.$eval('#audio', (a) => a.paused) && await p.$eval('#versions', (v) => v.hidden), JSON.stringify(ifs3));
+await p.click('.song[data-num="T1"]'); await p.waitForTimeout(500);
+const ifs1 = await p.$$eval('iframe.embedframe', (e) => e.map((x) => x.src));
+ok('歌單 Suno 歌：撳 T1 → 只剩一個 iframe 指向 suno.com/embed', ifs1.length === 1 && /^https:\/\/suno\.com\/embed\/[0-9a-f-]{36}$/.test(ifs1[0]), ifs1.join());
 await p.click('.song[data-num="01"]'); await p.waitForTimeout(500);
-const chips01 = await p.$$eval('#versions .vchip', (e) => e.map((x) => x.textContent));
-ok('內嵌版本：01 有 suno chip', chips01.includes('suno'), chips01.join(','));
-await p.click('#versions .vchip:has-text("suno")'); await p.waitForTimeout(500);
-const ifr = await p.$$eval('iframe.embedframe', (e) => e.map((x) => ({ src: x.src, sandbox: x.getAttribute('sandbox') })));
-ok('內嵌版本：揀 suno → iframe 指向 suno.com/embed、有 sandbox，本地音訊暫停', ifr.length === 1 && /^https:\/\/suno\.com\/embed\/[0-9a-f-]{36}$/.test(ifr[0].src) && !!ifr[0].sandbox && await p.$eval('#audio', (a) => a.paused));
-await p.click('#versions .vchip >> nth=0'); await p.waitForTimeout(400);
-ok('內嵌版本：轉返主版本 → iframe 移除', (await p.$$('iframe.embedframe')).length === 0);
+ok('轉返本地歌 → 內嵌 iframe 移除、音訊有 src', (await p.$$('iframe.embedframe')).length === 0 && !!(await p.$eval('#audio', (a) => a.getAttribute('src'))));
+// 加歌：貼連結
+await p.click('#trackAdd'); await p.fill('#trackForm [name=url]', 'https://example.com/x'); await p.click('#trackForm [type=submit]'); await p.waitForTimeout(300);
+ok('加歌：唔認得嘅連結 → 顯示錯誤、歌單唔變', /連結唔啱/.test(await p.locator('.trackerr').innerText()) && (await p.locator('#songs .song').count()) === 10);
+await p.fill('#trackForm [name=url]', 'https://open.spotify.com/track/0K9rIsZfdlzAoOEWyeFQYM?si=abc123'); await p.fill('#trackForm [name=title]', '我嘅測試歌'); await p.click('#trackForm [type=submit]'); await p.waitForTimeout(600);
+const added = await p.$$eval('#songs .song.selected', (e) => e.map((x) => x.textContent));
+ok('加歌：貼 Spotify 連結 → 歌單多一行、自動揀咗、有 Spotify 標記、iframe 指向該曲', (await p.locator('#songs .song').count()) === 11 && /我嘅測試歌/.test(added.join()) && /Spotify/.test(added.join()) && (await p.$$eval('iframe.embedframe', (e) => e.map((x) => x.src))).join() === SPOT + '0K9rIsZfdlzAoOEWyeFQYM', added.join());
+await p.reload(); await p.waitForSelector('#songs .song'); await p.waitForTimeout(800);
+ok('加歌：reload 後仍然喺歌單（存喺瀏覽器）', (await p.locator('#songs .song').count()) === 11 && (await p.locator('#songs .songname', { hasText: '我嘅測試歌' }).count()) === 1);
+await p.locator('#songs .song', { hasText: '我嘅測試歌' }).locator('[data-act="del"]').click(); await p.waitForTimeout(500);
+ok('加歌：撳 ✕ 移除自己加嘅歌 → 回到 10 首；長期歌冇 ✕', (await p.locator('#songs .song').count()) === 10 && (await p.locator('#songs [data-act="del"]').count()) === 0);
 await p.click('#songsBtn'); await p.waitForTimeout(300);
 ok('歌單掣：收埋左邊歌單', await p.evaluate(() => document.querySelector('#app').dataset.songs === 'off'));
 await p.click('#songsBtn'); await p.waitForTimeout(300);
@@ -117,7 +135,7 @@ const hits = [];
     const f = path.join(dir, e.name);
     if (e.isDirectory()) walk(f);
     else if (/\.(js|mjs|html|css|json|md|py|svg|txt)$/i.test(e.name)) {
-      const t = fs.readFileSync(f, 'utf8'); const mm = t.match(BAD);
+      const t = fs.readFileSync(f, 'utf8').replace(/https:\/\/cuesheet-board-demo\.netlify\.app\/?/g, ''); const mm = t.match(BAD);   // README 自己嘅示範站連結唔算私人字眼
       if (mm) hits.push(path.relative(ROOT, f) + ':' + mm[0]);
     }
   }

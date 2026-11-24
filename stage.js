@@ -795,7 +795,7 @@
       song: { number: s.number, title: s.title, bpm: s.bpm || null },
       motion: data.motion || null,
       stays: (data.staysOnStage && data.staysOnStage.types) || [],
-      lighting: data.lighting || null,
+      lighting: p.lighting || data.lighting || null,      // 場地可以有自己嘅燈位（唔同舞台大細）
       part: cue.name,
       platforms: p.platforms || [],
       items: p.items.filter((it) => RADIUS[it.type]).map((it) => {
@@ -886,6 +886,9 @@
   window.StageView = {
     onChange(f) { listeners.push(f); },
     getVideo: () => ctx && ctx.video,
+    plans: () => (data ? data.plans.map((p) => ({ id: p.id, title: p.title })) : []),   // 場地／舞台圖選單用
+    planId: () => store.planId,
+    setPlan(id) { if (data && data.plans.some((p) => p.id === id) && id !== store.planId) { store.planId = id; save(); render(); } },
     getMode: () => (ctx && ctx.getMode ? ctx.getMode() : ''),
     setMode: (m) => ctx && ctx.setMode && ctx.setMode(m),
     notify,

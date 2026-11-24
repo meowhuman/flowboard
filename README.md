@@ -19,7 +19,7 @@ Early and honest:
 - It was built for one real show. The engine is generic, the sample set in this repo is not that show.
 - The interface text is **Traditional Chinese for now**. An English interface is the first item on the roadmap below.
 - No server, no accounts. Everything runs in the browser; your edits are kept in `localStorage`.
-- The 3D room is one fixed black box. Venue size is not configurable yet.
+- The 3D venues are simple generated rooms (a black box with seats, a small club, a hall, an open stage). Loading a modelled venue from Blender is not built yet.
 
 ## What it does
 
@@ -27,7 +27,8 @@ Early and honest:
 - **2D plan and timeline.** Drag items on the plan, scrub the timeline, the playhead jumps between sections.
 - **3D lighting preview.** Colour presets, custom colour and strength per light group, three spots that follow soloists, haze. Fixed camera presets, free orbit, audience seat view.
 - **Rehearsal audio and video loops.** Several versions per song (for example instrumental and vocal), loops play in sync with the audio.
-- **Embedded Suno and Spotify versions.** A version chip can be a Suno or Spotify player that plays inside the page. No pop-up, no download. See [Embedded versions](#embedded-versions-suno-and-spotify).
+- **Suno and Spotify tracks in the set list.** A song row can be a Suno or Spotify track, with a small `SUNO` or `SPOTIFY` mark. It plays in a player inside the page. No pop-up, no download. Paste a link with `+ Add Suno/Spotify song`, or list it in `songs.json`. See [Suno and Spotify tracks](#suno-and-spotify-tracks).
+- **Venue picker.** The 3D toolbar has a venue list. Each venue is a stage plan with its own stage size, room and light positions. See [Venues](#venues).
 - **Lighting rig from a lighting designer.** Import an `.mvr` file (My Virtual Rig, exported by Capture, Vectorworks, grandMA3 and others) and the 3D preview uses their fixture positions. See [Import a lighting rig](#import-a-lighting-rig-mvr).
 - **Hide the song list** with one button to give the middle column more room.
 - **Lyrics and charts** per song, when you provide them.
@@ -58,7 +59,8 @@ The sample set exercises every feature, so you can click through them before loa
 | 2D plan, solo and highlight | Stage view. Grand Piano and Vocal are placed on the sample stage; the timeline colours show on-stage, solo and highlight |
 | 3D lighting with an imported rig | Stage view, `僅 3D`, then the lighting button. 76 fixtures come from `samples/mvr/capture_demo_show.mvr` |
 | Versions | Song 06 has instrumental and vocal audio versions |
-| Embedded versions | Songs 01 to 05 each have a `suno` chip that plays the original Suno song inside the board. Songs 02 and 04 also have a `spotify` chip (reference tracks) |
+| Suno and Spotify tracks | Rows T1 and T2 are Suno songs, T3 and T4 are Spotify tracks. Each has a small mark and plays inside the board. Try `+ Add Suno/Spotify song` at the bottom of the list |
+| Venues | Stage view, `僅 3D`, then the venue list in the 3D toolbar: black box, jazz club, concert hall, open stage |
 | Loops | Songs have three sample video loops. Pick one in the loop panel |
 | Lyrics and form chart | Song 01 has lyrics and a generated form chart |
 | One-click report | `輸出`, tick sections, get a self-contained HTML file |
@@ -66,22 +68,38 @@ The sample set exercises every feature, so you can click through them before loa
 
 ![Embedded Suno player inside the board](docs/board-embed.png)
 
-## Embedded versions (Suno and Spotify)
+## Suno and Spotify tracks
 
-Put a player in the version chips instead of an audio file. In `songs.json`:
+A set list row can be a track played by Suno or Spotify instead of an audio file. Two ways to add one:
+
+- In the board: `+ Add Suno/Spotify song` under the list, paste the link, optionally type a title. It is stored in your browser only, and the `x` button removes it.
+- In `songs.json`, for tracks that should always be there:
 
 ```json
-"alternates": [
-  { "label": "suno", "embed": { "provider": "suno", "url": "https://suno.com/song/<uuid>" } },
-  { "label": "spotify", "embed": { "provider": "spotify", "url": "https://open.spotify.com/track/<id>" } }
-]
+{ "number": "T1", "title": "My Suno song", "section": "Suno", "track": { "url": "https://suno.com/song/<uuid>" } }
 ```
 
-- Only `https`, and only `suno.com` and `open.spotify.com`, are accepted. Anything else is ignored with a console warning.
-- The player is created only when you pick the chip, and removed when you pick another chip or another song. Local audio pauses while an embed plays.
-- Embeds do not take part in auto-next, the timeline playhead or the exported report.
+- Only `https`, and only `suno.com` and `open.spotify.com` (song, album, playlist, episode), are accepted. Anything else is refused.
+- The player is created when you pick the row and removed when you pick another song. Local audio pauses while a track plays.
+- Tracks do not take part in auto-next, the timeline playhead or the exported report.
 - Suno pages cannot be framed, so the board uses `suno.com/embed/<uuid>`. Spotify shows a 30-second preview to visitors who are not logged in to Spotify.
 - Suno limits how many songs your account can download each month. Embedding a link does not use that allowance.
+- A song can still carry a player as a version chip: add `{ "label": "suno", "embed": { "provider": "suno", "url": "..." } }` to its `alternates`.
+
+![Embedded Suno player inside the board](docs/board-embed.png)
+
+## Venues
+
+When `stage-plans.json` has more than one plan, the 3D toolbar shows a venue list. A plan has its own `stage` (size and screen), optional `room` (walls and optional seats) and optional `lighting` (a rig for that venue).
+
+`tools/add-venues.py` builds the extra venues from the first plan by scaling the instruments, platforms and light positions:
+
+```bash
+python3 tools/add-venues.py            # preview: prints the venues, writes nothing
+python3 tools/add-venues.py --apply    # writes stage-plans.json (a .bak copy is made first)
+```
+
+Venue sizes live in `tools/venues.default.json`. Run it after an MVR import so the lights it scales are the imported ones.
 
 ## Import a lighting rig (MVR)
 
@@ -120,7 +138,7 @@ npm run serve &        # range-capable static server on :9424
 npm test               # Playwright smoke test
 ```
 
-The smoke test checks: no external network requests, audio and video load, lyrics, charts and timeline render, the 3D view mounts with the imported rig and the lighting presets light fixtures, an embedded Suno version appears and is removed again (the iframe target is faked, so no network is used), the song-list button works, the report exports as a self-contained file, the phone layout does not overflow, and the repository contains no leftover private strings.
+The smoke test checks: no external network requests, audio and video load, lyrics, charts and timeline render, the 3D view mounts with the imported rig and the lighting presets light fixtures, Suno and Spotify rows play in a player that appears and is removed again, pasting a link adds a row (the iframe target is faked, so no network is used), the venue list changes the stage and the light positions, the song-list button works, the report exports as a self-contained file, the phone layout does not overflow, and the repository contains no leftover private strings.
 
 ## Roadmap
 
@@ -128,7 +146,7 @@ The smoke test checks: no external network requests, audio and video load, lyric
 2. Venue size and seating from `stage-plans.json` instead of a fixed room.
 3. One `show.json` instead of four data files.
 4. Import lighting cues (colour and level per fixture or group, per song) from a CSV. Fixture positions already import from MVR.
-5. Load saved Blender venues instead of the fixed black box.
+5. Load saved Blender venues (modelled rooms) instead of the generated ones.
 
 Issues and pull requests are welcome. If you run a rehearsal or a show with it, I would like to hear what broke.
 

@@ -73,6 +73,27 @@ export async function mount(box, api) {
     },
   });
   light.bindButton(bar.querySelector('[data-light]'));
+  // 場地選單：stage-plans.json 有多張舞台圖（各自 venue／stage／room／燈位）就出現，揀咗即換 3D 場地同 2D 圖
+  const venueSel = document.createElement('select');
+  venueSel.className = 'smallbtn venuesel';
+  venueSel.setAttribute('aria-label', '場地');
+  venueSel.title = '揀場地';
+  venueSel.hidden = true;
+  bar.append(venueSel);
+  venueSel.onchange = () => api.setPlan && api.setPlan(venueSel.value);
+  function syncVenue() {
+    const ps = api.plans ? api.plans() : [];
+    venueSel.hidden = ps.length < 2;
+    if (ps.length < 2) return;
+    const sig = ps.map((p) => p.id + p.title).join('|');
+    if (venueSel.dataset.sig !== sig) {
+      venueSel.dataset.sig = sig;
+      venueSel.innerHTML = ps.map((p) => `<option value="${p.id}">${p.title.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])}</option>`).join('');
+    }
+    venueSel.value = api.planId();
+  }
+  syncVenue();
+  api.onChange(syncVenue);
 
   const loader = new GLTFLoader();
   const draco = new DRACOLoader();
