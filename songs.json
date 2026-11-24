@@ -1,0 +1,132 @@
+[
+ {
+  "number": "01",
+  "title": "我冇學壞",
+  "section": "Sample set",
+  "credit": "Sample · Suno generation, 2026-06",
+  "notes": "Bilingual Cantopop neo-soul sample. Lyric sections drive the cue names.",
+  "instrumentation": "quintet",
+  "parts": [
+   "pf",
+   "gtr",
+   "bs",
+   "dr",
+   "voc"
+  ],
+  "demo": "media/music/ngo-mou-hok-waai.mp3",
+  "demoLabel": "mix",
+  "charts": {
+   "form": "media/charts/ngo-mou-hok-waai-form.svg"
+  },
+  "bpm": 70,
+  "lyrics": {
+   "zh": "[Verse 1]\nMy mama said\n阿仔你很壞\n人人慢了你偏腳步快\n嘴巴偏偏要亂講\n罰你掌嘴要坐入房\n\n[Verse 1 continued]\n盡快收聲 喂冇人想聽\n盡快熄燈 冇你嘅事\n罰到老師都不再 管教\n怕你日日做壞事\n\n[Pre-Chorus 1]\n當初生個叉燒比較好\n叉燒跟個白飯醫下肚\n\n[Verse 2]\n今天只想好好的去休息吓\n後悔頂帽我沒有戴好\n\n[Bridge]\nAnd that is my mama's story\nCan I try 返入溫暖嗰肚度\n\n[Break]\n喂 hold it\n\n[Verse 3]\n我也想乖乖地走去修補\n那傷口 我有努力去試\nBut the world just go against me\n我都不想再費力再試\n\n[Chorus]\n來吧媽媽聽我 say sorry\nI am sorry and I'll learn\n原諒我 肯改變在今天\n錯不再多 mom I gonna learn\n\n[Reprise]\nAnd that is my mama's story\n\n[Chorus 2]\n當初生個叉燒比較好\n叉燒跟個白飯醫下肚\n今天只想好好的去休息吓\n後悔頂帽我沒有戴好\n\n[Outro]\n媽媽 don't cry 我冇學壞\nWoo let me change your mind"
+  }
+ },
+ {
+  "number": "02",
+  "title": "被遺忘",
+  "section": "Sample set",
+  "credit": "Sample · Suno generation, 2026-05",
+  "notes": "Dream pop sample. Cue boundaries detected from loudness.",
+  "instrumentation": "quintet",
+  "parts": [
+   "pf",
+   "gtr",
+   "bs",
+   "dr",
+   "voc"
+  ],
+  "demo": "media/music/forgotten-dream-pop.mp3",
+  "demoLabel": "mix",
+  "charts": {
+   "form": "media/charts/forgotten-dream-pop-form.svg"
+  }
+ },
+ {
+  "number": "03",
+  "title": "地板呼吸",
+  "section": "Sample set",
+  "credit": "Sample · Suno generation, 2026-05",
+  "notes": "Sample. Cue boundaries detected from loudness.",
+  "instrumentation": "quintet",
+  "parts": [
+   "pf",
+   "gtr",
+   "bs",
+   "dr",
+   "voc"
+  ],
+  "demo": "media/music/floor-breathing.mp3",
+  "demoLabel": "mix",
+  "charts": {
+   "form": "media/charts/floor-breathing-form.svg"
+  }
+ },
+ {
+  "number": "04",
+  "title": "Saudade do Teu Olhar",
+  "section": "Sample set",
+  "credit": "Sample · Suno generation, 2026-06",
+  "notes": "Portuguese-language sample. Cue boundaries detected from loudness.",
+  "instrumentation": "quintet",
+  "parts": [
+   "pf",
+   "gtr",
+   "bs",
+   "dr",
+   "voc"
+  ],
+  "demo": "media/music/saudade-do-teu-olhar.mp3",
+  "demoLabel": "mix",
+  "charts": {
+   "form": "media/charts/saudade-do-teu-olhar-form.svg"
+  }
+ },
+ {
+  "number": "05",
+  "title": "Le Dernier Bal",
+  "section": "Sample set",
+  "credit": "Sample · Suno generation, 2026-06",
+  "notes": "French-language sample. Cue boundaries detected from loudness.",
+  "instrumentation": "quintet",
+  "parts": [
+   "pf",
+   "gtr",
+   "bs",
+   "dr",
+   "voc"
+  ],
+  "demo": "media/music/le-dernier-bal.mp3",
+  "demoLabel": "mix",
+  "charts": {
+   "form": "media/charts/le-dernier-bal-form.svg"
+  }
+ },
+ {
+  "number": "06",
+  "title": "Slow Dying Keep",
+  "section": "Sample set",
+  "credit": "Sample · Suno generation, 2025-11",
+  "notes": "Instrumental and vocal versions. Shows the version switcher; the loudest section gets a guitar solo.",
+  "instrumentation": "quartet",
+  "parts": [
+   "pf",
+   "gtr",
+   "bs",
+   "dr"
+  ],
+  "demo": "media/music/slow-dying-keep-instrumental.mp3",
+  "demoLabel": "Instrumental",
+  "charts": {
+   "form": "media/charts/slow-dying-keep-form.svg"
+  },
+  "instrumental": true,
+  "alternates": [
+   {
+    "label": "Vocals",
+    "src": "media/music/slow-dying-keep-vocals.mp3"
+   }
+  ]
+ }
+]

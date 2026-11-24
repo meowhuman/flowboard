@@ -1,0 +1,49 @@
+{
+ "videos": [
+  {
+   "filename": "Sunset window (6s loop).mp4",
+   "folder": "Sample loops",
+   "fileId": "sunset-window",
+   "sizeBytes": 360354,
+   "songNumbers": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06"
+   ],
+   "matchType": "section-only"
+  },
+  {
+   "filename": "Night rock (22s).mp4",
+   "folder": "Sample loops",
+   "fileId": "night-rock",
+   "sizeBytes": 726767,
+   "songNumbers": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06"
+   ],
+   "matchType": "section-only"
+  },
+  {
+   "filename": "Clouds (14s).mp4",
+   "folder": "Sample loops",
+   "fileId": "clouds",
+   "sizeBytes": 447081,
+   "songNumbers": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06"
+   ],
+   "matchType": "section-only"
+  }
+ ]
+}

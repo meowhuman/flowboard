@@ -1,0 +1,211 @@
+{
+  "version": "v2",
+  "project": "jace-board-3d",
+  "generated": "2026-11-03T20:50:00+08:00",
+  "generator": "TRELLIS.2 (ComfyUI 5090) -> Blender 5.1.2 normalize (Draco, Cycles CPU verify)",
+  "limits": {
+    "max_tris": 15000,
+    "max_bytes": 819200,
+    "texture_max_px": 1024
+  },
+  "convention": {
+    "up": "Y (glTF)",
+    "front": "-Z",
+    "origin": "ground center",
+    "unit": "meter"
+  },
+  "items": [
+    {
+      "id": "drums",
+      "glb": "models-v2/drums.glb",
+      "glb_sha256": "f62cef0427f2fc977a4b123c6d145495785a7460b110f3174c972df71b33cc38",
+      "glb_bytes": 662228,
+      "ref_image": "refs/drums.png",
+      "ref_sha256": "44bc84cabd3e474236a91217899b946530c12119bdb54839c8b0b2468988c9de",
+      "target_wdh_m": [
+        1.8,
+        1.6,
+        1.2
+      ],
+      "verified_wdh_m": [
+        1.7993,
+        1.5962,
+        1.1922
+      ],
+      "target_within_15pct": true,
+      "y_min_m": 0.0,
+      "triangles": 14989,
+      "texture_max_px": 256,
+      "render_front": "renders/view_drums_front.png",
+      "render_34": "renders/view_drums_34.png"
+    },
+    {
+      "id": "piano",
+      "glb": "models-v2/piano.glb",
+      "glb_sha256": "4c79dd02f9ebe15dc2ddcf2c0ce9798d4919c74c5fff54b9d8c57f749c1989ea",
+      "glb_bytes": 506028,
+      "ref_image": "refs/piano.png",
+      "ref_sha256": "2f51fa5fef94431c25a1d3e5480bb336f64c07ec8d7a535af706b63616ff09dd",
+      "target_wdh_m": [
+        1.5,
+        2.3,
+        1.0
+      ],
+      "verified_wdh_m": [
+        1.5001,
+        2.3,
+        1.0
+      ],
+      "target_within_15pct": true,
+      "y_min_m": 0.0,
+      "triangles": 14982,
+      "texture_max_px": 256,
+      "render_front": "renders/view_piano_front.png",
+      "render_34": "renders/view_piano_34.png"
+    },
+    {
+      "id": "bass",
+      "glb": "models-v2/bass.glb",
+      "glb_sha256": "c43c7f0238aafe74d6d277b1dc125ad9f106e45e1fc3098d85b4224865a34c79",
+      "glb_bytes": 521828,
+      "ref_image": "refs/bass.png",
+      "ref_sha256": "d0b53c0cad4d794dc5985d49826842637996ff5409deb84f016d612d60024621",
+      "target_wdh_m": [
+        0.6,
+        0.5,
+        1.9
+      ],
+      "verified_wdh_m": [
+        0.6,
+        0.5,
+        1.9
+      ],
+      "target_within_15pct": true,
+      "y_min_m": 0.0,
+      "triangles": 14936,
+      "texture_max_px": 256,
+      "render_front": "renders/view_bass_front.png",
+      "render_34": "renders/view_bass_34.png"
+    },
+    {
+      "id": "guitar-e",
+      "glb": "models-v2/guitar-e.glb",
+      "glb_sha256": "b7345868d96799f6655af887c94676bd843ab38115192db6b560c9127aeb245f",
+      "glb_bytes": 541600,
+      "ref_image": "refs/guitar-e.png",
+      "ref_sha256": "2b4ec39b23dbf2710b9b1a36f73bf30eecca5cc90a56eab00fb7ae7a144cbd56",
+      "target_wdh_m": [
+        0.45,
+        0.4,
+        1.0
+      ],
+      "verified_wdh_m": [
+        0.45,
+        0.4,
+        1.0
+      ],
+      "target_within_15pct": true,
+      "y_min_m": 0.0,
+      "triangles": 14999,
+      "texture_max_px": 256,
+      "render_front": "renders/view_guitar-e_front.png",
+      "render_34": "renders/view_guitar-e_34.png"
+    },
+    {
+      "id": "keyboard",
+      "glb": "models-v2/keyboard.glb",
+      "glb_sha256": "575168ec72fa8640aaecdd3f92b522b4fc3859cbdd221c9ce0e9fe485d4971cd",
+      "glb_bytes": 594200,
+      "ref_image": "refs/keyboard.png",
+      "ref_sha256": "ff36d7d486bdbc34ab5e1470ebdb5e592abba79460332eb85b39411843f92630",
+      "target_wdh_m": [
+        1.3,
+        0.5,
+        0.95
+      ],
+      "verified_wdh_m": [
+        1.2988,
+        0.4994,
+        0.9498
+      ],
+      "target_within_15pct": true,
+      "y_min_m": 0.0,
+      "triangles": 14998,
+      "texture_max_px": 256,
+      "render_front": "renders/view_keyboard_front.png",
+      "render_34": "renders/view_keyboard_34.png"
+    },
+    {
+      "id": "mic-stand",
+      "glb": "models-v2/mic-stand.glb",
+      "glb_sha256": "0735c0a2f67bc214c31b3d7fdb6589bda77f25c8fb2074238e7313a6fb1abae3",
+      "glb_bytes": 790168,
+      "ref_image": "refs/mic-stand.png",
+      "ref_sha256": "314a7cac941c9033cf3957a06cebef9c026101e8ca828450d683de46d5390055",
+      "target_wdh_m": [
+        0.5,
+        0.5,
+        1.6
+      ],
+      "verified_wdh_m": [
+        0.5,
+        0.5,
+        1.6
+      ],
+      "target_within_15pct": true,
+      "y_min_m": 0.0,
+      "triangles": 15000,
+      "texture_max_px": 384,
+      "render_front": "renders/view_mic-stand_front.png",
+      "render_34": "renders/view_mic-stand_34.png"
+    },
+    {
+      "id": "musician-standing",
+      "glb": "models-v2/musician-standing.glb",
+      "glb_sha256": "4dee70f55479160d52b0e6e97dfa716edfd67e396a40d0fcb68b2090a63241d1",
+      "glb_bytes": 483976,
+      "ref_image": "refs/musician-standing.png",
+      "ref_sha256": "f5adf0d21ddaf9eda420da2b07f7914b94c5cb5a23dbfdea06a4b06b5c077fe9",
+      "target_wdh_m": [
+        0.5,
+        0.3,
+        1.75
+      ],
+      "verified_wdh_m": [
+        0.5,
+        0.3001,
+        1.75
+      ],
+      "target_within_15pct": true,
+      "y_min_m": 0.0,
+      "triangles": 14773,
+      "texture_max_px": 256,
+      "render_front": "renders/view_musician-standing_front.png",
+      "render_34": "renders/view_musician-standing_34.png"
+    },
+    {
+      "id": "musician-seated",
+      "glb": "models-v2/musician-seated.glb",
+      "glb_sha256": "429875fc5767d66fb3b904672c65b406c8a1e0068b340881253cce15c848acc5",
+      "glb_bytes": 573424,
+      "ref_image": "refs/musician-seated.png",
+      "ref_sha256": "3001513193f182fbf2bf25184e8904c4a2c4c17ab89ebb3ba559da500341db7b",
+      "target_wdh_m": [
+        0.5,
+        0.6,
+        1.3
+      ],
+      "verified_wdh_m": [
+        0.5,
+        0.5918,
+        1.3
+      ],
+      "target_within_15pct": true,
+      "y_min_m": 0.0,
+      "triangles": 12646,
+      "texture_max_px": 256,
+      "render_front": "renders/view_musician-seated_front.png",
+      "render_34": "renders/view_musician-seated_34.png"
+    }
+  ]
+}

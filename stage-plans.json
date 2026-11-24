@@ -1,0 +1,817 @@
+{
+  "source": "Sample stage plan for the demo set.",
+  "partItems": {
+    "pf": [
+      "piano",
+      "keyboard"
+    ],
+    "kb": [
+      "keyboard"
+    ],
+    "gtr": [
+      "guitar-e"
+    ],
+    "bs": [
+      "bass"
+    ],
+    "dr": [
+      "drums"
+    ],
+    "voc": [
+      "vocal-main",
+      "vocal-back"
+    ],
+    "str": []
+  },
+  "players": {},
+  "plans": [
+    {
+      "id": "A",
+      "title": "Sample stage",
+      "venue": "Black box (sample): dance floor 18 × 14 m",
+      "stage": {
+        "w": 18,
+        "d": 14,
+        "lw": 16,
+        "lo": 0.5,
+        "sh": 9,
+        "sy": 0.5
+      },
+      "items": [
+        {
+          "id": "i1",
+          "type": "piano",
+          "x": -3.5,
+          "y": 8.0,
+          "rot": 45,
+          "label": "Grand Piano",
+          "player": "keys",
+          "chair": "c1",
+          "gender": "m"
+        },
+        {
+          "id": "i2",
+          "type": "keyboard",
+          "x": -4.0,
+          "y": 9.5,
+          "rot": -30,
+          "label": "Keyboard",
+          "player": "keys",
+          "gender": "m"
+        },
+        {
+          "id": "i3",
+          "type": "guitar-e",
+          "x": -1.5,
+          "y": 8.0,
+          "rot": 0,
+          "label": "Guitar",
+          "gender": "m",
+          "chair": "c2",
+          "sitWhen": [
+            "solo"
+          ]
+        },
+        {
+          "id": "i4",
+          "type": "bass",
+          "x": 1.5,
+          "y": 5.5,
+          "rot": 35,
+          "label": "Double Bass",
+          "gender": "m"
+        },
+        {
+          "id": "i5",
+          "type": "drums",
+          "x": 3.25,
+          "y": 6.75,
+          "rot": 35,
+          "label": "Drum",
+          "gender": "m"
+        },
+        {
+          "id": "i6",
+          "type": "vocal-main",
+          "x": 0,
+          "y": 10.25,
+          "rot": 0,
+          "label": "Vocal",
+          "gender": "f"
+        },
+        {
+          "id": "i7",
+          "type": "vocal-back",
+          "x": -2.5,
+          "y": 5.75,
+          "rot": -20,
+          "label": "BV 1",
+          "gender": "f"
+        },
+        {
+          "id": "i8",
+          "type": "vocal-back",
+          "x": -1.75,
+          "y": 5.5,
+          "rot": -20,
+          "label": "BV 2",
+          "gender": "f"
+        },
+        {
+          "id": "i9",
+          "type": "vocal-back",
+          "x": -1,
+          "y": 5.0,
+          "rot": -20,
+          "label": "BV 3 ★ Flute",
+          "gender": "f"
+        },
+        {
+          "id": "c1",
+          "type": "chair",
+          "x": -4.35,
+          "y": 8.8,
+          "rot": 45,
+          "label": "Piano chair",
+          "w": 0.8,
+          "d": 0.4,
+          "h": 0.46
+        },
+        {
+          "id": "c2",
+          "type": "chair",
+          "x": -1.5,
+          "y": 7.28,
+          "rot": 0,
+          "label": "Guitar stool",
+          "w": 0.4,
+          "d": 0.4,
+          "h": 0.75
+        }
+      ],
+      "note": "",
+      "platforms": [
+        {
+          "id": "pf1",
+          "x": -1.8,
+          "y": 5.15,
+          "w": 3.0,
+          "d": 2.0,
+          "rot": -20.5,
+          "h": 0.3,
+          "label": "Platform +300"
+        },
+        {
+          "id": "pf2",
+          "x": 2.65,
+          "y": 6.35,
+          "w": 5.0,
+          "d": 2.0,
+          "rot": 35.4,
+          "h": 0.3,
+          "label": "Platform +300"
+        }
+      ],
+      "room": {
+        "w": 19.9,
+        "l": 33,
+        "h": 10.24,
+        "seatRows": [
+          {
+            "r": "AA",
+            "from": 44,
+            "to": 24
+          },
+          {
+            "r": "BB",
+            "from": 44,
+            "to": 23
+          },
+          {
+            "r": "A",
+            "from": 45,
+            "to": 21
+          },
+          {
+            "r": "B",
+            "from": 46,
+            "to": 21
+          },
+          {
+            "r": "C",
+            "from": 45,
+            "to": 21
+          },
+          {
+            "r": "D",
+            "from": 45,
+            "to": 21
+          },
+          {
+            "r": "E",
+            "from": 43,
+            "to": 24
+          },
+          {
+            "r": "F",
+            "from": 42,
+            "to": 24
+          },
+          {
+            "r": "G",
+            "from": 43,
+            "to": 24
+          },
+          {
+            "r": "H",
+            "from": 45,
+            "to": 21
+          },
+          {
+            "r": "J",
+            "from": 45,
+            "to": 22
+          },
+          {
+            "r": "K",
+            "from": 45,
+            "to": 21
+          },
+          {
+            "r": "L",
+            "from": 45,
+            "to": 22
+          },
+          {
+            "r": "M",
+            "from": 46,
+            "to": 21
+          },
+          {
+            "r": "N",
+            "from": 43,
+            "to": 23
+          },
+          {
+            "r": "P",
+            "from": 43,
+            "to": 24
+          },
+          {
+            "r": "Q",
+            "from": 43,
+            "to": 23
+          },
+          {
+            "r": "R",
+            "from": 46,
+            "to": 21
+          },
+          {
+            "r": "S",
+            "from": 45,
+            "to": 22
+          },
+          {
+            "r": "T",
+            "from": 46,
+            "to": 21
+          }
+        ],
+        "seats": {
+          "pitch": 0.5,
+          "rowDepth": 0.87,
+          "gap": 0.3,
+          "colMid": 33.5,
+          "baseLevel": 0.15,
+          "rake": 0.18,
+          "floorRows": [
+            "AA",
+            "BB"
+          ]
+        },
+        "source": "Sample black box. Dimensions follow a public venue spec sheet.",
+        "note": "每行座號範圍抄自官方座位圖；行距 0.87 m（由 30.9 m 反推）、每排升 0.18 m 為估算，官方冇列"
+      }
+    }
+  ],
+  "motion": {
+    "_說明": "樂手搖擺：按歌嘅 BPM（songs.json demoBpm）。冇 BPM 嘅歌用 defaultBpm。幅度單位＝度；roll 左右搖、nod 前後點頭（每拍一次）；只喺播放中先郁。",
+    "defaultBpm": 90,
+    "on": {
+      "roll": 3.5,
+      "nod": 2.5
+    },
+    "hl": {
+      "roll": 5.5,
+      "nod": 4.0
+    },
+    "solo": {
+      "roll": 8.0,
+      "nod": 6.0
+    },
+    "easePerSec": 4
+  },
+  "lighting": {
+    "_說明": "燈光 preset＋煙霧機：純視覺預覽（試吓感覺），唔係燈光師 cue。座標＝舞台圖座標（x 由中線、y 由後牆，單位 m），h＝離地高度。level 0–1。",
+    "default": "work",
+    "rig": {
+      "groups": {
+        "wash": {
+          "label": "面光",
+          "peak": 320,
+          "angle": 0.6,
+          "penumbra": 0.7,
+          "decay": 1,
+          "beam": 0.5
+        },
+        "back": {
+          "label": "逆光",
+          "peak": 0,
+          "angle": 0.16,
+          "beam": 1.0
+        },
+        "follow": {
+          "label": "追光",
+          "peak": 520,
+          "angle": 0.26,
+          "penumbra": 0.35,
+          "decay": 1,
+          "beam": 0.9
+        }
+      },
+      "fixtures": [
+        {
+          "id": "w1",
+          "group": "wash",
+          "x": -5.5,
+          "y": 13.5,
+          "h": 7.5,
+          "aim": [
+            -4.4,
+            6.5,
+            0.9
+          ]
+        },
+        {
+          "id": "w2",
+          "group": "wash",
+          "x": -1.8,
+          "y": 13.5,
+          "h": 7.5,
+          "aim": [
+            -1.4,
+            6.5,
+            0.9
+          ]
+        },
+        {
+          "id": "w3",
+          "group": "wash",
+          "x": 1.8,
+          "y": 13.5,
+          "h": 7.5,
+          "aim": [
+            1.4,
+            6.5,
+            0.9
+          ]
+        },
+        {
+          "id": "w4",
+          "group": "wash",
+          "x": 5.5,
+          "y": 13.5,
+          "h": 7.5,
+          "aim": [
+            4.4,
+            6.5,
+            0.9
+          ]
+        },
+        {
+          "id": "b1",
+          "group": "back",
+          "x": -7,
+          "y": 1.2,
+          "h": 6.8,
+          "aim": [
+            -9,
+            17,
+            1.5
+          ]
+        },
+        {
+          "id": "b2",
+          "group": "back",
+          "x": -2.5,
+          "y": 1.2,
+          "h": 6.8,
+          "aim": [
+            -3,
+            17,
+            1.5
+          ]
+        },
+        {
+          "id": "b3",
+          "group": "back",
+          "x": 2.5,
+          "y": 1.2,
+          "h": 6.8,
+          "aim": [
+            3,
+            17,
+            1.5
+          ]
+        },
+        {
+          "id": "b4",
+          "group": "back",
+          "x": 7,
+          "y": 1.2,
+          "h": 6.8,
+          "aim": [
+            9,
+            17,
+            1.5
+          ]
+        },
+        {
+          "id": "f1",
+          "group": "follow",
+          "x": -4.5,
+          "y": 13.5,
+          "h": 7.5,
+          "aim": [
+            0,
+            10.25,
+            1.0
+          ]
+        },
+        {
+          "id": "f2",
+          "group": "follow",
+          "x": 4.5,
+          "y": 13.5,
+          "h": 7.5,
+          "aim": [
+            0,
+            10.25,
+            1.0
+          ]
+        }
+      ],
+      "followFallbackType": "vocal-main",
+      "transitionSec": 0.5,
+      "hangAt": "screenTop"
+    },
+    "presets": [
+      {
+        "id": "work",
+        "name": "工作燈",
+        "hint": "全亮（原本睇法）",
+        "base": {
+          "hemi": 1,
+          "ambient": 1,
+          "key": 1
+        },
+        "wash": {
+          "color": "#ffffff",
+          "level": 0
+        },
+        "back": {
+          "color": "#ffffff",
+          "level": 0
+        },
+        "follow": {
+          "color": "#ffffff",
+          "level": 0
+        }
+      },
+      {
+        "id": "warm",
+        "name": "暖色 Jazz",
+        "hint": "琥珀面光＋暖橙逆光",
+        "base": {
+          "hemi": 0.25,
+          "ambient": 0.3,
+          "key": 0.15
+        },
+        "wash": {
+          "color": "#ffb25a",
+          "level": 0.9
+        },
+        "back": {
+          "color": "#ff8a3d",
+          "level": 0.5
+        },
+        "follow": {
+          "color": "#ffffff",
+          "level": 0
+        }
+      },
+      {
+        "id": "cool",
+        "name": "冷藍 Mood",
+        "hint": "藍面光＋紫藍逆光",
+        "base": {
+          "hemi": 0.2,
+          "ambient": 0.25,
+          "key": 0.1
+        },
+        "wash": {
+          "color": "#4c7dff",
+          "level": 0.9
+        },
+        "back": {
+          "color": "#7a5cff",
+          "level": 0.7
+        },
+        "follow": {
+          "color": "#ffffff",
+          "level": 0
+        }
+      },
+      {
+        "id": "red",
+        "name": "紅色 Drama",
+        "hint": "暗場＋紅逆光＋低面光",
+        "base": {
+          "hemi": 0.12,
+          "ambient": 0.15,
+          "key": 0.05
+        },
+        "wash": {
+          "color": "#ff2a3a",
+          "level": 0.55
+        },
+        "back": {
+          "color": "#ff2a3a",
+          "level": 1
+        },
+        "follow": {
+          "color": "#ffffff",
+          "level": 0
+        }
+      },
+      {
+        "id": "follow",
+        "name": "Solo 追光",
+        "hint": "暗場，追光跟 solo／highlight 樂手（冇就跟主唱）",
+        "base": {
+          "hemi": 0.1,
+          "ambient": 0.12,
+          "key": 0.05
+        },
+        "wash": {
+          "color": "#ffffff",
+          "level": 0
+        },
+        "back": {
+          "color": "#ffffff",
+          "level": 0
+        },
+        "follow": {
+          "color": "#fff3d6",
+          "level": 1
+        }
+      },
+      {
+        "id": "chase",
+        "name": "顏色循環",
+        "hint": "面光同逆光按 BPM 輪流換色（冇 BPM 用預設）",
+        "base": {
+          "hemi": 0.2,
+          "ambient": 0.22,
+          "key": 0.1
+        },
+        "wash": {
+          "color": "#ffffff",
+          "level": 0.85
+        },
+        "back": {
+          "color": "#ffffff",
+          "level": 0.8
+        },
+        "follow": {
+          "color": "#ffffff",
+          "level": 0
+        },
+        "chase": {
+          "colors": [
+            "#ff3b6b",
+            "#ffb02e",
+            "#3bd6ff",
+            "#7a5cff",
+            "#35e089"
+          ],
+          "stepBeats": 2
+        }
+      },
+      {
+        "id": "blackout",
+        "name": "全黑",
+        "hint": "只剩投影幕",
+        "base": {
+          "hemi": 0.02,
+          "ambient": 0.02,
+          "key": 0
+        },
+        "wash": {
+          "color": "#ffffff",
+          "level": 0
+        },
+        "back": {
+          "color": "#ffffff",
+          "level": 0
+        },
+        "follow": {
+          "color": "#ffffff",
+          "level": 0
+        }
+      }
+    ],
+    "fog": {
+      "positions": {
+        "sl_back": {
+          "name": "台左後",
+          "x": -8,
+          "y": 1.0
+        },
+        "c_back": {
+          "name": "台中後",
+          "x": 0,
+          "y": 1.0
+        },
+        "sr_back": {
+          "name": "台右後",
+          "x": 8,
+          "y": 1.0
+        },
+        "sl_front": {
+          "name": "台左前",
+          "x": -8,
+          "y": 13.0
+        },
+        "sr_front": {
+          "name": "台右前",
+          "x": 8,
+          "y": 13.0
+        }
+      },
+      "machines": [
+        {
+          "id": "m1",
+          "name": "煙霧機 1",
+          "pos": "sl_back",
+          "on": false,
+          "strength": 0.5
+        },
+        {
+          "id": "m2",
+          "name": "煙霧機 2",
+          "pos": "sr_back",
+          "on": false,
+          "strength": 0.5
+        }
+      ],
+      "particles": {
+        "maxPuffs": 48,
+        "life": 9,
+        "rise": 0.22,
+        "drift": 0.35,
+        "size0": 1.4,
+        "size1": 4.2,
+        "peakOpacity": 0.3,
+        "emitHeight": 0.35,
+        "globalDensity": 0.014,
+        "spawnPerFrame": 3,
+        "driftGain": 3,
+        "lifeGain": 0.8,
+        "riseGain": 0.6,
+        "sizeGain": 0.8,
+        "spreadBase": 1.2,
+        "spreadGain": 3.2,
+        "turb": 0.25,
+        "turbFreq": 0.5,
+        "drag": 0.5,
+        "limit": {
+          "x": 9.5,
+          "zMin": 0.3,
+          "zMax": 30,
+          "yMax": 6
+        },
+        "_說明": "強度越高：飄得越快、越遠（drift×(1+driftGain×強度)）、壽命越長、散開角度越闊（spreadBase＋spreadGain×強度，弧度）、團越大。turb／turbFreq＝亂流；drag＝越飄越慢；limit＝煙喺場內反彈（m）。"
+      }
+    },
+    "levels": 10,
+    "spots": {
+      "_說明": "追光：一組設定（顏色／強度 1–levels／光束闊度 1–levels）＋ 一份名單（跟 solo、樂手、固定點），名單入面每人一束光，最多 max 束。光由前面吊台（hangY）照住目標，x 跟目標；高度跟投影幕頂（rig.hangAt）。",
+      "peak": 520,
+      "penumbra": 0.35,
+      "decay": 1,
+      "beam": 0.55,
+      "angleMin": 0.07,
+      "angleMax": 0.45,
+      "beamLength": 28,
+      "soloLabel": "跟 solo／highlight 樂手",
+      "targetTypes": [
+        "piano",
+        "keyboard",
+        "guitar-e",
+        "bass",
+        "drums",
+        "vocal-main",
+        "vocal-back"
+      ],
+      "points": {
+        "pt_center": {
+          "name": "台中",
+          "x": 0,
+          "y": 8.5,
+          "h": 1.0
+        },
+        "pt_left": {
+          "name": "台左",
+          "x": -5,
+          "y": 8.5,
+          "h": 1.0
+        },
+        "pt_right": {
+          "name": "台右",
+          "x": 5,
+          "y": 8.5,
+          "h": 1.0
+        },
+        "pt_front": {
+          "name": "台前",
+          "x": 0,
+          "y": 11.5,
+          "h": 1.0
+        }
+      },
+      "max": 6,
+      "hangY": 13.5,
+      "hangH": 9.5,
+      "hangXMax": 8,
+      "default": {
+        "on": false,
+        "color": "#fff3d6",
+        "strength": 8,
+        "width": 4,
+        "targets": [
+          "@solo"
+        ]
+      }
+    }
+  },
+  "staysOnStage": {
+    "_說明": "呢啲類型嘅器材成場都喺台上（歌曲冇用到只係樂手唔喺度）；其餘（例如主唱咪架）冇用到就隱藏",
+    "types": [
+      "piano",
+      "keyboard",
+      "guitar-e",
+      "bass",
+      "drums"
+    ]
+  },
+  "links": {
+    "_說明": "標題列外部連結：key 對應 index.html 內 data-link；冇設定就不顯示。"
+  },
+  "export": {
+    "credit": {
+      "_說明": "報告頁尾署名；url 只當文字顯示（報告冇外部連結）。冇 text 就唔出。",
+      "text": "Made with cuesheet-board",
+      "url": ""
+    },
+    "_說明": "輸出報告（自包含 HTML，可列印做 PDF）。image＝3D 出圖尺寸同 JPEG 品質；cams＝可揀嘅 3D 鏡頭（id 對應 3D 工具列）；settleSteps×settleDt＝出圖前將燈光／煙霧快轉幾多秒；svgWidth＝2D 圖排標籤時用嘅寬度（px）。",
+    "title": "cuesheet-board — Show Flow",
+    "image": {
+      "width": 1280,
+      "height": 720,
+      "quality": 0.82
+    },
+    "cams": [
+      {
+        "id": "aud",
+        "label": "觀眾席視角",
+        "default": true
+      },
+      {
+        "id": "top",
+        "label": "俯視（燈位／走位）",
+        "default": false
+      }
+    ],
+    "settleSteps": 40,
+    "settleDt": 0.1,
+    "svgWidth": 640
+  },
+  "site": {
+    "_說明": "標題列文字（可選）。冇寫就用 index.html 預設。",
+    "title": "cuesheet-board — Show Flow",
+    "brand": "CUESHEET BOARD",
+    "meta": "SHOW FLOW · SAMPLE SET"
+  }
+}

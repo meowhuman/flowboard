@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:," />
+    <title>cuesheet-board</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand"><b>C</b>UESHEET BOARD</div>
+      <div class="meta">SHOW FLOW · SAMPLE SET</div>
+      <div class="tools">
+        <a class="smallbtn" data-link="repo" hidden></a>
+        <a class="smallbtn" data-link="scores" target="_blank" rel="noopener" hidden></a>
+        <button class="smallbtn" id="export" aria-haspopup="dialog">輸出</button>
+        <button class="smallbtn" id="share">複製分享連結</button>
+        <button class="smallbtn" id="reset">重設配置</button>
+      </div>
+    </header>
+    <main class="layout" id="app" aria-label="歌曲與影片預演板">
+      <section class="panel">
+        <header class="panelhead">
+          <div>
+            <h2>歌曲</h2>
+            <div class="sub">拖曳排序 · 選歌配 loop</div>
+            <div class="loopcount" id="loopCount">0 / 0 首已有 loop</div>
+          </div>
+          <input
+            id="search"
+            class="search"
+            aria-label="搜尋歌曲或影片"
+            placeholder="搜尋歌曲…"
+          />
+        </header>
+        <div id="songs" class="songs"></div>
+      </section>
+      <section class="panel center">
+        <div class="now">
+          <div class="nowtext">
+            <strong id="nowTitle">選擇歌曲或影片</strong
+            ><small id="nowMeta">loop 會在此頁內嵌播放</small>
+          </div>
+          <div class="viewbar" role="group" aria-label="顯示內容" id="viewbar">
+          <button data-view="video" aria-pressed="true">影片</button>
+          <button data-view="stage" aria-pressed="false">舞台</button>
+          <button data-view="timeline" aria-pressed="false">時間線</button>
+          <button data-view="three" aria-pressed="false">3D</button>
+          <button data-view="lyrics" aria-pressed="false">歌詞</button>
+          <button data-view="charts" aria-pressed="false">譜</button>
+          <button data-view="library" aria-pressed="true" class="viewlib">素材庫</button>
+          </div>
+          <button id="clearVideo" class="smallbtn">停止影片</button>
+        </div>
+        <div class="panels" id="panels" data-count="1">
+          <div class="pane" data-pane="video">
+        <div class="videohold">
+          <video id="vplayer" class="video" muted playsinline preload="metadata" hidden></video>
+          <iframe
+            id="video"
+            class="video"
+            title="影片預覽播放器"
+            allow="autoplay; encrypted-media; picture-in-picture"
+            allowfullscreen
+            referrerpolicy="strict-origin-when-cross-origin"
+          ></iframe>
+        </div>
+        <div id="status" class="hint" role="status">
+          選取 loop 後會在此播放。
+        </div>
+          </div>
+          <div class="pane" data-pane="stage" hidden><div id="stagebox" class="stagebox"></div></div>
+          <div class="pane" data-pane="timeline" hidden><div id="timelinebox" class="stagebox"></div></div>
+          <div class="pane" data-pane="three" hidden><div id="threebox" class="threebox"></div></div>
+          <div class="pane" data-pane="lyrics" hidden></div>
+        </div>
+        <section class="scoredock" id="scoredock" data-pane="charts" aria-label="譜" hidden>
+          <div class="scorehandle" id="scorehandle" role="separator" aria-orientation="horizontal" tabindex="0" title="拖動調整譜嘅高度" aria-label="拖動調整譜嘅高度"></div>
+          <div class="scorebody" id="scorebody"></div>
+        </section>
+        <div class="dock" id="dock" data-dock="full">
+          <div class="player" id="player">
+            <button id="prevSong" class="pbtn" aria-label="上一首歌曲" title="上一首"></button>
+            <button id="playBtn" class="pbtn play" aria-label="播放" title="播放／暫停（空白鍵）"></button>
+            <button id="nextSong" class="pbtn" aria-label="下一首歌曲" title="下一首"></button>
+            <div class="np"><strong id="npTitle">—</strong><small id="npSub">歌曲排練音訊</small></div>
+            <div id="versions" class="versions" aria-label="音訊版本" hidden></div>
+            <span class="time" id="tCur">0:00</span>
+            <input id="seek" class="seek" type="range" min="0" max="1000" value="0" step="1" aria-label="播放位置" />
+            <span class="time" id="tDur">0:00</span>
+            <button id="muteBtn" class="pbtn" aria-label="靜音" title="靜音"></button>
+            <input id="vol" class="vol" type="range" min="0" max="100" value="100" aria-label="音量" />
+            <button id="dockToggle" class="pbtn dockbtn" aria-expanded="true" aria-label="收埋下欄" title="收埋／展開下欄（loop 組合）"></button>
+            <audio id="audio" preload="none"></audio>
+          </div>
+        <div class="assignments">
+          <div class="assignhead">
+            <span id="assignTitle">此歌的 loop 組合</span
+            ><span>拖曳縮圖重排；拖入歌曲可重新配歌</span>
+          </div>
+          <div class="assigned" id="assigned"></div>
+        </div>
+        </div>
+      </section>
+      <section class="panel">
+        <header class="panelhead">
+          <div>
+            <h2>影片 loop</h2>
+            <div class="sub">真實檔名 · 點選播放／配入目前歌曲</div>
+          </div>
+          <div class="tools">
+            <span class="pill exact">EXACT</span><span class="pill candidate">CANDIDATE</span
+            ><span class="pill section">SECTION</span>
+          </div>
+        </header>
+        <div id="library" class="library"></div>
+        <div class="libraryfoot">
+          縮圖為同站快取；選取才載入影片。
+        </div>
+      </section>
+    </main>
+    <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.min.js","three/addons/":"./vendor/three/examples/jsm/"}}</script>
+    <script src="people.js"></script>
+    <script src="stage.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
