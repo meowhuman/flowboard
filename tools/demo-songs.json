@@ -82,6 +82,13 @@
       "provider": "suno",
       "url": "https://suno.com/song/557e3cb8-6d92-4362-8b05-c8508c007717"
      }
+    },
+    {
+     "label": "spotify",
+     "embed": {
+      "provider": "spotify",
+      "url": "https://open.spotify.com/track/4Vkk3iD1VrENHJEACNddvt"
+     }
     }
    ]
   },
@@ -131,6 +138,13 @@
      "embed": {
       "provider": "suno",
       "url": "https://suno.com/song/fe8b4198-f7a6-45dd-92ce-1e9ac1ef2299"
+     }
+    },
+    {
+     "label": "spotify",
+     "embed": {
+      "provider": "spotify",
+      "url": "https://open.spotify.com/track/0K9rIsZfdlzAoOEWyeFQYM"
      }
     }
    ]

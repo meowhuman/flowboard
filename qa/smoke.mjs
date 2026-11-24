@@ -83,6 +83,11 @@ ok('冇外部網絡請求（淨係同源）', ext.length === 0, ext.slice(0, 3).
 
 // ---- 內嵌版本（Suno）：攔截 iframe 目標，唔真係連外網 ----
 await p.route(/^https:\/\/suno\.com\/embed\/.*/, (r) => r.fulfill({ contentType: 'text/html', body: '<!doctype html><title>fake embed</title><button>play</button>' }));
+await p.route(/^https:\/\/open\.spotify\.com\/embed\/.*/, (r) => r.fulfill({ contentType: 'text/html', body: '<!doctype html><title>fake embed</title><button>play</button>' }));
+await p.click('.song[data-num="02"]'); await p.waitForTimeout(500);
+const chips02 = await p.$$eval('#versions .vchip', (e) => e.map((x) => x.textContent));
+ok('內嵌版本：02 有 spotify chip，揀咗 → iframe 指向 open.spotify.com/embed/track', chips02.includes('spotify') && (await p.click('#versions .vchip:has-text("spotify")'), await p.waitForTimeout(500), (await p.$$eval('iframe.embedframe', (e) => e.map((x) => x.src))).join() === 'https://open.spotify.com/embed/track/4Vkk3iD1VrENHJEACNddvt'), chips02.join(','));
+await p.click('#versions .vchip >> nth=0'); await p.waitForTimeout(300);
 await p.click('.song[data-num="01"]'); await p.waitForTimeout(500);
 const chips01 = await p.$$eval('#versions .vchip', (e) => e.map((x) => x.textContent));
 ok('內嵌版本：01 有 suno chip', chips01.includes('suno'), chips01.join(','));

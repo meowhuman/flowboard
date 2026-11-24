@@ -36,6 +36,10 @@ Early and honest:
 
 ## Try it
 
+Live sample (unlisted, not indexed): https://cuesheet-board-demo.netlify.app/
+
+Or run it yourself:
+
 ```bash
 git clone <this repo> && cd cuesheet-board
 python3 qa/range-server.py 8080 . 127.0.0.1
@@ -54,7 +58,7 @@ The sample set exercises every feature, so you can click through them before loa
 | 2D plan, solo and highlight | Stage view. Grand Piano and Vocal are placed on the sample stage; the timeline colours show on-stage, solo and highlight |
 | 3D lighting with an imported rig | Stage view, `僅 3D`, then the lighting button. 76 fixtures come from `samples/mvr/capture_demo_show.mvr` |
 | Versions | Song 06 has instrumental and vocal audio versions |
-| Embedded versions | Songs 01 to 05 each have a `suno` chip that opens the original Suno page in a player inside the board |
+| Embedded versions | Songs 01 to 05 each have a `suno` chip that plays the original Suno song inside the board. Songs 02 and 04 also have a `spotify` chip (reference tracks) |
 | Loops | Songs have three sample video loops. Pick one in the loop panel |
 | Lyrics and form chart | Song 01 has lyrics and a generated form chart |
 | One-click report | `輸出`, tick sections, get a self-contained HTML file |
