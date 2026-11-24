@@ -35,6 +35,10 @@
           />
         </header>
         <div id="songs" class="songs"></div>
+        <details class="mi-list" id="miList" hidden>
+          <summary id="miListTitle">M+ MI list</summary>
+          <div class="mi-list-content" id="miListContent"></div>
+        </details>
       </section>
       <section class="panel center">
         <div class="now">
@@ -46,10 +50,11 @@
           <button data-view="video" aria-pressed="true">影片</button>
           <button data-view="stage" aria-pressed="false">舞台</button>
           <button data-view="timeline" aria-pressed="false">時間線</button>
-          <button data-view="three" aria-pressed="false">3D</button>
           <button data-view="lyrics" aria-pressed="false">歌詞</button>
           <button data-view="charts" aria-pressed="false">譜</button>
+          <button id="songsBtn" type="button" aria-pressed="true" class="viewlib" title="收埋／展開左邊歌單，畀中間更闊">歌單</button>
           <button data-view="library" aria-pressed="true" class="viewlib">素材庫</button>
+          <button id="dockBtn" type="button" aria-pressed="true" class="viewlib" title="收埋／展開舞台下面嘅 loop 組合欄，畀舞台更大">Loop 欄</button>
           </div>
           <button id="clearVideo" class="smallbtn">停止影片</button>
         </div>
@@ -71,7 +76,6 @@
         </div>
           </div>
           <div class="pane" data-pane="stage" hidden><div id="stagebox" class="stagebox"></div></div>
-          <div class="pane" data-pane="timeline" hidden><div id="timelinebox" class="stagebox"></div></div>
           <div class="pane" data-pane="three" hidden><div id="threebox" class="threebox"></div></div>
           <div class="pane" data-pane="lyrics" hidden></div>
         </div>
@@ -80,20 +84,6 @@
           <div class="scorebody" id="scorebody"></div>
         </section>
         <div class="dock" id="dock" data-dock="full">
-          <div class="player" id="player">
-            <button id="prevSong" class="pbtn" aria-label="上一首歌曲" title="上一首"></button>
-            <button id="playBtn" class="pbtn play" aria-label="播放" title="播放／暫停（空白鍵）"></button>
-            <button id="nextSong" class="pbtn" aria-label="下一首歌曲" title="下一首"></button>
-            <div class="np"><strong id="npTitle">—</strong><small id="npSub">歌曲排練音訊</small></div>
-            <div id="versions" class="versions" aria-label="音訊版本" hidden></div>
-            <span class="time" id="tCur">0:00</span>
-            <input id="seek" class="seek" type="range" min="0" max="1000" value="0" step="1" aria-label="播放位置" />
-            <span class="time" id="tDur">0:00</span>
-            <button id="muteBtn" class="pbtn" aria-label="靜音" title="靜音"></button>
-            <input id="vol" class="vol" type="range" min="0" max="100" value="100" aria-label="音量" />
-            <button id="dockToggle" class="pbtn dockbtn" aria-expanded="true" aria-label="收埋下欄" title="收埋／展開下欄（loop 組合）"></button>
-            <audio id="audio" preload="none"></audio>
-          </div>
         <div class="assignments">
           <div class="assignhead">
             <span id="assignTitle">此歌的 loop 組合</span
@@ -103,23 +93,50 @@
         </div>
         </div>
       </section>
-      <section class="panel">
-        <header class="panelhead">
-          <div>
-            <h2>影片 loop</h2>
-            <div class="sub">真實檔名 · 點選播放／配入目前歌曲</div>
+      <section class="panel rightcol" id="rightcol">
+        <div class="tlpanel" id="tlpanel" hidden>
+          <header class="panelhead"><h2>時間線</h2></header>
+          <div id="timelinebox" class="stagebox"></div>
+        </div>
+        <div class="libpanel" id="libpanel">
+          <header class="panelhead">
+            <div>
+              <h2 id="libTitle">影片 loop</h2>
+              <div class="sub">真實檔名 · 點選播放／配入目前歌曲</div>
+            </div>
+            <div class="tools">
+              <span class="pill exact">EXACT</span><span class="pill candidate">CANDIDATE</span
+              ><span class="pill section">SECTION</span
+              ><button id="libToggle" class="smallbtn" aria-expanded="true" aria-controls="library" title="收埋／展開素材庫" aria-label="收埋素材庫">▾</button>
+            </div>
+          </header>
+          <div id="library" class="library"></div>
+          <div class="libraryfoot">
+            縮圖為同站快取；選取才載入影片。
           </div>
-          <div class="tools">
-            <span class="pill exact">EXACT</span><span class="pill candidate">CANDIDATE</span
-            ><span class="pill section">SECTION</span>
-          </div>
-        </header>
-        <div id="library" class="library"></div>
-        <div class="libraryfoot">
-          縮圖為同站快取；選取才載入影片。
         </div>
       </section>
     </main>
+    <div class="playerbar" id="playerbar">
+    <div class="embedrow" id="embedRow" hidden>
+      <span class="embedhint" role="status">內嵌播放唔同步時間線</span>
+    </div>
+    <div class="player" id="player">
+      <button id="prevSong" class="pbtn" aria-label="上一首歌曲" title="上一首"></button>
+      <button id="playBtn" class="pbtn play" aria-label="播放" title="播放／暫停（空白鍵）"></button>
+      <button id="nextSong" class="pbtn" aria-label="下一首歌曲" title="下一首"></button>
+      <button id="autoNext" class="pbtn autonext" type="button" aria-pressed="true" aria-label="連播" title="連播">連播</button>
+      <div class="np"><strong id="npTitle">—</strong><small id="npSub">歌曲排練音訊</small></div>
+      <div id="versions" class="versions" aria-label="音訊版本" hidden></div>
+      <span class="time" id="tCur">0:00</span>
+      <input id="seek" class="seek" type="range" min="0" max="1000" value="0" step="1" aria-label="播放位置" />
+      <span class="time" id="tDur">0:00</span>
+      <button id="muteBtn" class="pbtn" aria-label="靜音" title="靜音"></button>
+      <input id="vol" class="vol" type="range" min="0" max="100" value="100" aria-label="音量" />
+      <button id="dockToggle" class="pbtn dockbtn" aria-expanded="true" aria-label="收埋下欄" title="收埋／展開下欄（loop 組合）"></button>
+      <audio id="audio" preload="none"></audio>
+    </div>
+    </div>
     <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.min.js","three/addons/":"./vendor/three/examples/jsm/"}}</script>
     <script src="people.js"></script>
     <script src="stage.js"></script>

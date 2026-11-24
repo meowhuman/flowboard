@@ -406,9 +406,17 @@ export async function mount(box, api) {
     if (kind === 'seat' && seatInfo) {
       const k = seatInfo.eyeRow;
       camera.position.set(0, seatInfo.tierOf(k) + 0.45 + 0.75, seatInfo.rowZ(k));
-      controls.target.set(0, 1.4, s.d * 0.45);
+      // 座位視角：鏡頭位置固定（坐喺該排），所以按投影幕頂同台面調上下仰角，保證幕頂唔會切走
+      const camY = camera.position.y,
+        dzScreen = Math.max(Math.abs((s.lo || 0) - camera.position.z), 1),
+        dzStage = Math.max(Math.abs(s.d * 0.45 - camera.position.z), 1),
+        aTop = Math.atan2((screenTop == null ? 3 : screenTop) - camY, dzScreen),
+        aFeet = Math.atan2(0.2 - camY, dzStage),
+        c = aTop - aFeet <= vf * 0.88 ? (aTop + aFeet) / 2 : aTop - (vf / 2) * 0.88;
+      controls.target.set(0, camY + Math.tan(c) * dzStage, s.d * 0.45);
       controls.update();
       camKind = kind;
+      syncCamBtns();
       return;
     }
     if (kind === 'top') camera.position.set(0, Math.max(s.d * 1.9, need * 0.95), s.d * 0.55);
@@ -417,12 +425,15 @@ export async function mount(box, api) {
     controls.target.copy(t);
     controls.update();
     camKind = kind;
+    syncCamBtns();
   }
   let camKind = 'aud',
     touched = false;
   controls.addEventListener('start', () => (touched = true));
   let lastStage = null;
   const syncModeBtns = () => bar.querySelectorAll('[data-mode]').forEach((b) => b.setAttribute('aria-pressed', String(api.getMode() === b.dataset.mode)));
+  const syncCamBtns = () => bar.querySelectorAll('[data-cam]').forEach((b) => b.setAttribute('aria-pressed', String(camKind === b.dataset.cam)));
+  syncCamBtns();
   bar.onclick = (e) => {
     const d = e.target.dataset || {};
     if (d.cam) { touched = false; setCam(d.cam); }

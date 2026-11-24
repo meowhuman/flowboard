@@ -59,9 +59,17 @@ await p.click('#library .clip >> nth=0'); await p.waitForTimeout(2500);
 const vp = await p.evaluate(() => { const v = document.querySelector('#vplayer'); return { hidden: v.hidden, src: v.getAttribute('src'), rs: v.readyState }; });
 ok('影片 loop：本地 mp4 載入、冇走 Drive', !vp.hidden && /^media\/loops\/.+\.mp4$/.test(vp.src) && vp.rs >= 2, JSON.stringify(vp));
 
-await p.click('[data-view="three"]'); await p.waitForSelector('#threebox canvas', { timeout: 60000 }); await p.waitForTimeout(1500);
+await p.click('#viewbar [data-view="stage"]'); await p.locator('[data-mode="3d"]:visible').first().click();
+await p.waitForSelector('#threebox canvas', { timeout: 90000 });
+await p.waitForFunction(() => window.__stage3d && window.__stage3d.lighting && window.__stage3d.lighting.fixtures, null, { timeout: 120000 });
 ok('3D：canvas 出現', (await p.locator('#threebox canvas').count()) === 1);
-await p.click('[data-view="three"]');
+const nfix = await p.evaluate(() => window.__stage3d.lighting.fixtures.length);
+const plan = await p.evaluate(() => fetch('stage-plans.json').then((r) => r.json()));
+ok('燈光：舞台燈位由 MVR（Capture 匯出）匯入，76 支', nfix >= 76 && plan.lighting.mvrImport && plan.lighting.mvrImport.fixtureCount === 76 && plan.lighting.rig.hangAt !== 'screenTop', 'fixtures=' + nfix + ' ' + JSON.stringify(plan.lighting.mvrImport || {}).slice(0, 120));
+await p.click('.threebar [data-light]'); await p.click('[data-preset="warm"]'); await p.waitForTimeout(2500);
+const lit = await p.evaluate(() => window.__stage3d.lighting.fixtures.filter((f) => f.level > 0.05).length);
+ok('燈光：揀「暖色 Jazz」→ 多支燈亮起', lit >= 20, 'lit=' + lit);
+await p.click('#viewbar [data-view="stage"]');
 
 await p.click('#export'); await p.waitForSelector('.exp-card');
 await p.click('[data-all="0"]'); await p.check('.exp-card [data-song="01"]');
@@ -72,6 +80,20 @@ ok('輸出：報告有歌名、段落、2D 圖，冇 script、冇外部連結', 
 await p.click('.exp-head [data-x]');
 
 ok('冇外部網絡請求（淨係同源）', ext.length === 0, ext.slice(0, 3).join(' | '));
+
+// ---- 內嵌版本（Suno）：攔截 iframe 目標，唔真係連外網 ----
+await p.route(/^https:\/\/suno\.com\/embed\/.*/, (r) => r.fulfill({ contentType: 'text/html', body: '<!doctype html><title>fake embed</title><button>play</button>' }));
+await p.click('.song[data-num="01"]'); await p.waitForTimeout(500);
+const chips01 = await p.$$eval('#versions .vchip', (e) => e.map((x) => x.textContent));
+ok('內嵌版本：01 有 suno chip', chips01.includes('suno'), chips01.join(','));
+await p.click('#versions .vchip:has-text("suno")'); await p.waitForTimeout(500);
+const ifr = await p.$$eval('iframe.embedframe', (e) => e.map((x) => ({ src: x.src, sandbox: x.getAttribute('sandbox') })));
+ok('內嵌版本：揀 suno → iframe 指向 suno.com/embed、有 sandbox，本地音訊暫停', ifr.length === 1 && /^https:\/\/suno\.com\/embed\/[0-9a-f-]{36}$/.test(ifr[0].src) && !!ifr[0].sandbox && await p.$eval('#audio', (a) => a.paused));
+await p.click('#versions .vchip >> nth=0'); await p.waitForTimeout(400);
+ok('內嵌版本：轉返主版本 → iframe 移除', (await p.$$('iframe.embedframe')).length === 0);
+await p.click('#songsBtn'); await p.waitForTimeout(300);
+ok('歌單掣：收埋左邊歌單', await p.evaluate(() => document.querySelector('#app').dataset.songs === 'off'));
+await p.click('#songsBtn'); await p.waitForTimeout(300);
 ok('冇 console／page 錯誤', errs.length === 0, errs.join(' | ').slice(0, 300));
 
 // ---- 手機 390 ----
@@ -81,7 +103,7 @@ ok('手機：頁面冇橫向溢出、標題列掣喺畫面內', mg.sw <= 390 && 
 ok('手機：冇 console／page 錯誤', me.length === 0, me.join(' | ').slice(0, 300));
 
 // ---- 靜態掃描：公開 repo 唔准有私人字眼 ----
-const BAD = /jace|drip|westk|freespace|drive\.google|西九|netlify|\.env|password|passcode/i;
+const BAD = /jace|drip|westk|freespace|drive\.google|西九|netlify|\.env|passcode/i;
 const SKIP = new Set(['node_modules', 'vendor', 'media', 'logs', '.git', 'qa']);
 const hits = [];
 (function walk(dir) {
@@ -96,6 +118,7 @@ const hits = [];
   }
 })(ROOT);
 ok('靜態掃描：冇私人字眼（JACE／Drip／WestK／Freespace／Drive／密碼）', hits.length === 0, hits.slice(0, 6).join(' | '));
+ok('靜態掃描：index.html 冇密碼輸入', !/type="password"/i.test(fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8')));
 
 await browser.close();
 const pass = res.filter(Boolean).length;

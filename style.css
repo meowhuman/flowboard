@@ -182,7 +182,57 @@ input:focus-visible,
   grid-auto-rows: minmax(var(--song-row), auto);
   gap: 3px;
   min-height: 0;
+  flex: 1 1 auto;
   overflow-y: auto;
+}
+.mi-list {
+  flex: none;
+  border-top: 1px solid var(--line);
+  padding: 0 10px;
+  color: var(--fg);
+}
+.mi-list summary {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: var(--muted);
+  font: 600 var(--fs-small) var(--sans);
+}
+.mi-list[hidden] {
+  display: none;
+}
+.mi-list-content {
+  max-height: 36vh;
+  overflow-y: auto;
+  padding: 0 0 10px;
+}
+.mi-group {
+  padding: 8px 0;
+  border-top: 1px solid #2b302c;
+}
+.mi-group:first-child {
+  border-top: 0;
+}
+.mi-group h3 {
+  margin: 0 0 5px;
+  color: var(--fg);
+  font: 600 var(--fs-body) var(--sans);
+}
+.mi-group ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.mi-remark {
+  margin: 6px 0 0;
+  color: var(--accent-fg);
+  font-size: var(--fs-small);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 .song {
   display: grid;
@@ -831,6 +881,32 @@ img.docframe {
   color: var(--muted);
   font-size: var(--fs-small);
 }
+.stage-rotate-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.stage-rotate-tools select {
+  min-width: 180px;
+  min-height: 30px;
+  max-width: 210px;
+  padding: 3px 24px 3px 7px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #222722;
+  color: var(--fg);
+  font: inherit;
+}
+.stage-rotation-angle {
+  min-width: 32px;
+  color: var(--muted);
+  text-align: center;
+  font: var(--fs-small) var(--mono);
+}
+.stage-rotate-tools select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 .stagebar .smallbtn[aria-pressed='true'] {
   background: var(--accent);
   border-color: var(--accent);
@@ -891,11 +967,39 @@ img.docframe {
 .perf .ring {
   stroke-dasharray: 0.12 0.12;
 }
+.perf .detail {
+  fill: none;
+  stroke: #6b726c;
+  stroke-width: 0.035;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.perf .detail-dot,
+.perf .black-key {
+  fill: #6b726c;
+  stroke: none;
+}
+.perf .panel {
+  fill: rgba(107, 114, 108, 0.2);
+  stroke: #6b726c;
+  stroke-width: 0.035;
+}
 .perf.off {
   opacity: 0.4;
 }
 .perf.on .shape {
   fill: rgba(215, 221, 213, 0.16);
+  stroke: #d7ddd5;
+}
+.perf.on .detail {
+  stroke: #d7ddd5;
+}
+.perf.on .detail-dot,
+.perf.on .black-key {
+  fill: #d7ddd5;
+}
+.perf.on .panel {
+  fill: rgba(215, 221, 213, 0.2);
   stroke: #d7ddd5;
 }
 .perf.on .keys {
@@ -908,6 +1012,12 @@ img.docframe {
 .perf.hl .shape {
   fill: #31c6f5;
   stroke: #c8f1ff;
+}
+.perf .shape.outline,
+.perf.on .shape.outline,
+.perf.solo .shape.outline,
+.perf.hl .shape.outline {
+  fill: transparent;
 }
 .stage-svg .lbl.solo {
   fill: #ffe08a;
@@ -948,6 +1058,7 @@ img.docframe {
 }
 
 @media (max-width: 900px) {
+  .stage-rotate-tools select { max-width: 210px; }
   .stagewrap {
     flex: none;
   }
@@ -1054,6 +1165,22 @@ img.docframe {
 }
 .layout[data-library='off'] > .panel:last-child {
   display: none;
+}
+/* 左邊歌單收埋（#songsBtn）：歌單 panel 唔佔位，中欄（同素材庫）攞返空間 */
+.layout[data-songs='off'] > .panel:first-child {
+  display: none;
+}
+.layout[data-songs='off'] {
+  grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+}
+.layout[data-songs='off'][data-library='off'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (max-width: 900px) {
+  .layout[data-songs='off'],
+  .layout[data-songs='off'][data-library='off'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 @media (max-width: 900px) {
   /* 手機一欄：素材庫收埋時唔好返回雙欄（否則歌曲面板被擠成窄條） */
@@ -1510,6 +1637,11 @@ body[data-lx] #reset {
   display: inline-flex;
   gap: 4px;
 }
+.camseg button[aria-pressed='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
 
 /* ===== 精簡標題列：標題＋顯示開關喺同一行 ===== */
 .now {
@@ -1564,6 +1696,10 @@ body[data-lx] #reset {
   gap: 6px;
   min-width: 0;
 }
+.dock[hidden],
+#dockToggle[hidden] {
+  display: none;
+}
 .dock[data-dock='min'] .assignments {
   display: none;
 }
@@ -1596,6 +1732,18 @@ body[data-lx] #reset {
 .pbtn:hover {
   background: #353c36;
   border-color: #6a736b;
+}
+.pbtn.autonext {
+  width: auto;
+  min-width: 44px;
+  padding: 0 9px;
+  border-radius: 16px;
+  font-size: 11px;
+}
+.pbtn.autonext[aria-pressed='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
 }
 .pbtn.play {
   width: 40px;
@@ -2096,6 +2244,41 @@ body[data-lx] #reset {
   gap: 6px;
   margin: 2px 0 4px;
 }
+.exp-standalone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+}
+.exp-standalone small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+.exp-standalone button {
+  flex: none;
+  min-height: 36px;
+  border-color: var(--accent);
+}
+.exp-row .exp-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-width: 0;
+  cursor: pointer;
+}
+.exp-row .exp-only {
+  flex: none;
+  min-height: 36px;
+  padding: 3px 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
 .exp-songs {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -2238,7 +2421,7 @@ body[data-lx] #reset {
 
 /* ===== 譜面板：中欄下層，可拖高低（聽歌同睇譜同時） ===== */
 .scoredock {
-  flex: none;
+  flex: 0 1 var(--score-h, 38vh);
   height: var(--score-h, 38vh);
   min-height: 140px;
   display: flex;
@@ -2292,4 +2475,220 @@ body.score-resizing iframe {
   .scoredock {
     height: var(--score-h, 46vh);
   }
+}
+
+/* ===== 底部播放列（全寬固定喺頁底；高度由 app.js 量度後寫入 --bar-h） ===== */
+.playerbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 15;
+  padding: 6px var(--gap) calc(6px + env(safe-area-inset-bottom));
+  background: #141714;
+  border-top: 1px solid var(--line);
+}
+.playerbar .player {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+/* 內嵌播放列：embed 版本揀中時喺播放列位置顯示 Suno／Spotify iframe */
+.embedrow {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.embedrow .embedhint {
+  display: block;
+  padding: 4px 2px;
+  color: var(--muted);
+  font-size: var(--fs-small);
+  overflow-wrap: anywhere;
+}
+.embedrow .embedframe {
+  display: block;
+  width: 100%;
+  height: 164px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+@media (max-width: 900px) {
+  .embedrow .embedframe {
+    height: 152px;
+  }
+}
+.layout {
+  height: calc(100dvh - var(--top-h) - var(--bar-h, 64px));
+}
+.toast {
+  bottom: calc(var(--bar-h, 64px) + 12px);
+}
+@media (max-width: 900px) {
+  body {
+    padding-bottom: var(--bar-h, 64px);
+  }
+  .layout {
+    height: auto;
+    min-height: calc(100dvh - var(--top-h) - var(--bar-h, 64px));
+  }
+}
+@media (max-width: 900px) {
+  .playerbar #muteBtn,
+  .playerbar #vol {
+    display: none;
+  }
+  .playerbar .np {
+    flex: 1 1 90px;
+  }
+  .playerbar #dockToggle {
+    order: 8;
+  }
+  .playerbar #tCur {
+    order: 9;
+  }
+  .playerbar #seek {
+    order: 10;
+    flex: 1 1 120px;
+  }
+  .playerbar #tDur {
+    order: 11;
+  }
+}
+/* 譜面板用預設高度時，要讓出位畀上面嘅格（歌詞／影片最少 150px）；用家拖過手柄就跟用家揀嘅高度 */
+@media (min-width: 901px) {
+  .center:has(.scoredock:not([hidden]):not([style*='--score-h'])) .panels {
+    min-height: 150px;
+  }
+}
+.scoredock[style*='--score-h'] {
+  flex: none;
+}
+/* 燈光面板開住時收埋 3D 左下角說明，防止窄窗同面板重疊 */
+.lp-open .threenote {
+  display: none;
+}
+
+/* ===== 右欄：時間線（上）＋素材庫（下，可收埋）；兩樣都冇開就成欄收埋 ===== */
+.rightcol {
+  gap: 0;
+}
+.tlpanel,
+.libpanel {
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+}
+.tlpanel[hidden],
+.libpanel[hidden] {
+  display: none;
+}
+.tlpanel + .libpanel {
+  border-top: 1px solid var(--line);
+}
+.tlpanel #timelinebox {
+  flex: 1 1 0;
+  min-height: 0;
+  padding: 8px 10px;
+}
+.libpanel[data-collapsed='true'] {
+  flex: none;
+}
+.libpanel[data-collapsed='true'] .library,
+.libpanel[data-collapsed='true'] .libraryfoot,
+.libpanel[data-collapsed='true'] .panelhead .sub {
+  display: none;
+}
+.libpanel[data-collapsed='true'] .panelhead {
+  border-bottom: 0;
+}
+#libToggle {
+  min-width: 28px;
+  padding: 0 8px;
+}
+@media (max-width: 900px) {
+  .tlpanel,
+  .libpanel {
+    flex: none;
+  }
+  .tlpanel #timelinebox {
+    flex: none;
+    overflow: visible;
+  }
+}
+html {
+  scroll-padding-bottom: calc(var(--bar-h, 64px) + 8px);
+}
+.libpanel[data-collapsed='true'] .tools .pill {
+  display: none;
+}
+
+/* 影片＋舞台（2 格）：舞台喺影片下面，唔好左右併排 */
+.panels[data-count='2'][data-stack='video-top'] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(2, minmax(200px, 1fr));
+  overflow: auto;
+}
+@media (max-width: 900px) {
+  .panels[data-count='2'][data-stack='video-top'] {
+    overflow: visible;
+  }
+}
+
+/* 影片／舞台全收埋、淨係開譜：中間格仔收埋，譜佔晒中欄高度 */
+.panels[hidden] {
+  display: none;
+}
+.center[data-solo='score'] .scoredock,
+.center[data-solo='score'] .scoredock[style*='--score-h'] {
+  flex: 1 1 0;
+  height: auto;
+}
+
+/* 譜並排（Lead + BV 左右同時睇） */
+.docpair {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  gap: 8px;
+}
+.docside {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.docsidelab {
+  flex: none;
+  font-size: var(--fs-small);
+  color: var(--muted);
+  text-decoration: none;
+}
+.docside .docframe {
+  flex: 1 1 0;
+}
+@media (max-width: 900px) {
+  .docpair {
+    flex-direction: column;
+  }
+}
+
+.emptyhint {
+  flex: 1 1 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 16px;
+  color: var(--muted);
+  border: 1px dashed var(--line);
+  border-radius: 5px;
+}
+.emptyhint[hidden] {
+  display: none;
+}
+
+#dockBtn[hidden] {
+  display: none;
 }

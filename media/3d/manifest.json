@@ -1,6 +1,6 @@
 {
   "version": "v2",
-  "project": "jace-board-3d",
+  "project": "cuesheet-board-3d",
   "generated": "2026-11-03T20:50:00+08:00",
   "generator": "TRELLIS.2 (ComfyUI 5090) -> Blender 5.1.2 normalize (Draco, Cycles CPU verify)",
   "limits": {

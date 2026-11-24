@@ -1,0 +1,69 @@
+{
+  "_說明": "MVR import alignment and grouping for the sample stage (black box, dance floor 18 x 14 m). Tuned for samples/mvr/capture_demo_show.mvr (Capture export). All venue numbers live here, not in the script.",
+  "_originOffset": "MVR 原點相對 board 原點（後牆舞台中線地面）嘅位移，單位 mm。MVR 原點唔喺 board 原點就填差值（例如 MVR 原點喺右 2 m 就填 x:2000）。",
+  "_rotZDeg": "MVR 座標繞垂直軸逆時針轉幾多度先對齊 board（俯瞰：x 向右、y 向前）。0 = 唔使轉。",
+  "_flipX": "true = 對齊後 x 左右翻轉（先 rotZ 先 flip）。",
+  "_flipY": "true = 對齊後 y 前後翻轉。",
+  "_stage": "舞台範圍（米），報告燈位喺唔喺台上用。示範黑箱舞蹈地膠 18×14 m。",
+  "_groupRules": "由上而下逐條配：任何一個 regex 匹配 GDTFSpec 字串／Layer 名／GDTFMode 字串（忽略大小寫）就分配到該 group 並停止。全部配唔到就 defaultGroup 並喺報告列出。",
+  "_groupAim": "每組預設 aim 點 [x,y,h]（米）。只喺 FocusPoint 冇、冇 fixtureAims、又唔係朝下嘅時候先用。",
+  "_fixtureAims": "個別燈 aim 覆蓋，key = FixtureID 或 UnitNumber 或 name 字串，value = [x,y,h] 米。優先於 ray 同 groupAim。",
+  "originOffset": {
+    "x": 0,
+    "y": -8000,
+    "z": 0
+  },
+  "rotZDeg": 0,
+  "flipX": false,
+  "flipY": false,
+  "maxXmlBytes": 52428800,
+  "maxZipEntries": 5000,
+  "stage": {
+    "widthM": 18,
+    "depthM": 14
+  },
+  "defaultGroup": "wash",
+  "groupRules": [
+    {
+      "group": "follow",
+      "anyOf": [
+        "Robin MMX Spot"
+      ]
+    },
+    {
+      "group": "back",
+      "anyOf": [
+        "WashBeam",
+        "ALC4"
+      ]
+    },
+    {
+      "group": "wash",
+      "anyOf": [
+        "A\\.leda",
+        "Alpha Spot",
+        "wash",
+        "par",
+        "led"
+      ]
+    }
+  ],
+  "groupAim": {
+    "wash": [
+      0,
+      7,
+      1.2
+    ],
+    "back": [
+      0,
+      3,
+      3.0
+    ],
+    "follow": [
+      0,
+      7,
+      1.0
+    ]
+  },
+  "fixtureAims": {}
+}

@@ -150,8 +150,10 @@ export async function openExport(api) {
 
   function showForm() {
     body.innerHTML =
+      '<div class="exp-standalone"><div><b>獨立舞台圖</b><small>輸出單張 2D SVG，不含歌曲資料</small></div><button class="smallbtn" data-download-plan>下載 2D SVG</button></div>' +
       '<fieldset class="exp-set"><legend>輸出邊啲</legend>' +
-      SECTIONS.map((s) => `<label class="exp-row"><input type="checkbox" data-sec="${s.id}"${tick(s.id, s.def) ? ' checked' : ''}><span><b>${esc(s.label)}</b><small>${esc(s.hint)}</small></span></label>`).join('') +
+      '<div class="exp-tools"><button class="smallbtn" data-sec-all>全選項目</button></div>' +
+      SECTIONS.map((s) => `<div class="exp-row"><label class="exp-choice"><input type="checkbox" data-sec="${s.id}"${tick(s.id, s.def) ? ' checked' : ''}><span><b>${esc(s.label)}</b><small>${esc(s.hint)}</small></span></label><button class="smallbtn exp-only" data-only-sec="${s.id}" aria-label="只輸出${esc(s.label)}">只輸出</button></div>`).join('') +
       '</fieldset>' +
       '<fieldset class="exp-set" data-camset><legend>3D 鏡頭</legend>' +
       ec.cams.map((c) => `<label class="exp-row"><input type="checkbox" data-cam="${esc(c.id)}"${camOn(c.id, c.default) ? ' checked' : ''}><span><b>${esc(c.label)}</b></span></label>`).join('') +
@@ -167,9 +169,38 @@ export async function openExport(api) {
       const any = [...body.querySelectorAll('[data-sec]')].some((c) => c.checked) && body.querySelectorAll('[data-song]:checked').length > 0;
       const noCam = three && !body.querySelectorAll('[data-cam]:checked').length;
       foot.querySelector('[data-go]').disabled = !any || noCam;
-      foot.querySelector('[data-msg]').textContent = !any ? '至少揀一項內容同一首歌' : noCam ? '3D 要揀至少一個鏡頭' : '';
+      foot.querySelector('[data-msg]').textContent = !any ? '報告需揀內容同歌曲；單張 2D SVG 可喺上方獨立下載' : noCam ? '3D 要揀至少一個鏡頭' : '';
     };
-    body.onchange = sync;
+    body.addEventListener('change', (e) => {
+      if (e.target.matches('[data-only-sec]')) {
+        const id = e.target.dataset.onlySec;
+        body.querySelectorAll('[data-sec]').forEach((c) => (c.checked = c.dataset.sec === id));
+      }
+      sync();
+    });
+    body.querySelector('[data-sec-all]').onclick = () => {
+      body.querySelectorAll('[data-sec]').forEach((c) => (c.checked = true));
+      sync();
+    };
+    body.querySelectorAll('[data-only-sec]').forEach((b) => (b.onclick = () => {
+      body.querySelectorAll('[data-sec]').forEach((c) => (c.checked = c.dataset.sec === b.dataset.onlySec));
+      sync();
+    }));
+    body.querySelector('[data-download-plan]').onclick = () => {
+      try {
+        const svg = StageView.exportPlanSvg(ec.svgWidth),
+          name = `stage-plan-2D-${fileStamp(new Date())}.svg`,
+          a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+        a.download = name;
+        document.body.append(a);
+        a.click();
+        setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+        api.toast('已下載 ' + name);
+      } catch (e) {
+        api.toast('SVG 輸出失敗：' + e.message);
+      }
+    };
     body.querySelectorAll('[data-all]').forEach((b) => (b.onclick = () => {
       body.querySelectorAll('[data-song]').forEach((c) => (c.checked = b.dataset.all === '1' || (b.dataset.all === 'cur' && c.dataset.song === api.activeNumber())));
       sync();

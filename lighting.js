@@ -247,6 +247,9 @@ export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHa
       if (!panel) return false;
       const open = force == null ? panel.hidden : !!force;
       panel.hidden = !open;
+      box.classList.toggle('lp-open', open);
+      const wide = !window.matchMedia('(max-width: 900px)').matches;   // 手機係底部抽屜，高度由 CSS 管
+      if (open && wide) { const tb = box.querySelector('.threebar'); panel.style.maxHeight = tb ? 'calc(100% - ' + (tb.offsetHeight + 16) + 'px)' : ''; } else panel.style.maxHeight = '';   // 工具列換行時面板唔好蓋住佢
       if (lightBtn) lightBtn.setAttribute('aria-pressed', String(open));
       if (open && window.matchMedia('(max-width: 900px)').matches) box.scrollIntoView({ block: 'start' });   // 手機：面板係底部抽屜，3D 窗要喺上面睇到
       return open;

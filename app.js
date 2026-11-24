@@ -1,3 +1,42 @@
+// 內嵌播放（Suno／Spotify）：host 白名單同路徑格式只喺呢一個常量，散落字串唔准。
+// 只接受 https；拒絕 userinfo、顯式 port（連預設 443）、fragment；query 只准 ?si=<非空> 單參數。
+const EMBED = (() => {
+  const HOSTS = ['suno.com', 'open.spotify.com'];
+  const SUNO_PATH = /^\/(song|embed)\/(.+)$/;
+  const SUNO_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+  const SPOTIFY_TYPES = ['track', 'album', 'playlist', 'episode'];
+  const SPOTIFY_PATH = /^\/(?:intl-[a-z]{2}\/)?(track|album|playlist|episode)\/(.+)$/;
+  const SPOTIFY_ID = /^[A-Za-z0-9]{22}$/;
+  function parse(url) {
+    if (typeof url !== 'string') return null;
+    let u;
+    try {
+      u = new URL(url);
+    } catch (e) {
+      return null;
+    }
+    if (u.protocol !== 'https:') return null;
+    // 顯式 port（連預設 443 都拒）：new URL 會藏預設 port，要喺原字符串查
+    const portM = /^https:\/\/([^\/?#]+)/.exec(url);
+    if (!portM || portM[1].split('@').pop().indexOf(':') !== -1) return null;
+    if (u.username || u.password || u.port) return null;
+    if (HOSTS.indexOf(u.hostname) === -1) return null;
+    if (u.hash) return null;
+    // query 只准 ?si=<非空> 單參數（Spotify share 連結）；其餘 query 形式拒絕
+    if (u.search && (u.search.indexOf('&') !== -1 || !/^si=.+$/.test(u.search.slice(1)))) return null;
+    if (u.hostname === 'suno.com') {
+      const m = SUNO_PATH.exec(u.pathname);
+      if (!m || !SUNO_UUID.test(m[2])) return null;
+      return { provider: 'suno', iframe: 'https://suno.com/embed/' + m[2] };
+    }
+    const m2 = SPOTIFY_PATH.exec(u.pathname);
+    if (!m2 || SPOTIFY_TYPES.indexOf(m2[1]) === -1 || !SPOTIFY_ID.test(m2[2])) return null;
+    return { provider: 'spotify', iframe: 'https://open.spotify.com/embed/' + m2[1] + '/' + m2[2] };
+  }
+  return { parse };
+})();
+window.__showEmbed = { parse: EMBED.parse };
+
 (() => {
   boot();
   async function boot() {
@@ -11,20 +50,62 @@
       if (!r.ok) throw Error('影片清單 ' + r.status);
       return r.json();
     });
+    const legacyMatchType = () => 'section-only';
     const videos = inventory.videos.map((v) => ({
       ...v,
-      matchType: v.matchType || 'section-only',
+      matchType: v.matchType || legacyMatchType(v.filename),
     }));
     const defaultOrder = songs.map((s) => s.number),
-      key = 'cuesheet-board-drive-v5';
-    let state;
+      key = 'cuesheet-board-drive-v7',
+      legacyPrefix = 'cuesheet-board-drive-v';
+    let state,
+      migratedState = null,
+      hasSavedState = false;
     try {
       state = JSON.parse(localStorage.getItem(key));
+      hasSavedState = !!(state && Array.isArray(state.order));
     } catch {}
-    if (!state || !Array.isArray(state.order) || state.order.length !== songs.length)
-      state = { order: [...defaultOrder], clips: {} };
+    if (!state || !Array.isArray(state.order)) {
+      const oldKeys = Object.keys(localStorage)
+        .filter((k) => k.startsWith(legacyPrefix) && k !== key)
+        .sort()
+        .reverse();
+      for (const oldKey of oldKeys) {
+        try {
+          const oldState = JSON.parse(localStorage.getItem(oldKey));
+          if (oldState && oldState.clips && typeof oldState.clips === 'object') {
+            migratedState = oldState;
+            break;
+          }
+        } catch {}
+      }
+      state = { order: [...defaultOrder], clips: migratedState?.clips || {} };
+      try {
+        localStorage.setItem(key, JSON.stringify(state));
+      } catch {}
+    } else {
+      const kept = [...new Set(state.order.filter((n) => defaultOrder.includes(n)))];
+      state.order = [...kept, ...defaultOrder.filter((n) => !kept.includes(n))];
+      state.clips = state.clips && typeof state.clips === 'object' ? state.clips : {};
+    }
     for (const s of songs) if (!Array.isArray(state.clips[s.number])) state.clips[s.number] = [];
-    if (!localStorage.getItem(key)) state.clips = createDefaultClips();
+    if (!migratedState && !hasSavedState) state.clips = createDefaultClips();
+    // 素材庫換版（inventory.clipsRevision 變咗）：舊配片冇意義，一次過重設為新預設（每首歌自動掛返自己嘅 loop）
+    const defaultClips = createDefaultClips(),
+      invRev = inventory.clipsRevision || 0;
+    if ((state.clipsRev || 0) !== invRev) {
+      state.clips = Object.fromEntries(songs.map((x) => [x.number, [...defaultClips[x.number]]]));
+      state.clipsRev = invRev;
+    }
+    // 清走指住已不存在 fileId 嘅 clips；全部失效嘅歌補回預設（人手清空嘅歌唔補）
+    for (const s of songs) {
+      const before = state.clips[s.number],
+        kept = before.filter((id) => videos.some((v) => v.fileId === id));
+      state.clips[s.number] = !kept.length && before.length ? defaultClips[s.number] : kept;
+    }
+    try {
+      localStorage.setItem(key, JSON.stringify(state));
+    } catch {}
     const b64u = {
       enc: (o) => {
         const bytes = new TextEncoder().encode(JSON.stringify(o));
@@ -86,7 +167,7 @@
       if (!validCfg(incoming)) {
         toast('分享連結無效，已使用本機配置。');
       } else {
-        const had = localStorage.getItem(key);
+        const had = hasSavedState || !!migratedState; // 載入時 state 已經寫入 localStorage，唔可以再用 getItem 判斷「本機有冇配置」
         const clips = Object.fromEntries(defaultOrder.map((n) => [n, incoming.clips[n] || []]));
         const differs = !had || JSON.stringify(state.order) !== JSON.stringify(incoming.order) ||
           JSON.stringify(state.clips) !== JSON.stringify(clips);
@@ -110,6 +191,25 @@
       vplayer = document.querySelector('#vplayer'),
       songRoot = document.querySelector('#songs'),
       lib = document.querySelector('#library');
+    const libTitleEl = document.querySelector('#libTitle'); // 舊快取嘅 index.html 冇呢個 id：唔好令成頁死
+    if (libTitleEl) libTitleEl.textContent = videos.length + ' 個 loop';
+    const ROW_MODE = 'classic';
+    const HIDE_DOCK_NO_VIDEO = true;
+    const miList = null;
+    if (miList && Array.isArray(miList.groups) && miList.groups.length) {
+      document.querySelector('#miListTitle').textContent = miList.title || 'M+ MI list';
+      document.querySelector('#miListContent').innerHTML = miList.groups.map((group) => {
+        const sections = (group.sections || []).map((section) => {
+          const items = (section.items || []).map((item) => `<li>${esc(item)}</li>`).join('');
+          return `${section.title ? `<h4>${esc(section.title)}</h4>` : ''}${items ? `<ul>${items}</ul>` : ''}`;
+        }).join('');
+        const remarks = (group.remarks || [])
+          .map((remark) => `<p class="mi-remark">${esc(remark)}</p>`)
+          .join('');
+        return `<section class="mi-group"><h3>${esc(group.name)}</h3>${sections}${remarks}</section>`;
+      }).join('');
+      document.querySelector('#miList').hidden = false;
+    }
     const save = () => localStorage.setItem(key, JSON.stringify(state)),
       song = (n) => songs.find((s) => s.number === n),
       clip = (id) => videos.find((v) => v.fileId === id),
@@ -141,7 +241,6 @@
       songRoot.innerHTML = '';
       for (const [i, n] of state.order.entries()) {
         const s = song(n),
-          refs = state.clips[n],
           row = document.createElement('article');
         row.className =
           'song' + (active === n ? ' selected' : '') + (defaultIds(n).length ? '' : ' no-ref');
@@ -149,16 +248,26 @@
         row.tabIndex = 0;
         row.setAttribute('aria-label', s.title + '歌曲列；按 Enter 選擇');
         row.dataset.num = n;
-        const match = refs.length
-          ? refs.length + ' loop'
-          : exactIds(n).length
-            ? exactIds(n).length + ' exact'
-            : '無 loop';
-        row.innerHTML = `<span class="num">${n}</span><div><div class="songname">${esc(s.title)}</div><div class="songdesc">${esc(match)} · ${esc(s.section)}</div></div><div class="songbuttons"><button data-act="up" aria-label="${esc(s.title)}上移">↑</button><button data-act="down" aria-label="${esc(s.title)}下移">↓</button></div>`;
+        // 歌單列顯示方式由 shows.json 嘅 flow.rowMode 決定：classic＝歌號（13a／13b）＋ loop 數量；position＝序號＋樂器備註
+        let num, sub;
+        if (ROW_MODE === 'position') {
+          num = String(i + 1).padStart(2, '0');
+          sub = s.instrumentationNote ? `<div class="songdesc">${esc(s.instrumentationNote)}</div>` : '';
+        } else {
+          const refs = state.clips[n],
+            match = refs.length
+              ? refs.length + ' loop'
+              : exactIds(n).length
+                ? exactIds(n).length + ' exact'
+                : '無 loop';
+          num = defaultOrder[i];
+          sub = `<div class="songdesc">${esc(match)} · ${esc(s.section)}</div>`;
+        }
+        row.innerHTML = `<span class="num">${num}</span><div><div class="songname">${esc(s.title)}</div>${sub}</div><div class="songbuttons"><button data-act="up" aria-label="${esc(s.title)}上移">↑</button><button data-act="down" aria-label="${esc(s.title)}下移">↓</button></div>`;
         row.addEventListener('keydown', (e) => {
           if ((e.key === 'Enter' || e.key === ' ') && e.target === row) {
             e.preventDefault();
-            setActive(n);
+            setActive(n, true);
           }
         });
         row.addEventListener('click', (e) => {
@@ -170,7 +279,7 @@
               save();
               renderSongs();
             }
-          } else setActive(n);
+          } else setActive(n, true);
         });
         row.addEventListener('dragstart', (e) => {
           dragSong = n;
@@ -219,7 +328,7 @@
       vplayer.hidden = true;
       document.querySelector('#status').textContent = message;
     }
-    function setActive(n) {
+    function setActive(n, autoplay = false) {
       active = n;
       stopPreview('已切換歌曲；舊影片預覽已卸載。');
       renderSongs();
@@ -228,7 +337,7 @@
       document.querySelector('#nowTitle').textContent = n + ' · ' + song(n).title;
       document.querySelector('#npTitle').textContent = n + ' · ' + song(n).title;
       document.querySelector('#npSub').textContent = song(n).credit || '歌曲排練音訊';
-      document.querySelector('#nowMeta').textContent = song(n).credit + ' · ' + song(n).section;
+      document.querySelector('#nowMeta').textContent = [song(n).credit, song(n).section].filter(Boolean).join(' · ');
       const sel = songRoot.querySelector('.song.selected');
       if (sel) sel.scrollIntoView({ block: 'nearest' });
       const s = song(n);
@@ -237,10 +346,25 @@
       // 呢首歌有配 loop：預設自動播第一條（靜音，投影幕／影片窗即刻有畫面）
       const firstLoop = (state.clips[n] || []).map(clip).find(Boolean);
       if (firstLoop && (view.video || view.three)) playClip(firstLoop);
+      if (autoplay) {
+        // 連播唔可以跳入內嵌版本：目前選擇係 embed 就回退主 demo 播音訊
+        const av = songVersions(s);
+        const ai = Math.min(versionSel[s.number] || 0, Math.max(av.length - 1, 0));
+        if (av[ai] && av[ai].embed) {
+          versionSel[s.number] = 0;
+          renderVersions(s);
+        }
+        if (audio.getAttribute('src')) {
+          if (audio.readyState > 0) audio.currentTime = 0;
+          audio.play().catch(() => toast('歌曲未能自動播放；請按播放掣重試。'));
+        } else {
+          toast('此歌未有音檔；如有配對影片，影片會播放。');
+        }
+      }
     }
     // 顯示內容：影片／舞台／歌詞／譜 可以自由組合開關，素材庫可收埋令中欄更闊
     const VIEW_KEY = 'cuesheet-board-view-v1';
-    const view = { video: true, stage: false, timeline: false, three: false, lyrics: false, charts: false, library: true, dock: 'full' };
+    const view = {"video":true,"stage":false,"timeline":false,"three":false,"lyrics":false,"charts":false,"library":true,"dock":"full"};
     try {
       Object.assign(view, JSON.parse(localStorage.getItem(VIEW_KEY)) || {});
     } catch {}
@@ -256,6 +380,7 @@
       const want = showM[1].split(',');
       for (const k of Object.keys(view)) if (typeof view[k] === 'boolean') view[k] = want.includes(k);
       view.dock = want.includes('min') ? 'min' : 'full';
+      view.hideSongs = want.includes('nosongs'); // #show=…,nosongs：收埋左邊歌單
     }
     const saveView = () => {
       if (lx || showM) return;
@@ -268,7 +393,7 @@
       videoSuspended = false;
     const PANES = { video: '影片', stage: '舞台', timeline: '時間線', three: '3D', lyrics: '歌詞', charts: '譜' };
     const LANG = { ko: '한국어', zh: '中文', en: 'English', ja: '日本語' },
-      CHART = { form: 'Form', lead: 'Lead', full: 'Full', vn1: 'Vn 1', vn2: 'Vn 2', va: 'Va', vc: 'Vc' };
+      CHART = { form: 'Form', lead: 'Lead', full: 'Lead', bv: 'BV', vn1: 'Vn 1', vn2: 'Vn 2', va: 'Va', vc: 'Vc' };
     const lyricsOf = (s) =>
         Object.entries(s.lyrics || {}).filter(([, v]) => typeof v === 'string' && v.trim()),
       chartsOf = (s) => Object.entries(s.charts || {}).filter(([, v]) => typeof v === 'string' && v);
@@ -289,11 +414,15 @@
         lyrics: lyricsOf(s).length > 0,
         charts: chartsOf(s).length > 0,
       };
-      let shown = Object.keys(PANES).filter((k) => has[k] && view[k]);
+      let shown = Object.keys(PANES).filter((k) => k !== 'timeline' && has[k] && view[k]);   // 時間線喺右欄，唔入中間格仔
+      const showTl = !!(view.timeline && has.timeline);
       // 譜唔入格仔：喺中欄下面獨立一層，可拖高低，聽歌同睇譜可以同時
       const showScore = shown.includes('charts');
       shown = shown.filter((k) => k !== 'charts');
-      if (!shown.length) shown = ['video']; // 全部收埋（或舞台資料未載入）時顯示影片，但唔改用戶嘅設定
+      // 全部收埋（或舞台資料未載入）時顯示影片，但唔改用戶嘅設定；譜開住就容許淨係睇譜（影片可以收埋）
+      // 例外：用家開咗舞台／3D／歌詞但冇資料顯示唔到，先退返顯示影片；用家自己將影片收埋就尊重（中間留空 + 提示）
+      const wantedMissing = ['stage', 'three', 'lyrics'].some((k) => view[k]);
+      if (!shown.length && !showScore && wantedMissing) shown = ['video'];
       document.querySelectorAll('#viewbar [data-view]').forEach((b) => {
         const k = b.dataset.view;
         if (k === 'library') {
@@ -307,9 +436,21 @@
         }
         b.disabled = !has[k];
         b.textContent = PANES[k] + (has[k] ? '' : '（未上載）');
-        b.setAttribute('aria-pressed', String(k === 'charts' ? showScore : shown.includes(k)));
+        const pressed = k === 'charts' ? showScore : k === 'timeline' ? showTl : k === 'stage' ? shown.includes('stage') || shown.includes('three') : shown.includes(k);
+        b.setAttribute('aria-pressed', String(pressed));
         b.onclick = () => {
-          view[k] = !view[k];
+          if (k === 'stage') {
+            // 舞台＝2D／3D／2D+3D 一個掣；入面揀視圖，收埋再開會記得上次視圖
+            if (view.stage || view.three) {
+              view.lastMode = view.three && view.stage ? 'both' : view.three ? '3d' : '2d';
+              view.stage = false;
+              view.three = false;
+            } else {
+              const m = has.three ? view.lastMode || '2d' : '2d';
+              view.stage = m !== '3d';
+              view.three = m === '3d' || m === 'both';
+            }
+          } else view[k] = !view[k];
           saveView();
           renderPanes(song(active));
         };
@@ -317,7 +458,42 @@
       const panels = document.querySelector('#panels');
       panels.dataset.count = String(shown.length);
       panels.dataset.only = shown.length === 1 ? shown[0] : '';
-      document.querySelector('#app').dataset.library = view.library ? 'on' : 'off';
+      // 影片同舞台（2D／3D）一齊顯示時，舞台放喺影片下面（上下排），唔好左右併排
+      panels.dataset.stack = shown.length === 2 && shown.includes('video') ? 'video-top' : '';
+      document.querySelector('#app').dataset.library = view.library || showTl ? 'on' : 'off';
+      document.querySelector('#app').dataset.songs = view.hideSongs ? 'off' : 'on';
+      const songsBtnEl = document.querySelector('#songsBtn'); // 左邊歌單開關（舊快取 index.html 冇就跳過）
+      if (songsBtnEl) songsBtnEl.setAttribute('aria-pressed', String(!view.hideSongs));
+      // flow.hideDockWithoutVideo：冇 loop 嘅 show（例如 M+）關閉影片視圖就收埋下欄；有 loop 嘅 show 下欄一直可用
+      const dockOff = HIDE_DOCK_NO_VIDEO && !view.video && !shown.includes('three'); // 3D 要用投影幕，所以 3D 開住下欄照留
+      document.querySelector('#dock').hidden = dockOff;
+      document.querySelector('#dockToggle').hidden = dockOff;
+      const dockBtnEl = document.querySelector('#dockBtn');
+      if (dockBtnEl) dockBtnEl.hidden = dockOff;
+      panels.hidden = !shown.length; // 淨係睇譜：中間格仔收埋，譜佔晒位
+      document.querySelector('.center').dataset.solo = !shown.length && showScore ? 'score' : '';
+      let hint = document.querySelector('#emptyHint');
+      if (!hint) {
+        hint = document.createElement('div');
+        hint.id = 'emptyHint';
+        hint.className = 'emptyhint';
+        hint.textContent = '影片已收埋 · 撳上面「影片」再開（亦可開舞台、譜）';
+        panels.after(hint);
+      }
+      hint.hidden = !!shown.length || showScore;
+      document.querySelector('#tlpanel').hidden = !showTl;
+      const libp = document.querySelector('#libpanel'),
+        libT = document.querySelector('#libToggle');
+      libp.hidden = !view.library;
+      libp.dataset.collapsed = String(!!view.libCollapsed);
+      libT.textContent = view.libCollapsed ? '▸' : '▾';
+      libT.setAttribute('aria-expanded', String(!view.libCollapsed));
+      libT.setAttribute('aria-label', view.libCollapsed ? '展開素材庫' : '收埋素材庫');
+      libT.onclick = () => {
+        view.libCollapsed = !view.libCollapsed;
+        saveView();
+        renderPanes(song(active), true);
+      };
       document.querySelectorAll('#panels .pane').forEach((p) => {
         p.hidden = !shown.includes(p.dataset.pane);
         p.dataset.first = String(p.dataset.pane === shown[0]);
@@ -335,7 +511,7 @@
         if (!keepVideo && selectedVideo && clip(selectedVideo)) playClip(clip(selectedVideo));
       }
       if (shown.includes('stage')) StageView.render();
-      if (shown.includes('timeline')) StageView.renderTimeline();
+      if (showTl) StageView.renderTimeline();
       if (shown.includes('three')) show3d();
       else if (stage3d) stage3d.setVisible(false);
       const lp = document.querySelector('[data-pane="lyrics"]'),
@@ -369,14 +545,23 @@
         const path = Object.fromEntries(ch)[chartKey],
           bar = document.createElement('div');
         bar.className = 'docbar';
+        // 並排：Lead 同 BV（多過一份譜）左右同時睇；單撳返其中一份就退出並排
+        const split = !!view.chartSplit && ch.length > 1;
         ch.forEach(([k]) =>
-          bar.append(chip(CHART[k] || k, k === chartKey, () => { chartKey = k; renderPanes(s); })),
+          bar.append(chip(CHART[k] || k, !split && k === chartKey, () => { chartKey = k; view.chartSplit = false; saveView(); renderPanes(s); })),
         );
+        if (ch.length > 1) {
+          const sp = chip('並排', split, () => { view.chartSplit = !split; saveView(); renderPanes(s); });
+          sp.id = 'chartSplit';
+          sp.title = '同時並排顯示 ' + ch.map(([k]) => CHART[k] || k).join(' 同 ');
+          bar.append(sp);
+        }
         const a = document.createElement('a');
         a.href = path;
         a.target = '_blank';
         a.rel = 'noopener';
         a.textContent = '新分頁開啟 ↗';
+        a.hidden = split;
         const x = document.createElement('button');
         x.className = 'vchip scoreclose';
         x.textContent = '×';
@@ -388,6 +573,28 @@
         };
         bar.append(a, x);
         cp.append(bar);
+        if (split) {
+          const pair = document.createElement('div');
+          pair.className = 'docpair';
+          ch.forEach(([k, pth]) => {
+            const side = document.createElement('div'),
+              lab = document.createElement('a'),
+              fr = document.createElement('iframe');
+            side.className = 'docside';
+            lab.className = 'docsidelab';
+            lab.href = pth;
+            lab.target = '_blank';
+            lab.rel = 'noopener';
+            lab.textContent = (CHART[k] || k) + ' ↗';
+            fr.className = 'docframe';
+            fr.title = (CHART[k] || k) + ' 譜';
+            fr.src = pth + '#zoom=page-width';
+            side.append(lab, fr);
+            pair.append(side);
+          });
+          cp.append(pair);
+          return;
+        }
         const isImg = /\.(png|jpe?g|webp|gif)$/i.test(path),
           el = document.createElement(isImg ? 'img' : 'iframe');
         el.className = 'docframe';
@@ -566,18 +773,78 @@
       dockToggle.innerHTML = min ? ICON.up : ICON.down;
       dockToggle.setAttribute('aria-expanded', String(!min));
       dockToggle.setAttribute('aria-label', min ? '展開下欄' : '收埋下欄');
+      const dockBtnEl = document.querySelector('#dockBtn'); // 視圖列嘅「Loop 欄」掣（舊快取 index.html 冇就跳過）
+      if (dockBtnEl) dockBtnEl.setAttribute('aria-pressed', String(!min));
     }
-    dockToggle.onclick = () => {
+    // 底部播放列高度 → --bar-h（版面同 toast 都靠呢個變數避開播放列）
+    const playerbar = document.querySelector('#playerbar');
+    if (playerbar && window.ResizeObserver) {
+      new ResizeObserver(() =>
+        document.documentElement.style.setProperty('--bar-h', playerbar.offsetHeight + 'px'),
+      ).observe(playerbar);
+    }
+    const toggleDock = () => {
       view.dock = view.dock === 'min' ? 'full' : 'min';
       saveView();
       applyDock();
     };
+    dockToggle.onclick = toggleDock;
+    const songsBtnInit = document.querySelector('#songsBtn');
+    if (songsBtnInit)
+      songsBtnInit.onclick = () => {
+        view.hideSongs = !view.hideSongs;
+        saveView();
+        renderPanes(song(active));
+      };
+    const dockBtnInit = document.querySelector('#dockBtn');
+    if (dockBtnInit) dockBtnInit.onclick = toggleDock;
     syncVol();
     syncPlayer();
     applyDock();
+    // ---- 內嵌播放（Suno／Spotify）：iframe 只喺揀 embed 版本時先建立，轉版本／轉歌就移除 ----
+    const embedRow = document.querySelector('#embedRow'); // null guard：舊快取 index.html 冇呢個 id
+    let embedFrame = null;
+    function showEmbedFrame(embed, title) {
+      if (!embedRow) return;
+      if (embedFrame) {
+        embedFrame.remove();
+        embedFrame = null;
+      }
+      embedFrame = document.createElement('iframe');
+      embedFrame.className = 'embedframe';
+      embedFrame.title = title;
+      embedFrame.allow = 'autoplay; encrypted-media; clipboard-write';
+      embedFrame.sandbox = 'allow-scripts allow-same-origin allow-popups allow-presentation';
+      embedFrame.referrerPolicy = 'strict-origin-when-cross-origin';
+      embedFrame.loading = 'lazy';
+      embedFrame.src = embed.iframe;
+      embedRow.append(embedFrame);
+      embedRow.hidden = false;
+    }
+    function hideEmbedFrame() {
+      if (embedFrame) {
+        embedFrame.remove();
+        embedFrame = null;
+      }
+      if (embedRow) embedRow.hidden = true;
+    }
     function songVersions(s) {
       if (!s.demo) return [];
-      return [{ label: s.demoLabel || 'demo', src: s.demo }, ...(s.alternates || [])];
+      const list = [{ label: s.demoLabel || 'demo', src: s.demo }];
+      (s.alternates || []).forEach((a) => {
+        if (a && typeof a === 'object' && 'embed' in a) {
+          const raw = a.embed && typeof a.embed === 'object' ? a.embed.url : typeof a.embed === 'string' ? a.embed : null;
+          const p = EMBED.parse(raw);
+          if (!p) {
+            console.warn('[embed] 版本 "' + (a.label || '?') + '" 無法解析 URL，唔顯示：' + (raw || a.embed || ''));
+            return;
+          }
+          list.push({ label: a.label || 'embed', embed: p });
+          return;
+        }
+        list.push(a);
+      });
+      return list;
     }
     function renderVersions(s) {
       const box = document.querySelector('#versions'),
@@ -596,13 +863,23 @@
         };
         box.append(b);
       });
-      if (list.length) {
+      const cur = list[idx];
+      if (cur && cur.embed) {
+        // 內嵌播放：本地音訊／影片暫停；時間線／3D 播放頭保持靜止（提示喺 embed 列）
+        audio.pause();
+        vplayer.pause();
+        audio.removeAttribute('src');
+        audio.load();
+        showEmbedFrame(cur.embed, (cur.label || '') + ' 內嵌播放器');
+      } else if (list.length) {
+        hideEmbedFrame();
         const src = list[idx].src;
         if (audio.getAttribute('src') !== src) {
           audio.src = src;
           audio.load();
         }
       } else {
+        hideEmbedFrame();
         audio.removeAttribute('src');
         audio.load();
       }
@@ -746,7 +1023,31 @@
       if (selectedVideo && !vplayer.hidden) vplayer.play().catch(() => {});
     });
     audio.addEventListener('pause', () => vplayer.pause());
-    audio.addEventListener('ended', () => vplayer.pause());
+    // 連播：預設開；播完自動接下一首。關閉後只停低，設定存 localStorage。
+    const AUTONEXT_KEY = 'cuesheet-board-autonext-v1';
+    let autoNext = true;
+    try {
+      autoNext = localStorage.getItem(AUTONEXT_KEY) !== 'off';
+    } catch (e) {}
+    const autoNextBtn = document.querySelector('#autoNext');
+    function paintAutoNext() {
+      autoNextBtn.setAttribute('aria-pressed', String(autoNext));
+      autoNextBtn.title = autoNext ? '連播開：播完自動播下一首（撳一下關閉）' : '連播關：播完停低（撳一下開啟）';
+    }
+    autoNextBtn.onclick = () => {
+      autoNext = !autoNext;
+      try {
+        localStorage.setItem(AUTONEXT_KEY, autoNext ? 'on' : 'off');
+      } catch (e) {}
+      paintAutoNext();
+    };
+    paintAutoNext();
+    audio.addEventListener('ended', () => {
+      vplayer.pause();
+      if (!autoNext) return;
+      const index = state.order.indexOf(active);
+      if (index >= 0 && index + 1 < state.order.length) setActive(state.order[index + 1], true);
+    });
     video.addEventListener('load', () => {
       if (!selectedVideo || previewTimedOut) return;
       document.querySelector('#status').textContent =
@@ -845,13 +1146,14 @@
     }
     function createDefaultClips() {
       const clips = Object.fromEntries(songs.map((s) => [s.number, []]));
-      for (const n of ['03', '05', '06'])
-        clips[n] = videos
-          .filter((v) => v.songNumbers.includes(n) && v.matchType === 'exact-title')
+      for (const s of songs)
+        clips[s.number] = videos
+          .filter(
+            (v) =>
+              v.songNumbers.includes(s.number) &&
+              (v.matchType === 'exact-title' || v.matchType === 'visual-name-candidate'),
+          )
           .map((v) => v.fileId);
-      clips['07'] = videos
-        .filter((v) => v.matchType === 'visual-name-candidate')
-        .map((v) => v.fileId);
       return clips;
     }
     function esc(x) {
@@ -925,11 +1227,11 @@
     document.querySelector('#clearVideo').onclick = () => stopPreview();
     document.querySelector('#prevSong').onclick = () => {
       const i = state.order.indexOf(active);
-      if (i > 0) setActive(state.order[i - 1]);
+      if (i > 0) setActive(state.order[i - 1], true);
     };
     document.querySelector('#nextSong').onclick = () => {
       const i = state.order.indexOf(active);
-      if (i < state.order.length - 1) setActive(state.order[i + 1]);
+      if (i < state.order.length - 1) setActive(state.order[i + 1], true);
     };
     document.querySelector('#search').oninput = (e) => {
       const q = e.target.value.trim().toLowerCase(),

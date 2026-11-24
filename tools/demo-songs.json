@@ -1,58 +1,204 @@
 {
-  "_說明": "make-demo-data.py 嘅輸入：sample 歌單、段落偵測參數、上台分級。全部可改，唔寫死喺腳本。",
-  "chartSource": "lyric tags or energy changes",
-  "cueNote": "Sample cue, edit to your arrangement.",
-  "soloItem": "i3",
-  "leadItem": "i6",
-  "tierOn": [
-    ["i1", "i6"],
-    ["i1", "i3", "i4", "i6"],
-    ["i1", "i3", "i4", "i5", "i6", "i7", "i8"]
+ "_說明": "make-demo-data.py 嘅輸入：sample 歌單、段落偵測參數、上台分級。全部可改，唔寫死喺腳本。",
+ "chartSource": "lyric tags or energy changes",
+ "cueNote": "Sample cue, edit to your arrangement.",
+ "soloItem": "i3",
+ "leadItem": "i6",
+ "tierOn": [
+  [
+   "i1",
+   "i6"
   ],
-  "segmenter": { "window": 10, "minSeparation": 20, "maxBoundaries": 4, "minNovelty": 1.5 },
-  "songs": [
-    {
-      "title": "我冇學壞", "slug": "ngo-mou-hok-waai", "audio": "media/music/ngo-mou-hok-waai.mp3",
-      "section": "Sample set", "credit": "Sample · Suno generation, 2026-06", "bpm": 70,
-      "notes": "Bilingual Cantopop neo-soul sample. Lyric sections drive the cue names.",
-      "instrumentation": "quintet", "parts": ["pf", "gtr", "bs", "dr", "voc"],
-      "lyricsSource": true, "lyricsLang": "zh"
-    },
-    {
-      "title": "被遺忘", "slug": "forgotten-dream-pop", "audio": "media/music/forgotten-dream-pop.mp3",
-      "section": "Sample set", "credit": "Sample · Suno generation, 2026-05",
-      "notes": "Dream pop sample. Cue boundaries detected from loudness.",
-      "instrumentation": "quintet", "parts": ["pf", "gtr", "bs", "dr", "voc"]
-    },
-    {
-      "title": "地板呼吸", "slug": "floor-breathing", "audio": "media/music/floor-breathing.mp3",
-      "section": "Sample set", "credit": "Sample · Suno generation, 2026-05",
-      "notes": "Sample. Cue boundaries detected from loudness.",
-      "instrumentation": "quintet", "parts": ["pf", "gtr", "bs", "dr", "voc"]
-    },
-    {
-      "title": "Saudade do Teu Olhar", "slug": "saudade-do-teu-olhar", "audio": "media/music/saudade-do-teu-olhar.mp3",
-      "section": "Sample set", "credit": "Sample · Suno generation, 2026-06",
-      "notes": "Portuguese-language sample. Cue boundaries detected from loudness.",
-      "instrumentation": "quintet", "parts": ["pf", "gtr", "bs", "dr", "voc"]
-    },
-    {
-      "title": "Le Dernier Bal", "slug": "le-dernier-bal", "audio": "media/music/le-dernier-bal.mp3",
-      "section": "Sample set", "credit": "Sample · Suno generation, 2026-06",
-      "notes": "French-language sample. Cue boundaries detected from loudness.",
-      "instrumentation": "quintet", "parts": ["pf", "gtr", "bs", "dr", "voc"]
-    },
-    {
-      "title": "Slow Dying Keep", "slug": "slow-dying-keep", "audio": "media/music/slow-dying-keep-instrumental.mp3",
-      "section": "Sample set", "credit": "Sample · Suno generation, 2025-11", "demoLabel": "Instrumental",
-      "notes": "Instrumental and vocal versions. Shows the version switcher; the loudest section gets a guitar solo.",
-      "instrumentation": "quartet", "parts": ["pf", "gtr", "bs", "dr"], "instrumental": true,
-      "alternates": [{ "label": "Vocals", "src": "media/music/slow-dying-keep-vocals.mp3" }]
-    }
+  [
+   "i1",
+   "i3",
+   "i4",
+   "i6"
   ],
-  "loops": [
-    { "id": "sunset-window", "filename": "Sunset window (6s loop).mp4", "folder": "Sample loops" },
-    { "id": "night-rock", "filename": "Night rock (22s).mp4", "folder": "Sample loops" },
-    { "id": "clouds", "filename": "Clouds (14s).mp4", "folder": "Sample loops" }
+  [
+   "i1",
+   "i3",
+   "i4",
+   "i5",
+   "i6",
+   "i7",
+   "i8"
   ]
+ ],
+ "segmenter": {
+  "window": 10,
+  "minSeparation": 20,
+  "maxBoundaries": 4,
+  "minNovelty": 1.5
+ },
+ "songs": [
+  {
+   "title": "我冇學壞",
+   "slug": "ngo-mou-hok-waai",
+   "audio": "media/music/ngo-mou-hok-waai.mp3",
+   "section": "Sample set",
+   "credit": "Sample · Suno generation, 2026-06",
+   "bpm": 70,
+   "notes": "Bilingual Cantopop neo-soul sample. Lyric sections drive the cue names.",
+   "instrumentation": "quintet",
+   "parts": [
+    "pf",
+    "gtr",
+    "bs",
+    "dr",
+    "voc"
+   ],
+   "lyricsSource": true,
+   "lyricsLang": "zh",
+   "alternates": [
+    {
+     "label": "suno",
+     "embed": {
+      "provider": "suno",
+      "url": "https://suno.com/song/55167b0c-fcec-4005-aa47-7fb32c81d1a2"
+     }
+    }
+   ]
+  },
+  {
+   "title": "被遺忘",
+   "slug": "forgotten-dream-pop",
+   "audio": "media/music/forgotten-dream-pop.mp3",
+   "section": "Sample set",
+   "credit": "Sample · Suno generation, 2026-05",
+   "notes": "Dream pop sample. Cue boundaries detected from loudness.",
+   "instrumentation": "quintet",
+   "parts": [
+    "pf",
+    "gtr",
+    "bs",
+    "dr",
+    "voc"
+   ],
+   "alternates": [
+    {
+     "label": "suno",
+     "embed": {
+      "provider": "suno",
+      "url": "https://suno.com/song/557e3cb8-6d92-4362-8b05-c8508c007717"
+     }
+    }
+   ]
+  },
+  {
+   "title": "地板呼吸",
+   "slug": "floor-breathing",
+   "audio": "media/music/floor-breathing.mp3",
+   "section": "Sample set",
+   "credit": "Sample · Suno generation, 2026-05",
+   "notes": "Sample. Cue boundaries detected from loudness.",
+   "instrumentation": "quintet",
+   "parts": [
+    "pf",
+    "gtr",
+    "bs",
+    "dr",
+    "voc"
+   ],
+   "alternates": [
+    {
+     "label": "suno",
+     "embed": {
+      "provider": "suno",
+      "url": "https://suno.com/song/1fc0840a-53cd-40e9-8852-427806bfb720"
+     }
+    }
+   ]
+  },
+  {
+   "title": "Saudade do Teu Olhar",
+   "slug": "saudade-do-teu-olhar",
+   "audio": "media/music/saudade-do-teu-olhar.mp3",
+   "section": "Sample set",
+   "credit": "Sample · Suno generation, 2026-06",
+   "notes": "Portuguese-language sample. Cue boundaries detected from loudness.",
+   "instrumentation": "quintet",
+   "parts": [
+    "pf",
+    "gtr",
+    "bs",
+    "dr",
+    "voc"
+   ],
+   "alternates": [
+    {
+     "label": "suno",
+     "embed": {
+      "provider": "suno",
+      "url": "https://suno.com/song/fe8b4198-f7a6-45dd-92ce-1e9ac1ef2299"
+     }
+    }
+   ]
+  },
+  {
+   "title": "Le Dernier Bal",
+   "slug": "le-dernier-bal",
+   "audio": "media/music/le-dernier-bal.mp3",
+   "section": "Sample set",
+   "credit": "Sample · Suno generation, 2026-06",
+   "notes": "French-language sample. Cue boundaries detected from loudness.",
+   "instrumentation": "quintet",
+   "parts": [
+    "pf",
+    "gtr",
+    "bs",
+    "dr",
+    "voc"
+   ],
+   "alternates": [
+    {
+     "label": "suno",
+     "embed": {
+      "provider": "suno",
+      "url": "https://suno.com/song/698b02a5-9f76-465e-a502-5f280f582e43"
+     }
+    }
+   ]
+  },
+  {
+   "title": "Slow Dying Keep",
+   "slug": "slow-dying-keep",
+   "audio": "media/music/slow-dying-keep-instrumental.mp3",
+   "section": "Sample set",
+   "credit": "Sample · Suno generation, 2025-11",
+   "demoLabel": "Instrumental",
+   "notes": "Instrumental and vocal versions. Shows the version switcher; the loudest section gets a guitar solo.",
+   "instrumentation": "quartet",
+   "parts": [
+    "pf",
+    "gtr",
+    "bs",
+    "dr"
+   ],
+   "instrumental": true,
+   "alternates": [
+    {
+     "label": "Vocals",
+     "src": "media/music/slow-dying-keep-vocals.mp3"
+    }
+   ]
+  }
+ ],
+ "loops": [
+  {
+   "id": "sunset-window",
+   "filename": "Sunset window (6s loop).mp4",
+   "folder": "Sample loops"
+  },
+  {
+   "id": "night-rock",
+   "filename": "Night rock (22s).mp4",
+   "folder": "Sample loops"
+  },
+  {
+   "id": "clouds",
+   "filename": "Clouds (14s).mp4",
+   "folder": "Sample loops"
+  }
+ ]
 }

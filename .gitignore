@@ -1,3 +1,7 @@
 node_modules/
 logs/
+*.before-*
+*.orig.*
 .DS_Store
+tools/.mvr-import/
+*.bak-*

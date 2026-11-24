@@ -3,7 +3,9 @@
 (() => {
   const KEY = 'cuesheet-board-people-v1';
   // 預設主題色：示範用 Pantone 19-1650 TCX Biking Red、15-3920 TCX Placid Blue（hex 係近似值，要用確實 hex 就喺視窗改）
-  const DEFAULT_PALETTE = ['#7b1e2e', '#8fa9d2'];
+  const DEFAULT_PALETTE = ["#7b1e2e","#8fa9d2"];
+  const DEFAULT_OUTFIT = null;
+  const PEOPLE_HINT = '主題色（hex，用空白或逗號分隔）。預設係你畀嘅 Pantone Biking Red ≈ #7b1e2e、Placid Blue ≈ #8fa9d2（近似值，有確實 hex 就改呢度）。';
   const NEUTRAL_DARK = ['#1b1b1d', '#2b2f3a', '#3a3d44'];
   const NEUTRAL_LIGHT = ['#f2efe8', '#cfd3d8', '#8f9296'];
   const HAIR = ['#1c1512', '#3a2619', '#5a3a24', '#c9b27c'];
@@ -53,10 +55,10 @@
         base = P[order.indexOf(k) % P.length],                       // 保證每個主題色都出場
         style = g === 'f' ? pick(['dress', 'skirt', 'skirt', 'trousers']) : 'trousers',
         pool = [...P, ...NEUTRAL_DARK, ...NEUTRAL_LIGHT].filter((c) => c !== base);
-      const top = base,
-        bottom = style === 'dress' ? base : pick(g === 'f' ? pool : [...NEUTRAL_DARK, ...P.filter((c) => c !== base), ...NEUTRAL_DARK]),
-        shoes = rand() < 0.75 ? pick(NEUTRAL_DARK) : pick(P),
-        hair = g === 'f' ? pick(HAIR) : pick(HAIR.slice(0, 3));
+      const top = (DEFAULT_OUTFIT && DEFAULT_OUTFIT.top) || base,
+        bottom = (DEFAULT_OUTFIT && DEFAULT_OUTFIT.bottom) || (style === 'dress' ? base : pick(g === 'f' ? pool : [...NEUTRAL_DARK, ...P.filter((c) => c !== base), ...NEUTRAL_DARK])),
+        shoes = (DEFAULT_OUTFIT && DEFAULT_OUTFIT.shoes) || (rand() < 0.75 ? pick(NEUTRAL_DARK) : pick(P)),
+        hair = (DEFAULT_OUTFIT && DEFAULT_OUTFIT.hair) || (g === 'f' ? pick(HAIR) : pick(HAIR.slice(0, 3)));
       out[it.id] = { gender: g, outfit: { top, bottom, shoes, hair, style } };
     });
     return out;
@@ -95,7 +97,7 @@
     }).join('');
     dlg.innerHTML =
       '<form method="dialog"><h2>人物／服裝</h2>' +
-      '<p class="hint">主題色（hex，用空白或逗號分隔）。預設係你畀嘅 Pantone Biking Red ≈ #7b1e2e、Placid Blue ≈ #8fa9d2（近似值，有確實 hex 就改呢度）。</p>' +
+      `<p class="hint">${esc(PEOPLE_HINT)}</p>` +
       `<div class="pal"><input id="palIn" aria-label="主題色 hex" value="${esc(state.palette.join(' '))}"><span id="palSw">${state.palette.map((c) => `<i style="background:${esc(c)}" title="${esc(c)}"></i>`).join('')}</span></div>` +
       '<div class="pbar"><button type="button" data-a="gen">按主題色隨機配衣</button><button type="button" data-a="again">再抽一次（新 seed）</button><span id="seedTxt">seed ' + state.seed + '</span></div>' +
       '<div class="ptable"><table><thead><tr><th>樂手</th><th>性別</th><th>上身</th><th>下身</th><th>鞋</th><th>髮</th><th>款式</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
