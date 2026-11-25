@@ -1153,7 +1153,8 @@ img.docframe {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  overflow: auto;
+  overflow: hidden auto;
+  scrollbar-gutter: auto;
 }
 .pane .lyrics,
 .pane .docframe {
@@ -1255,7 +1256,7 @@ img.docframe {
   container-type: inline-size;
 }
 .stagewrap {
-  min-height: 240px;
+  min-height: 120px;
 }
 @container (max-width: 460px) {
   .stagelegend {
@@ -1493,8 +1494,11 @@ body[data-lx] #reset {
 /* 格數多／視窗矮時，每格最少 200px 高，唔夠位就喺中欄內捲動（唔切內容、唔重疊） */
 .panels[data-count='3'],
 .panels[data-count='4'] {
-  grid-template-rows: repeat(2, minmax(200px, 1fr));
+  grid-template-rows: minmax(150px, 1fr) minmax(260px, 1.2fr);
   overflow: auto;
+}
+.panels[data-count='2'][data-stack='video-top'] .stagebox {
+  overflow: hidden;
 }
 .panels[data-count='5'] {
   grid-template-rows: repeat(3, minmax(200px, 1fr));
@@ -2507,15 +2511,13 @@ body.score-resizing iframe {
 .embedrow .embedframe {
   display: block;
   width: 100%;
-  height: 164px;
-  border: 1px solid var(--line);
+  height: 96px;
+  border: 0;
   border-radius: var(--radius);
   background: var(--panel);
 }
-@media (max-width: 900px) {
-  .embedrow .embedframe {
-    height: 152px;
-  }
+.embedrow .embedframe.spotify {
+  height: 80px;
 }
 .layout {
   height: calc(100dvh - var(--top-h) - var(--bar-h, 64px));
@@ -2745,4 +2747,64 @@ html {
 .trackform .search {
   width: 100%;
   box-sizing: border-box;
+}
+
+/* 歌單入面嘅 Suno／Spotify 歌：用內嵌播放器，收埋我哋自己嗰條播放列 */
+.playerbar.trackmode .player {
+  display: none;
+}
+.playerbar.trackmode .embedrow .embedhint:not(.warn) {
+  display: none;
+}
+.embedrow .embedhint.warn {
+  color: var(--accent-fg);
+}
+
+/* 舞台工具列：場地多過 3 個時用下拉選單，慳一行高度 */
+.stagebar .venuesel {
+  min-height: 30px;
+  max-width: 220px;
+  padding: 3px 24px 3px 7px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #222722;
+  color: var(--fg);
+  font: inherit;
+}
+
+/* 本機檔案歌／影片 */
+.srcbadge.file {
+  color: #9ec5e8;
+  border-color: #2c4b6b;
+}
+.trackform .filepick {
+  display: grid;
+  gap: 3px;
+  color: var(--muted);
+  font-size: var(--fs-small);
+}
+.trackform .filepick input {
+  max-width: 100%;
+  font-size: var(--fs-small);
+}
+.clip .clipdel {
+  position: absolute;
+  z-index: 3;
+  top: 4px;
+  right: 40px;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: rgba(20, 22, 20, 0.85);
+  color: var(--fg);
+  cursor: pointer;
+}
+#videoAdd {
+  white-space: nowrap;
+}
+.libpanel .panelhead .tools {
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }

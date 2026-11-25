@@ -65,6 +65,39 @@ window.__showEmbed = { parse: EMBED.parse };
     };
     const userTrackSong = (t) => ({ number: t.number, title: t.title, section: TRACK_NAME[EMBED.parse(t.url).provider], credit: '', parts: [], track: { url: t.url }, userAdded: true });
     for (const t of readTracks()) if (!songs.some((s) => s.number === t.number)) songs.push(userTrackSong(t));
+    // 本機檔案（歌、影片）：存喺瀏覽器 IndexedDB，唔上傳；reload 後仍然喺
+    const IDB = (() => {
+      const open = () =>
+        new Promise((res, rej) => {
+          try {
+            const r = indexedDB.open('cuesheet-board-files-v1', 1);
+            r.onupgradeneeded = () => {
+              r.result.createObjectStore('songs', { keyPath: 'number' });
+              r.result.createObjectStore('videos', { keyPath: 'id' });
+            };
+            r.onsuccess = () => res(r.result);
+            r.onerror = () => rej(r.error);
+          } catch (e) {
+            rej(e);
+          }
+        });
+      const run = async (store, mode, fn) => {
+        const db = await open();
+        return new Promise((res, rej) => {
+          const t = db.transaction(store, mode),
+            req = fn(t.objectStore(store));
+          t.oncomplete = () => res(req && req.result);
+          t.onerror = t.onabort = () => rej(t.error);
+        });
+      };
+      return {
+        all: (s) => run(s, 'readonly', (st) => st.getAll()).then((r) => r || []).catch(() => []),
+        put: (s, v) => run(s, 'readwrite', (st) => st.put(v)),
+        del: (s, k) => run(s, 'readwrite', (st) => st.delete(k)).catch(() => {}),
+      };
+    })();
+    const fileSong = (f) => ({ number: f.number, title: f.title, section: '本機檔案', credit: '', parts: [], demo: URL.createObjectURL(f.blob), demoLabel: 'file', userAdded: true, userFile: true });
+    for (const f of await IDB.all('songs')) if (f && f.blob && !songs.some((s) => s.number === f.number)) songs.push(fileSong(f));
     const inventory = await fetch('source-materials/drive-video-inventory.json').then((r) => {
       if (!r.ok) throw Error('影片清單 ' + r.status);
       return r.json();
@@ -74,6 +107,8 @@ window.__showEmbed = { parse: EMBED.parse };
       ...v,
       matchType: v.matchType || legacyMatchType(v.filename),
     }));
+    const fileVideo = (f) => ({ filename: f.name, folder: '我加嘅影片', fileId: 'u-' + f.id, sizeBytes: f.blob.size, songNumbers: [], matchType: 'pool', localSrc: URL.createObjectURL(f.blob), thumb: f.thumb || '', userAdded: true, idbId: f.id });
+    for (const f of await IDB.all('videos')) if (f && f.blob) videos.push(fileVideo(f));
     const defaultOrder = songs.map((s) => s.number),
       key = 'cuesheet-board-drive-v7',
       legacyPrefix = 'cuesheet-board-drive-v';
@@ -237,6 +272,7 @@ window.__showEmbed = { parse: EMBED.parse };
           .filter((v) => v.songNumbers.includes(n) && v.matchType === 'exact-title')
           .map((v) => v.fileId);
     function label(v) {
+      if (v.userAdded) return 'MINE';
       return v.matchType === 'exact-title'
         ? 'EXACT'
         : v.matchType === 'visual-name-candidate'
@@ -248,6 +284,7 @@ window.__showEmbed = { parse: EMBED.parse };
       return s ? s.title : n;
     }
     function clipTitle(v) {
+      if (v.userAdded) return { main: v.filename, pill: 'section', note: '' };
       if (v.matchType === 'exact-title')
         return { main: songTitle(v.songNumbers[0]), pill: 'exact', note: '' };
       if (v.matchType === 'visual-name-candidate')
@@ -284,7 +321,8 @@ window.__showEmbed = { parse: EMBED.parse };
         }
         const tp = s.track ? EMBED.parse(trackUrl(s)) : null;
         if (tp) sub = `<div class="songdesc">${esc(TRACK_NAME[tp.provider])} 連結 · 喺下欄播放</div>`;
-        const badge = tp ? `<span class="srcbadge ${tp.provider}" title="${esc(TRACK_NAME[tp.provider])} 歌曲">${esc(TRACK_NAME[tp.provider])}</span>` : '';
+        if (s.userFile) sub = `<div class="songdesc">本機檔案 · 只喺呢個瀏覽器</div>`;
+        const badge = s.userFile ? `<span class="srcbadge file" title="本機音訊檔">檔案</span>` : tp ? `<span class="srcbadge ${tp.provider}" title="${esc(TRACK_NAME[tp.provider])} 歌曲">${esc(TRACK_NAME[tp.provider])}</span>` : '';
         const del = s.userAdded ? `<button data-act="del" aria-label="${esc(s.title)}移除" title="移除呢首（只喺呢個瀏覽器）">✕</button>` : '';
         row.innerHTML = `<span class="num">${num}</span><div><div class="songname">${esc(s.title)}${badge}</div>${sub}</div><div class="songbuttons"><button data-act="up" aria-label="${esc(s.title)}上移">↑</button><button data-act="down" aria-label="${esc(s.title)}下移">↓</button>${del}</div>`;
         row.addEventListener('keydown', (e) => {
@@ -297,7 +335,8 @@ window.__showEmbed = { parse: EMBED.parse };
           const a = e.target.dataset.act;
           if (a === 'del') {
             e.stopPropagation();
-            writeTracks(readTracks().filter((t) => t.number !== n));
+            if (s.userFile) IDB.del('songs', n);
+            else writeTracks(readTracks().filter((t) => t.number !== n));
             songs.splice(songs.findIndex((x) => x.number === n), 1);
             defaultOrder.splice(defaultOrder.indexOf(n), 1);
             state.order = state.order.filter((x) => x !== n);
@@ -361,10 +400,39 @@ window.__showEmbed = { parse: EMBED.parse };
         trackAddBtn.setAttribute('aria-expanded', String(!trackForm.hidden));
         if (!trackForm.hidden) turl.focus();
       };
-      trackForm.onsubmit = (e) => {
+      const tfile = trackForm.querySelector('[name=file]');
+      const addSong = (s) => {
+        songs.push(s);
+        defaultOrder.push(s.number);
+        state.order.push(s.number);
+        state.clips[s.number] = [];
+        save();
+        terr.textContent = '';
+        trackForm.reset();
+        trackForm.hidden = true;
+        trackAddBtn.setAttribute('aria-expanded', 'false');
+        setActive(s.number);
+      };
+      trackForm.onsubmit = async (e) => {
         e.preventDefault();
+        const file = tfile && tfile.files[0];
+        if (file) {
+          const nf = Math.max(0, ...songs.map((s) => /^F(\d+)$/.exec(String(s.number))).filter(Boolean).map((m) => +m[1])) + 1,
+            rec = { number: 'F' + nf, title: ttitle.value.trim() || file.name.replace(/\.[^.]+$/, ''), blob: file };
+          try {
+            await IDB.put('songs', rec);
+          } catch {
+            terr.textContent = '瀏覽器唔俾存呢個檔（空間唔夠或私隱模式）；今次先加入，reload 後會消失。';
+          }
+          addSong(fileSong(rec));
+          return;
+        }
         const url = turl.value.trim(),
           p = EMBED.parse(url);
+        if (!url) {
+          terr.textContent = '貼 Suno／Spotify 連結，或者揀一個本機音訊檔。';
+          return;
+        }
         if (!p) {
           terr.textContent = '連結唔啱：只收 suno.com／open.spotify.com 嘅歌曲、專輯或 playlist 連結。';
           return;
@@ -382,6 +450,56 @@ window.__showEmbed = { parse: EMBED.parse };
         trackForm.hidden = true;
         trackAddBtn.setAttribute('aria-expanded', 'false');
         setActive(t.number);
+      };
+    }
+    // ＋加影片：揀本機影片入素材庫（存喺瀏覽器 IndexedDB），之後同其他 loop 一樣撳 ＋ 配入歌曲
+    function makeThumb(file) {
+      return new Promise((res) => {
+        const v = document.createElement('video'),
+          u = URL.createObjectURL(file),
+          done = (d) => {
+            URL.revokeObjectURL(u);
+            res(d || '');
+          };
+        v.muted = true;
+        v.preload = 'auto';
+        v.onloadeddata = () => {
+          v.currentTime = Math.min(0.2, (v.duration || 1) / 2);
+        };
+        v.onseeked = () => {
+          try {
+            const c = document.createElement('canvas');
+            c.width = 320;
+            c.height = Math.round((320 * (v.videoHeight || 9)) / (v.videoWidth || 16));
+            c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+            done(c.toDataURL('image/jpeg', 0.7));
+          } catch {
+            done('');
+          }
+        };
+        v.onerror = () => done('');
+        setTimeout(() => done(''), 5000);
+        v.src = u;
+      });
+    }
+    const vAddBtn = document.querySelector('#videoAdd'),
+      vFile = document.querySelector('#videoFile');
+    if (vAddBtn && vFile) {
+      vAddBtn.onclick = () => vFile.click();
+      vFile.onchange = async () => {
+        let failed = 0;
+        for (const f of [...vFile.files]) {
+          const rec = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: f.name, blob: f, thumb: await makeThumb(f) };
+          try {
+            await IDB.put('videos', rec);
+          } catch {
+            failed++;
+          }
+          videos.push(fileVideo(rec));
+        }
+        vFile.value = '';
+        document.querySelector('#status').textContent = failed ? '有影片存唔入瀏覽器（空間唔夠），reload 後會消失。' : '已加入素材庫：撳縮圖播放，撳 ＋ 配入目前歌曲。';
+        renderLibrary();
       };
     }
     function stopPreview(message = '已停止並卸載 Drive 預覽。') {
@@ -490,6 +608,11 @@ window.__showEmbed = { parse: EMBED.parse };
       shown = shown.filter((k) => k !== 'charts');
       // 全部收埋（或舞台資料未載入）時顯示影片，但唔改用戶嘅設定；譜開住就容許淨係睇譜（影片可以收埋）
       // 例外：用家開咗舞台／3D／歌詞但冇資料顯示唔到，先退返顯示影片；用家自己將影片收埋就尊重（中間留空 + 提示）
+      // Suno／Spotify 歌冇影片畫面：同舞台一齊開時唔留空白影片格，畀舞台用晒位
+      const noPicture = !!s.track || !(state.clips[s.number] || []).length;
+      if (noPicture && shown.length > 1) shown = shown.filter((k) => k !== 'video');
+      // 冇 loop 嘅歌只開咗影片格：改顯示舞台（唔改用家設定），唔好留一個黑畫面
+      if (noPicture && shown.length === 1 && shown[0] === 'video' && has.stage && !showScore) shown = ['stage'];
       const wantedMissing = ['stage', 'three', 'lyrics'].some((k) => view[k]);
       if (!shown.length && !showScore && wantedMissing) shown = ['video'];
       document.querySelectorAll('#viewbar [data-view]').forEach((b) => {
@@ -880,10 +1003,10 @@ window.__showEmbed = { parse: EMBED.parse };
         embedFrame = null;
       }
       embedFrame = document.createElement('iframe');
-      embedFrame.className = 'embedframe';
+      embedFrame.className = 'embedframe ' + (embed.provider || '');
       embedFrame.title = title;
       embedFrame.allow = 'autoplay; encrypted-media; clipboard-write';
-      embedFrame.sandbox = 'allow-scripts allow-same-origin allow-popups allow-presentation';
+      embedFrame.sandbox = 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms allow-presentation';   // Spotify 登入視窗要脫離 sandbox 先行得通
       embedFrame.referrerPolicy = 'strict-origin-when-cross-origin';
       embedFrame.loading = 'lazy';
       embedFrame.src = embed.iframe;
@@ -937,6 +1060,15 @@ window.__showEmbed = { parse: EMBED.parse };
         box.append(b);
       });
       const cur = list[idx];
+      // 歌單入面嘅 Suno／Spotify 歌：內嵌播放器就係播放器，收埋我哋自己嗰條播放列
+      const pbar = document.querySelector('#playerbar');
+      if (pbar) pbar.classList.toggle('trackmode', !!s.track);
+      const hint = document.querySelector('#embedRow .embedhint');
+      if (hint) {
+        const warn = !!(cur && cur.embed && cur.embed.provider === 'suno' && !window.isSecureContext);
+        hint.classList.toggle('warn', warn);
+        hint.textContent = warn ? 'Suno 內嵌播放器要 https 頁面先播到（而家係 http，會顯示 0:00）。請用 https 網址或 localhost 開。' : '內嵌播放唔同步時間線';
+      }
       if (cur && cur.embed) {
         // 內嵌播放：本地音訊／影片暫停；時間線／3D 播放頭保持靜止（提示喺 embed 列）
         audio.pause();
@@ -988,7 +1120,9 @@ window.__showEmbed = { parse: EMBED.parse };
         }
       for (const [folder, items] of byFolder)
         groups.push({ title: folder + ' 區段 · ' + items.length + ' clips', items });
-      const rest = videos.filter((v) => !used.has(v.fileId));
+      const mine = videos.filter((v) => !used.has(v.fileId) && v.userAdded);
+      if (mine.length) groups.push({ title: '我加嘅影片 · ' + mine.length + ' clips', items: mine });
+      const rest = videos.filter((v) => !used.has(v.fileId) && !v.userAdded);
       if (rest.length) groups.push({ title: '未分區 · ' + rest.length + ' clips', items: rest });
       return groups;
     }
@@ -1016,7 +1150,8 @@ window.__showEmbed = { parse: EMBED.parse };
       tile.setAttribute('role', 'button');
       tile.setAttribute('aria-label', v.filename + ' ' + t.main + '，' + label(v));
       tile.innerHTML =
-        `<img loading="lazy" src="source-materials/thumbnails/${encodeURIComponent(v.fileId)}.jpg" alt="${esc(v.filename)} 縮圖">` +
+        `<img loading="lazy" src="${v.thumb ? v.thumb : 'source-materials/thumbnails/' + encodeURIComponent(v.fileId) + '.jpg'}" alt="${esc(v.filename)} 縮圖">` +
+        (v.userAdded ? `<button class="clipdel" aria-label="移除 ${esc(v.filename)}" title="移除（只喺呢個瀏覽器）">✕</button>` : '') +
         `<div class="clipbadges"><span class="pill ${t.pill}">${label(v)}</span>` +
         (t.note ? `<span class="clipnote">${esc(t.note)}</span>` : '') +
         `</div>` +
@@ -1028,10 +1163,22 @@ window.__showEmbed = { parse: EMBED.parse };
         selectedVideo = v.fileId;
         playClip(v);
       };
-      tile.querySelector('button').onclick = (e) => {
+      tile.querySelector('.clipadd').onclick = (e) => {
         e.stopPropagation();
         assign(active, v.fileId);
       };
+      const delBtn = tile.querySelector('.clipdel');
+      if (delBtn)
+        delBtn.onclick = (e) => {
+          e.stopPropagation();
+          IDB.del('videos', v.idbId);
+          videos.splice(videos.indexOf(v), 1);
+          for (const k of Object.keys(state.clips)) state.clips[k] = state.clips[k].filter((id) => id !== v.fileId);
+          if (selectedVideo === v.fileId) stopPreview('已移除影片。');
+          save();
+          renderLibrary();
+          renderAssigned();
+        };
       tile.onkeydown = (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -1045,7 +1192,7 @@ window.__showEmbed = { parse: EMBED.parse };
       };
       return tile;
     }
-    const proxySrc = (v) => 'media/loops/' + encodeURIComponent(v.fileId) + '.mp4';
+    const proxySrc = (v) => v.localSrc || 'media/loops/' + encodeURIComponent(v.fileId) + '.mp4';
     const audioPlaying = () => !audio.paused && !audio.ended;
     function playClip(v) {
       if (!view.video && !view.three) {
@@ -1066,6 +1213,10 @@ window.__showEmbed = { parse: EMBED.parse };
       vplayer.loop = !(assigned.includes(v.fileId) && assigned.length > 1);
       vplayer.onerror = () => {
         if (selectedVideo !== v.fileId) return;
+        if (v.localSrc) {
+          document.querySelector('#status').textContent = '呢個影片播唔到（瀏覽器唔支援呢個格式？）。';
+          return;
+        }
         vplayer.hidden = true;
         document.querySelector('#status').textContent = '影片載入失敗：' + v.filename;
       };
@@ -1148,7 +1299,7 @@ window.__showEmbed = { parse: EMBED.parse };
         hint.className = 'assigned-empty';
         hint.textContent = defaultIds(active).length
           ? '此歌尚未配任何 loop；由右側拖入片段，或點縮圖右上角「＋」。'
-          : '此歌無 Drive ref；仍可將任何影片拖入，或點縮圖右上角「＋」。';
+          : '此歌未配 loop；將素材庫影片拖入呢度，或點縮圖右上角「＋」。';
         box.append(hint);
       }
       state.clips[active].forEach((id, i) => {

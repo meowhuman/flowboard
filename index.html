@@ -36,9 +36,10 @@
         </header>
         <div id="songs" class="songs"></div>
         <div class="trackadd">
-          <button id="trackAdd" type="button" class="smallbtn" aria-expanded="false" aria-controls="trackForm" title="貼 Suno 或 Spotify 連結，加入歌單">＋ 加 Suno／Spotify 歌</button>
+          <button id="trackAdd" type="button" class="smallbtn" aria-expanded="false" aria-controls="trackForm" title="貼 Suno 或 Spotify 連結，或揀本機音訊檔，加入歌單">＋ 加歌（連結／檔案）</button>
           <form id="trackForm" class="trackform" hidden>
-            <input name="url" class="search" type="url" required aria-label="Suno 或 Spotify 連結" placeholder="貼 suno.com／open.spotify.com 連結" />
+            <input name="url" class="search" type="url" aria-label="Suno 或 Spotify 連結" placeholder="貼 suno.com／open.spotify.com 連結" />
+            <label class="filepick">或揀本機音訊檔（mp3／wav／m4a／flac，只存喺呢個瀏覽器）<input name="file" type="file" accept="audio/*" /></label>
             <input name="title" class="search" type="text" aria-label="歌名（可留空）" placeholder="歌名（可留空）" />
             <button type="submit" class="smallbtn">加入歌單</button>
             <div class="trackerr" role="alert"></div>
@@ -116,7 +117,7 @@
             <div class="tools">
               <span class="pill exact">EXACT</span><span class="pill candidate">CANDIDATE</span
               ><span class="pill section">SECTION</span
-              ><button id="libToggle" class="smallbtn" aria-expanded="true" aria-controls="library" title="收埋／展開素材庫" aria-label="收埋素材庫">▾</button>
+              ><button id="videoAdd" type="button" class="smallbtn" title="揀本機影片加入素材庫（只存喺呢個瀏覽器）">＋ 加影片</button><input id="videoFile" type="file" accept="video/*" multiple hidden /><button id="libToggle" class="smallbtn" aria-expanded="true" aria-controls="library" title="收埋／展開素材庫" aria-label="收埋素材庫">▾</button>
             </div>
           </header>
           <div id="library" class="library"></div>

@@ -102,8 +102,16 @@ ok('歌單 Spotify 歌：撳 T3 → iframe 指向 open.spotify.com/embed/track�
 await p.click('.song[data-num="T1"]'); await p.waitForTimeout(500);
 const ifs1 = await p.$$eval('iframe.embedframe', (e) => e.map((x) => x.src));
 ok('歌單 Suno 歌：撳 T1 → 只剩一個 iframe 指向 suno.com/embed', ifs1.length === 1 && /^https:\/\/suno\.com\/embed\/[0-9a-f-]{36}$/.test(ifs1[0]), ifs1.join());
+ok('歌單 Suno／Spotify 歌：我哋自己嗰條播放列收埋（淨係用內嵌播放器）', await p.locator('#player').isHidden() && await p.locator('#embedRow').isVisible());
+await p.evaluate(() => Object.defineProperty(window, 'isSecureContext', { value: false, configurable: true }));
+await p.click('.song[data-num="T2"]'); await p.waitForTimeout(400); await p.click('.song[data-num="T1"]'); await p.waitForTimeout(400);
+ok('http 頁面開 Suno 歌 → 提示要 https', /https/.test(await p.locator('#embedRow .embedhint').innerText()));
+await p.evaluate(() => Object.defineProperty(window, 'isSecureContext', { value: true, configurable: true }));
+await p.click('.song[data-num="T3"]'); await p.waitForTimeout(400);
+const sb3 = await p.$eval('iframe.embedframe', (f) => f.getAttribute('sandbox'));
+ok('內嵌 sandbox 容許登入視窗脫離（Spotify 登入）', /allow-popups-to-escape-sandbox/.test(sb3) && /allow-forms/.test(sb3), sb3);
 await p.click('.song[data-num="01"]'); await p.waitForTimeout(500);
-ok('轉返本地歌 → 內嵌 iframe 移除、音訊有 src', (await p.$$('iframe.embedframe')).length === 0 && !!(await p.$eval('#audio', (a) => a.getAttribute('src'))));
+ok('轉返本地歌 → 內嵌 iframe 移除、音訊有 src、播放列返嚟', (await p.$$('iframe.embedframe')).length === 0 && !!(await p.$eval('#audio', (a) => a.getAttribute('src'))) && await p.locator('#player').isVisible());
 // 加歌：貼連結
 await p.click('#trackAdd'); await p.fill('#trackForm [name=url]', 'https://example.com/x'); await p.click('#trackForm [type=submit]'); await p.waitForTimeout(300);
 ok('加歌：唔認得嘅連結 → 顯示錯誤、歌單唔變', /連結唔啱/.test(await p.locator('.trackerr').innerText()) && (await p.locator('#songs .song').count()) === 10);

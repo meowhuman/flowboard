@@ -456,7 +456,9 @@
       modeSeg() +
       '<button class="smallbtn" data-act="outfit" title="樂手性別同服裝（主題色隨機配衣）">服裝</button>' +
       `<button class="smallbtn" data-act="fit" aria-pressed="${store.fit !== false}" title="畫面貼住器材放大／顯示成個舞台">聚焦</button>` +
-      (data.plans.length > 1 ? data.plans.map((p) => `<button class="vchip" data-plan="${esc(p.id)}" aria-pressed="${p.id === store.planId}">${esc(p.title)}</button>`).join('') : '') +
+      (data.plans.length > 3
+        ? `<select class="venuesel" data-planselect aria-label="場地">${data.plans.map((p) => `<option value="${esc(p.id)}"${p.id === store.planId ? ' selected' : ''}>${esc(p.title)}</option>`).join('')}</select>`
+        : data.plans.length > 1 ? data.plans.map((p) => `<button class="vchip" data-plan="${esc(p.id)}" aria-pressed="${p.id === store.planId}">${esc(p.title)}</button>`).join('') : '') +
       '<span class="stagelegend"><i class="sw on"></i>台上 <i class="sw solo"></i>SOLO <i class="sw hl"></i>HIGHLIGHT</span>' +
       `<label class="showoff"><input type="checkbox" data-act="showoff" ${store.showOff ? 'checked' : ''}> 顯示休息樂手</label>` +
       (readOnly ? '' : `<button class="smallbtn" data-act="edit" aria-pressed="${editing}">${editing ? '完成編輯' : '編輯'}</button>`) +
@@ -510,6 +512,7 @@
       };
     box.querySelectorAll('[data-mode]').forEach((b) => (b.onclick = () => ctx.setMode(b.dataset.mode)));
     box.querySelectorAll('[data-plan]').forEach((b) => (b.onclick = () => { store.planId = b.dataset.plan; save(); render(); }));
+    box.querySelectorAll('[data-planselect]').forEach((s) => (s.onchange = () => { store.planId = s.value; save(); render(); }));
     const rotateTarget = box.querySelector('[data-act="rotate-target"]');
     if (rotateTarget) rotateTarget.onchange = () => {
       selectedRotateId = rotateTarget.value;

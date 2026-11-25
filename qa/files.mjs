@@ -1,0 +1,53 @@
+// 加歌檔、加影片、舞台版面（中欄無捲軸）：node qa/files.mjs（PW_FROM 指向有 playwright 嘅目錄，BASE 指向板）
+import { createRequire } from 'node:module';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const { chromium } = createRequire(process.env.PW_FROM || import.meta.url)('playwright');
+const BASE = process.env.BASE || 'http://127.0.0.1:9424/index.html';
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'cuesheet-files-'));
+let bad = 0;
+const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
+const ctx = await b.newContext({ viewport: { width: 1440, height: 800 } });
+const p = await ctx.newPage();
+const errs = []; p.on('pageerror', (e) => errs.push(String(e))); p.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
+await p.goto(BASE); await p.waitForTimeout(1500);
+const R = (n, ok, x = '') => { if (!ok) bad++; console.log(ok ? 'PASS' : 'FAIL', '|', n, x); };
+// layout
+await p.click('.song[data-num="T3"]'); await p.waitForTimeout(800);
+await p.click('text=舞台'); await p.waitForTimeout(1200);
+const sc = await p.evaluate(() => [...document.querySelectorAll('*')].filter((e) => /(auto|scroll)/.test(getComputedStyle(e).overflowY) && e.scrollHeight > e.clientHeight + 2 && !/songs|library/.test(e.id)).map((e) => e.id || e.className));
+R('track + 舞台：中欄無捲軸', sc.length === 0, JSON.stringify(sc));
+const sh = await p.$eval('#stagebox', (e) => Math.round(e.getBoundingClientRect().height));
+R('舞台有足夠高度（>=300）', sh >= 300, sh);
+// add song file: tiny wav
+const wav = Buffer.alloc(44 + 8000 * 2); wav.write('RIFF', 0); wav.writeUInt32LE(36 + 16000, 4); wav.write('WAVEfmt ', 8); wav.writeUInt32LE(16, 16); wav.writeUInt16LE(1, 20); wav.writeUInt16LE(1, 22); wav.writeUInt32LE(8000, 24); wav.writeUInt32LE(16000, 28); wav.writeUInt16LE(2, 32); wav.writeUInt16LE(16, 34); wav.write('data', 36); wav.writeUInt32LE(16000, 40);
+for (let i = 0; i < 8000; i++) wav.writeInt16LE(Math.round(8000 * Math.sin(i / 8)), 44 + i * 2);
+fs.writeFileSync(TMP + '/test-tone.wav', wav);
+await p.click('#trackAdd');
+await p.setInputFiles('#trackForm [name=file]', TMP + '/test-tone.wav');
+await p.click('#trackForm button[type=submit]'); await p.waitForTimeout(1200);
+R('加歌檔：歌單多一行 F1、有 檔案 標記', await p.locator('.song[data-num="F1"] .srcbadge.file').count() === 1);
+R('加歌檔：用我哋自己播放列（audio 有 blob src）', (await p.$eval('#audio', (a) => a.getAttribute('src') || '')).startsWith('blob:') && await p.locator('#player').isVisible());
+await p.reload(); await p.waitForTimeout(1500);
+R('加歌檔：reload 後仍在', await p.locator('.song[data-num="F1"]').count() === 1);
+// add video
+await p.setInputFiles('#videoFile', path.join(ROOT, 'media/loops/sunset-window.mp4')); await p.waitForTimeout(3000);
+R('加影片：素材庫出現「我加嘅影片」', await p.locator('.grouptitle', { hasText: '我加嘅影片' }).count() === 1);
+const img = await p.$eval('.group:has(.grouptitle:text("我加嘅影片")) img', (i) => i.src.slice(0, 22));
+R('加影片：縮圖已生成', img.startsWith('data:image/jpeg'), img);
+await p.reload(); await p.waitForTimeout(1500);
+R('加影片：reload 後仍在', await p.locator('.grouptitle', { hasText: '我加嘅影片' }).count() === 1);
+await p.click('.group:has(.grouptitle:text("我加嘅影片")) .clip'); await p.waitForTimeout(1500);
+R('加影片：撳縮圖播到', await p.$eval('#vplayer', (v) => !v.hidden && v.readyState >= 2 && !!v.getAttribute('src')?.startsWith('blob:')));
+await p.click('.group:has(.grouptitle:text("我加嘅影片")) .clipdel'); await p.waitForTimeout(500);
+R('移除影片', await p.locator('.grouptitle', { hasText: '我加嘅影片' }).count() === 0);
+await p.click('.song[data-num="F1"] [data-act="del"]'); await p.waitForTimeout(500);
+await p.reload(); await p.waitForTimeout(1200);
+R('移除歌檔後 reload 唔再出現', await p.locator('.song[data-num="F1"]').count() === 0);
+R('冇 console 錯誤', errs.length === 0, errs.slice(0, 3).join(' || '));
+await b.close();
+console.log(bad ? `FAIL ${bad}` : '== ALL PASS ==');
+process.exit(bad ? 1 : 0);

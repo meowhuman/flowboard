@@ -1,6 +1,10 @@
 cuesheet-board
 Made by Teriver Cheung, a Mono Labs tool.
 
+Name and logo
+"cuesheet-board", "Mono Labs" and the logo files in docs/ are not covered by the MIT
+licence. See TRADEMARKS.md.
+
 Third-party code
 - three.js (MIT), vendor/three. Copyright 2010-2023 three.js authors.
 

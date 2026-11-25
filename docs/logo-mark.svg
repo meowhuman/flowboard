@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="cuesheet-board mark">
+  <rect width="64" height="64" rx="12" fill="#101211"/>
+  <rect x="10" y="14" width="22" height="7" rx="2" fill="#c76543"/>
+  <rect x="26" y="26" width="28" height="7" rx="2" fill="#df8d6b"/>
+  <rect x="16" y="38" width="20" height="7" rx="2" fill="#c76543"/>
+  <rect x="38" y="50" width="16" height="4" rx="2" fill="#aaa49a"/>
+  <rect x="35" y="8" width="2.5" height="48" rx="1.2" fill="#f3eee5"/>
+</svg>
