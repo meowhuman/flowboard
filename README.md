@@ -72,7 +72,7 @@ The sample set exercises every feature, so you can click through them before loa
 | Versions | Song 06 has instrumental and vocal audio versions |
 | Suno and Spotify tracks | Rows T1 and T2 are Suno songs, T3 and T4 are Spotify tracks. Each has a small mark and plays inside the board. Try `+ Add song` at the bottom of the list |
 | Venues | Stage view: the venue list next to `聚焦` (2D) or in the 3D toolbar: black box, jazz club, concert hall, open stage |
-| Loops | Three sample video loops sit in the library on the right. Click one to play it, `+` assigns it to the current song, `+ Add video` adds your own |
+| Loops | Two sample video loops sit in the library on the right. Click one to play it, `+` assigns it to the current song, `+ Add video` adds your own |
 | Lyrics and form chart | Song 01 has lyrics and a generated form chart |
 | One-click report | `輸出`, tick sections, get a self-contained HTML file |
 | Phone layout | Open it on a phone, or narrow the window to 390 px |
