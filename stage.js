@@ -8,13 +8,13 @@
   const CYCLE = ['off', 'on', 'solo', 'hl'];
   const STATE_LABEL = { off: '休息', on: '台上', solo: 'SOLO', hl: 'HIGHLIGHT', prop: '道具' };
   // 各器材嘅碰撞半徑（米），用嚟避開標籤重疊
-  const RADIUS = { piano: 1.15, keyboard: 0.7, 'guitar-e': 0.9, bass: 1.0, drums: 0.9, 'vocal-main': 0.65, 'vocal-back': 0.4, 'prop-car': 0.75, chair: 0.5 };
-  const ICON_SCALE = { piano: 0.55, keyboard: 0.55, 'guitar-e': 0.44, bass: 0.44, drums: 0.55, 'vocal-main': 0.55, 'vocal-back': 0.55, 'prop-car': 0.55, chair: 0.55 };
+  const RADIUS = { piano: 1.15, keyboard: 0.7, 'guitar-e': 0.9, bass: 1.0, drums: 0.9, sax: 0.65, 'vocal-main': 0.65, 'vocal-back': 0.4, 'prop-car': 0.75, chair: 0.5 };
+  const ICON_SCALE = { piano: 0.55, keyboard: 0.55, 'guitar-e': 0.44, bass: 0.44, drums: 0.55, sax: 0.55, 'vocal-main': 0.55, 'vocal-back': 0.55, 'prop-car': 0.55, chair: 0.55 };
   // Base SVG glyph half-extents; +0.1 m safety margin is applied after scaling and rotation.
-  const GLYPH_BOUNDS = { piano: [0.95, 0.72], keyboard: [0.8, 0.34], 'guitar-e': [1.28, 0.62], bass: [1.33, 0.58], drums: [0.87, 0.85], 'vocal-main': [0.25, 0.68], 'vocal-back': [0.25, 0.68], 'prop-car': [0.7, 0.15], chair: [0.4, 0.2] };
+  const GLYPH_BOUNDS = { piano: [0.95, 0.72], keyboard: [0.8, 0.34], 'guitar-e': [1.28, 0.62], bass: [1.33, 0.58], drums: [0.87, 0.85], sax: [0.48, 1.05], 'vocal-main': [0.25, 0.68], 'vocal-back': [0.25, 0.68], 'prop-car': [0.7, 0.15], chair: [0.4, 0.2] };
   // Visible half-extents before ICON_SCALE; compact labels use icon shape bounds, not stage clearance.
-  const ICON_BOUNDS = { piano: [0.53, 0.4], keyboard: [0.44, 0.19], 'guitar-e': [0.57, 0.28], bass: [0.6, 0.28], drums: [0.5, 0.3], 'vocal-main': [0.14, 0.38] };
-  const INSTRUMENTS = new Set(['piano', 'keyboard', 'guitar-e', 'bass', 'drums']);
+  const ICON_BOUNDS = { piano: [0.53, 0.4], keyboard: [0.44, 0.19], 'guitar-e': [0.57, 0.28], bass: [0.6, 0.28], drums: [0.5, 0.3], sax: [0.26, 0.58], 'vocal-main': [0.14, 0.38] };
+  const INSTRUMENTS = new Set(['piano', 'keyboard', 'guitar-e', 'bass', 'drums', 'sax']);
   const isProp = (it) => it.type === 'prop-car' || it.type === 'chair';
   const footprint = (it) => {
     const [w, h] = GLYPH_BOUNDS[it.type] || [0.3, 0.3],
@@ -257,6 +257,8 @@
         return '<path class="shape" d="M-.12-.08C-.52-.2-.73-.49-.56-.73-.38-.99-.02-.8.14-.55.42-.77.72-.6.67-.29.64-.1.48.08.38.24.64.52.39.88.02.86-.37.84-.68.58-.54.32-.46.17-.3.02-.12-.08Z"/><path class="shape" d="M.28-.13H1.05V.13H.28Z"/><path class="detail" d="M.4-.15V.15M.55-.15V.15M.7-.15V.15M.85-.15V.15M1-.15V.15M1.05 0H1.24"/><rect class="panel" x="-.1" y="-.2" width=".23" height=".38" rx=".04"/><circle class="detail-dot" cx="-.39" cy="-.42" r=".07"/>';
       case 'drums':
         return '<ellipse class="shape outline" cx="-.62" cy="-.25" rx=".25" ry=".09"/><ellipse class="shape outline" cx=".62" cy="-.25" rx=".25" ry=".09"/><path class="detail" d="M-.62-.16V.28M.62-.16V.28M-.62.24L-.82.45M-.62.24L-.42.45M.62.24L.42.45M.62.24L.82.45"/><circle class="shape outline" cx="-.36" cy="-.02" r=".15"/><circle class="shape outline" cx="0" cy="-.08" r=".16"/><circle class="shape outline" cx=".48" cy=".06" r=".17"/><circle class="shape outline" cx="0" cy=".42" r=".28"/><circle class="detail" cx="0" cy=".42" r=".22"/><path class="shape outline" d="M-.16-.78Q0-.85.16-.78V-.62Q0-.55-.16-.62Z"/><path class="detail" d="M0-.62V-.42M-.07-.49L0-.42L.07-.49"/>';
+      case 'sax':
+        return '<path class="shape outline" d="M-.08-.93Q.12-.88.12-.68V.26Q.12.49-.08.62L-.24.76Q-.38.89-.28 1.02Q-.15 1.13.02 1.02L.28.81Q.48.65.48.38V-.2Q.48-.42.28-.55L.16-.64V-.78Q.16-.98.02-1.05Z"/><path class="detail" d="M-.02-.65V.55M.13-.48H.3M.13-.25H.3M.13-.02H.3M.13.2H.3M-.02.42H.13M-.1-.79Q.18-.84.36-.7"/><circle class="detail-dot" cx=".22" cy="-.46" r=".035"/><circle class="detail-dot" cx=".22" cy="-.23" r=".035"/><circle class="detail-dot" cx=".22" cy=".01" r=".035"/><circle class="detail-dot" cx=".22" cy=".24" r=".035"/>';
       case 'chair':
         return '<rect class="shape" x="-.4" y="-.2" width=".8" height=".4" rx=".05"/>';
       case 'prop-car':

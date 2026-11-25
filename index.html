@@ -34,6 +34,17 @@
             placeholder="搜尋歌曲…"
           />
         </header>
+        <details class="section-manager" id="sectionManager">
+          <summary>＋ 新增段落</summary>
+          <div class="section-manager-body">
+            <div id="sectionGroups" class="section-groups"></div>
+            <form id="sectionForm" class="section-form">
+              <input name="name" type="text" maxlength="40" aria-label="新段落名稱" placeholder="例如：懷舊／電影歌" required />
+              <label>顏色 <input name="color" type="color" value="#8b6df6" aria-label="段落顏色" /></label>
+              <button type="submit" class="smallbtn">＋新增段落</button>
+            </form>
+          </div>
+        </details>
         <div id="songs" class="songs"></div>
         <div class="trackadd">
           <button id="trackAdd" type="button" class="smallbtn" aria-expanded="false" aria-controls="trackForm" title="貼 Suno 或 Spotify 連結，或揀本機音訊檔，加入歌單">＋ 加歌（連結／檔案）</button>

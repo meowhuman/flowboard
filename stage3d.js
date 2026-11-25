@@ -23,15 +23,16 @@ const PLAY = {
   keyboard: { flip: false, behind: 0.75 },
   // hold：樂手拎住器材（器材同人一齊搖）。pivotY＝器材模型本地琴身中心高度；raiseTo＝拎喺幾高（m）；roll＝琴頸斜幾度；cutBelow＝切走腳架（模型本地 y 以下）
   'guitar-e': { flip: true, behind: 0.22, hold: { pivotY: 0.32, raiseTo: 0.95, roll: 40, cutBelow: 0.12 } },
-  bass: { flip: true, behind: 0.3, hold: {} },
+  bass: { flip: true, behind: 0.3, hold: { pivotY: 0.95, raiseTo: 0.95 } },
   drums: { flip: true, behind: 0.3 },
+  sax: { flip: false, behind: 0.55 },
   'vocal-main': { flip: true, behind: 0.4 },
   'vocal-back': { flip: true, behind: 0.4 },
 };
 const COLORS = { on: '#d7ddd5', solo: '#ffc233', hl: '#31c6f5', prop: '#e8a39b' };
 const PROP = new Set(['prop-car', 'chair']);
 const PIANIST_TURN = Math.PI;   // 坐喺琴凳嘅樂手要面向鋼琴（模型正面 -Z 係琴鍵一邊，所以轉 180°）
-const TAG_H = { 'prop-car': 1.1, chair: 0.8, piano: 1.9, keyboard: 2.0, 'guitar-e': 2.1, bass: 2.35, drums: 2.0, 'vocal-main': 2.15, 'vocal-back': 2.15 };
+const TAG_H = { 'prop-car': 1.1, chair: 0.8, piano: 1.9, keyboard: 2.0, 'guitar-e': 2.1, bass: 2.35, drums: 2.0, sax: 1.65, 'vocal-main': 2.15, 'vocal-back': 2.15 };
 
 export async function mount(box, api) {
   const probe = document.createElement('canvas');
@@ -40,7 +41,7 @@ export async function mount(box, api) {
   const canvas = document.createElement('canvas');
   const bar = document.createElement('div');
   bar.className = 'threebar';
-  bar.innerHTML = '<span class="modeseg" role="group" aria-label="舞台視圖"><button data-mode="2d" class="smallbtn">僅 2D</button><button data-mode="3d" class="smallbtn">僅 3D</button><button data-mode="both" class="smallbtn">2D + 3D</button><button data-mode="off" class="smallbtn">關閉舞台</button></span><span class="camseg"><button data-cam="aud" class="smallbtn">觀眾席</button><button data-cam="top" class="smallbtn">俯視</button><button data-cam="seat" class="smallbtn">座位視角</button><button data-cam="side" class="smallbtn">側面</button></span><button data-labels="1" class="smallbtn" aria-pressed="true">名牌</button><button data-outfit="1" class="smallbtn" title="樂手性別同服裝">服裝</button><button data-light="1" class="smallbtn" aria-pressed="false" title="燈光 preset 同煙霧機（試吓感覺）" hidden>燈光</button>';
+  bar.innerHTML = '<span class="modeseg" role="group" aria-label="舞台視圖"><button data-mode="2d" class="smallbtn">僅 2D</button><button data-mode="3d" class="smallbtn">僅 3D</button><button data-mode="both" class="smallbtn">2D + 3D</button><button data-mode="off" class="smallbtn">關閉舞台</button></span><button data-cam-cycle="1" class="smallbtn" aria-label="切換預設視角">視角：觀眾席</button><button data-labels="1" class="smallbtn" aria-pressed="true">名牌</button><button data-outfit="1" class="smallbtn" title="樂手性別同服裝">服裝</button><button data-light="1" class="smallbtn" aria-pressed="false" title="燈光 preset 同煙霧機（試吓感覺）" hidden>燈光</button>';
   const note = document.createElement('div');
   note.className = 'threenote';
   note.textContent = '載入模型中…';
@@ -453,11 +454,20 @@ export async function mount(box, api) {
   controls.addEventListener('start', () => (touched = true));
   let lastStage = null;
   const syncModeBtns = () => bar.querySelectorAll('[data-mode]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === 'off' ? !api.getMode() : api.getMode() === b.dataset.mode)));
-  const syncCamBtns = () => bar.querySelectorAll('[data-cam]').forEach((b) => b.setAttribute('aria-pressed', String(camKind === b.dataset.cam)));
+  const CAMERAS = [['aud', '觀眾席'], ['top', '俯視'], ['seat', '座位視角'], ['side', '側面']];
+  const syncCamBtns = () => {
+    const button = bar.querySelector('[data-cam-cycle]'),
+      label = CAMERAS.find(([id]) => id === camKind)?.[1] || CAMERAS[0][1];
+    if (button) { button.textContent = '視角：' + label; button.setAttribute('aria-label', '切換預設視角，目前：' + label); }
+  };
   syncCamBtns();
   bar.onclick = (e) => {
     const d = e.target.dataset || {};
-    if (d.cam) { touched = false; setCam(d.cam); }
+    if (d.camCycle) {
+      touched = false;
+      const i = CAMERAS.findIndex(([id]) => id === camKind);
+      setCam(CAMERAS[(i + 1) % CAMERAS.length][0]);
+    }
     if (d.mode) api.setMode(d.mode);
     if (d.outfit && window.People) People.openDialog();
     if (d.light) light.toggle();
@@ -481,6 +491,58 @@ export async function mount(box, api) {
   }
   const shortName = (label) => { const i = String(label).indexOf(' ★'); return i > 0 ? label.slice(0, i) : label; };
 
+  function saxophoneModel() {
+    const root = new THREE.Group(),
+      brass = new THREE.MeshStandardMaterial({ color: 0xc89b3c, metalness: 0.72, roughness: 0.32 }),
+      silver = new THREE.MeshStandardMaterial({ color: 0xd8d7ce, metalness: 0.7, roughness: 0.3 }),
+      add = (geometry, material, x, y, z) => {
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(x, y, z);
+        root.add(mesh);
+        return mesh;
+      };
+    const bodyPath = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-0.12, 1.28, 0), new THREE.Vector3(-0.02, 1.16, 0),
+      new THREE.Vector3(-0.02, 0.82, 0), new THREE.Vector3(-0.02, 0.46, 0),
+      new THREE.Vector3(0.06, 0.24, 0), new THREE.Vector3(0.22, 0.3, 0),
+    ]);
+    root.add(new THREE.Mesh(new THREE.TubeGeometry(bodyPath, 28, 0.055, 10, false), brass));
+    const bell = add(new THREE.ConeGeometry(0.21, 0.34, 18, 1, true), brass, 0.22, 0.34, 0);
+    bell.rotation.z = -Math.PI / 2;
+    const rim = add(new THREE.TorusGeometry(0.205, 0.025, 8, 20), brass, 0.39, 0.34, 0);
+    rim.rotation.y = Math.PI / 2;
+    const neckPath = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-0.12, 1.28, 0), new THREE.Vector3(-0.24, 1.35, 0),
+      new THREE.Vector3(-0.3, 1.3, 0), new THREE.Vector3(-0.3, 1.22, 0),
+    ]);
+    root.add(new THREE.Mesh(new THREE.TubeGeometry(neckPath, 12, 0.035, 8, false), brass));
+    add(new THREE.CylinderGeometry(0.025, 0.025, 0.09, 10), silver, -0.3, 1.18, 0);
+    for (const [x, y] of [[-0.01, 1.0], [-0.01, 0.82], [0, 0.64], [0.04, 0.49], [0.12, 0.37]]) {
+      const key = add(new THREE.SphereGeometry(0.055, 10, 8), silver, x, y, 0.07);
+      key.scale.set(1, 0.55, 0.45);
+    }
+    return root;
+  }
+
+  function heldArms(target, points) {
+    const sleeve = new THREE.MeshStandardMaterial({ color: 0x414540, roughness: 0.82 });
+    const skin = new THREE.MeshStandardMaterial({ color: 0xe0d6c8, roughness: 0.9 });
+    const limb = (a, b, radius, material) => {
+      const start = new THREE.Vector3(...a), end = new THREE.Vector3(...b), delta = end.clone().sub(start);
+      const mesh = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.82, radius, delta.length(), 10), material);
+      mesh.position.copy(start.add(end).multiplyScalar(0.5));
+      mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), delta.normalize());
+      target.add(mesh);
+    };
+    for (const arm of points) {
+      limb(arm.shoulder, arm.elbow, 0.065, sleeve);
+      limb(arm.elbow, arm.hand, 0.052, sleeve);
+      const hand = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 8), skin);
+      hand.position.set(...arm.hand);
+      target.add(hand);
+    }
+  }
+
   async function ensure(it) {
     if (nodes.has(it.id)) return nodes.get(it.id);
     const group = new THREE.Group();
@@ -496,6 +558,26 @@ export async function mount(box, api) {
       }
       group.add(car);
     } else if (it.type === 'chair') group.add(chairModel(it.w, it.d, it.h));
+    else if (it.type === 'sax') {
+      const play = PLAY.sax;
+      body = new THREE.Group();
+      body.rotation.order = 'YXZ';
+      const instrument = saxophoneModel();
+      instrument.scale.setScalar(0.68);
+      instrument.position.set(0, 0.45, 0.55);
+      body.add(instrument);
+      group.add(body);
+      const person = (await load('musician-standing')).clone(true);
+      person.position.set(0, 0, 0.55);
+      person.rotation.y = -FIGURE_FRONT_YAW;
+      person.userData.facing = true;
+      person.userData.pose = 'standing';
+      body.add(person);
+      heldArms(body, [
+        { shoulder: [-0.1, 1.42, 0.68], elbow: [-0.08, 1.2, 0.7], hand: [-0.02, 1.04, 0.72] },
+        { shoulder: [0.22, 1.42, 0.68], elbow: [0.18, 1.18, 0.7], hand: [0.08, 0.98, 0.72] },
+      ]);
+    }
     else try {
       const inst = (await load(MODEL_OF[it.type])).clone(true),
         play = PLAY[it.type] || { flip: false, behind: 0.6 };
@@ -514,6 +596,7 @@ export async function mount(box, api) {
         pivot.add(inst);
         body.add(pivot);
       } else group.add(inst);
+      if (it.type === 'bass') inst.position.set(0.05, 0, 0.55);
       if (play.pitch) {                                              // 校正歪咗嘅模型：繞器材本地 X 軸抬高琴鍵端，再貼返地
         inst.rotation.order = 'YXZ';
         inst.rotation.x = (-play.pitch * Math.PI) / 180;
@@ -523,10 +606,15 @@ export async function mount(box, api) {
       if (!it.player) {                                              // 共用樂手（例如鋼琴＋Keyboard）喺 players 處理
         const person = (await load(SEATED.has(it.type) ? 'musician-seated' : 'musician-standing')).clone(true);
         person.position.set(0, 0, play.behind);                      // 本地 +z ＝ 器材 front 嘅反方向：人企喺器材後面，器材喺人前面
+        if (it.type === 'bass') person.position.set(0.16, 0, 0.42);
         person.rotation.y = -FIGURE_FRONT_YAW;                       // 樂手面向器材 front 方向（rot 0 ＝ 觀眾）
         person.userData.facing = true;
         person.userData.pose = SEATED.has(it.type) ? 'seated' : 'standing';
         body.add(person);
+        if (it.type === 'bass') heldArms(body, [
+          { shoulder: [0.06, 1.42, 0.68], elbow: [0.01, 1.3, 0.7], hand: [0.06, 1.38, 0.72] },
+          { shoulder: [0.32, 1.4, 0.68], elbow: [0.25, 1.18, 0.7], hand: [0.16, 1.08, 0.72] },
+        ]);
         if (it.chair && it.sitWhen) {                                // 有凳（例如結他嘅高凳）：另外有一個坐姿，指定狀態（例如 solo）先坐
           const sp = (await load('musician-seated')).clone(true);
           sp.position.set(0, 0, play.behind);

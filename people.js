@@ -39,7 +39,7 @@
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
   }
-  const performers = () => (plan ? plan.items.filter((i) => ['piano', 'guitar-e', 'bass', 'drums', 'vocal-main', 'vocal-back'].includes(i.type)) : []);
+  const performers = () => (plan ? plan.items.filter((i) => ['piano', 'guitar-e', 'bass', 'drums', 'sax', 'vocal-main', 'vocal-back'].includes(i.type)) : []);
   const defGender = (it) => it.gender || (it.type === 'vocal-main' || it.type === 'vocal-back' ? 'f' : 'm');
 
   // 按主題色隨機配衣：每個主題色至少用一次；女款有連身裙／裙／褲；男款上衣＋褲；鞋深色；髮色自然色

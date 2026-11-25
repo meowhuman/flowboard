@@ -47,10 +47,56 @@ window.__showEmbed = { parse: EMBED.parse };
       return r.json();
     });
     const TITLES_KEY = 'flowboard-titles-v1';
+    const DETAILS_KEY = TITLES_KEY + '-instrumentation-v1';
+    const SECTIONS_KEY = 'flowboard-sections-v1';
+    const COLLAPSED_SECTIONS_KEY = SECTIONS_KEY + '-collapsed-v1';
+    const SEGUES_KEY = 'flowboard-segues-v1';
+    const validColor = (value) => /^#[0-9a-f]{6}$/i.test(value || '');
+    let sectionState = { groups: [], assignments: {} }, segues = [];
+    let collapsedSections = new Set();
+    const toolsOpen = new Set(); // 歌單列「⋯」展開咗段落／銜接工具嘅歌
+    try {
+      const saved = JSON.parse(localStorage.getItem(SECTIONS_KEY));
+      if (saved && Array.isArray(saved.groups) && saved.assignments && typeof saved.assignments === 'object') {
+        sectionState = saved;
+        sectionState.groups = sectionState.groups.filter((g) => g && g.id && typeof g.name === 'string' && validColor(g.color));
+      }
+    } catch {}
+    for (const s of songs) {
+      const section = s.archived
+        ? { id: 'archive', name: 'Archive', color: '#7b827d' }
+        : s.flowGroup;
+      if (!section || !section.id || !section.name || !validColor(section.color)) continue;
+      if (!sectionState.groups.some((g) => g.id === section.id)) sectionState.groups.push({ ...section });
+      const assigned = sectionState.assignments[s.number];
+      if (s.archived || !sectionState.groups.some((g) => g.id === assigned)) sectionState.assignments[s.number] = section.id;
+    }
+    try {
+      const saved = JSON.parse(localStorage.getItem(COLLAPSED_SECTIONS_KEY));
+      if (Array.isArray(saved)) collapsedSections = new Set(saved.filter((key) => typeof key === 'string'));
+    } catch {}
+    try {
+      const saved = JSON.parse(localStorage.getItem(SEGUES_KEY));
+      if (Array.isArray(saved)) segues = saved.filter((p) => typeof p === 'string' && p.includes('→'));
+    } catch {}
+    const saveSections = () => {
+      try { localStorage.setItem(SECTIONS_KEY, JSON.stringify(sectionState)); } catch {}
+    };
+    const saveCollapsedSections = () => {
+      try { localStorage.setItem(COLLAPSED_SECTIONS_KEY, JSON.stringify([...collapsedSections])); } catch {}
+    };
+    const saveSegues = () => {
+      try { localStorage.setItem(SEGUES_KEY, JSON.stringify(segues)); } catch {}
+    };
     let titleOverrides = {};
     try {
       const saved = JSON.parse(localStorage.getItem(TITLES_KEY));
       if (saved && typeof saved === 'object' && !Array.isArray(saved)) titleOverrides = saved;
+    } catch {}
+    let detailOverrides = {};
+    try {
+      const saved = JSON.parse(localStorage.getItem(DETAILS_KEY));
+      if (saved && typeof saved === 'object' && !Array.isArray(saved)) detailOverrides = saved;
     } catch {}
     const sourceTitles = new Map(songs.map((s) => [s.number, s.title]));
     for (const s of songs) if (typeof titleOverrides[s.number] === 'string') s.title = titleOverrides[s.number];
@@ -252,6 +298,7 @@ window.__showEmbed = { parse: EMBED.parse };
     let active = state.order[0],
       selectedVideo = null,
       dragSong = null,
+      dragSection = null,
       dragClip = null,
       previewTimer = null,
       previewGeneration = 0,
@@ -309,22 +356,149 @@ window.__showEmbed = { parse: EMBED.parse };
         v.songNumbers.length > 1 ? ' 可用於 ' + v.songNumbers.join('·') : ' 區段';
       return { main: v.folder + scope, pill: 'section', note: '' };
     }
+    function renderSectionManager() {
+      const root = document.querySelector('#sectionGroups');
+      if (!root) return;
+      root.innerHTML = '';
+      sectionState.groups.forEach((group) => {
+        const item = document.createElement('div');
+        item.className = 'section-group-editor';
+        item.innerHTML = `<input data-field="name" value="${esc(group.name)}" maxlength="40" aria-label="段落名稱" /><input data-field="color" type="color" value="${group.color}" aria-label="${esc(group.name)}顏色" /><button type="button" data-act="delete-group" aria-label="刪除${esc(group.name)}段落" title="刪除段落">刪除</button>`;
+        item.querySelector('[data-field="name"]').addEventListener('change', (e) => {
+          const name = e.target.value.trim();
+          if (name) group.name = name;
+          else e.target.value = group.name;
+          saveSections();
+          renderSongs();
+        });
+        item.querySelector('[data-field="color"]').addEventListener('change', (e) => {
+          if (!validColor(e.target.value)) return;
+          group.color = e.target.value;
+          saveSections();
+          renderSongs();
+        });
+        item.querySelector('[data-act="delete-group"]').addEventListener('click', () => {
+          sectionState.groups = sectionState.groups.filter((g) => g.id !== group.id);
+          for (const [number, id] of Object.entries(sectionState.assignments)) if (id === group.id) delete sectionState.assignments[number];
+          saveSections();
+          renderSectionManager();
+          renderSongs();
+        });
+        root.append(item);
+      });
+    }
+    const sectionForm = document.querySelector('#sectionForm');
+    sectionForm?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = sectionForm.elements.name.value.trim();
+      if (!name) return;
+      const id = 'section-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+      sectionState.groups.push({ id, name, color: validColor(sectionForm.elements.color.value) ? sectionForm.elements.color.value : '#8b6df6' });
+      saveSections();
+      sectionForm.reset();
+      sectionForm.elements.color.value = '#8b6df6';
+      renderSectionManager();
+      renderSongs();
+    });
+    // 段落拖曳：歌屬某段落嘅位置
+    const firstOfGroup = (gid) => state.order.find((x) => sectionState.assignments[x] === gid);
+    const moveSongBeforeGroup = (num, gid) => {
+      const target = state.order.find((x) => x !== num && sectionState.assignments[x] === gid); // 唔計自己（已先歸咗段）
+      state.order = state.order.filter((x) => x !== num);
+      const idx = target !== undefined ? state.order.indexOf(target) : state.order.length;
+      state.order.splice(idx < 0 ? state.order.length : idx, 0, num);
+    };
+    // 整段搬位：段落 gid 嘅全部歌搬去 beforeNum 之前；beforeNum 為 undefined 就放最尾
+    const moveBlockBefore = (gid, beforeNum) => {
+      const block = state.order.filter((x) => sectionState.assignments[x] === gid);
+      if (!block.length) return;
+      state.order = state.order.filter((x) => sectionState.assignments[x] !== gid);
+      const idx = beforeNum !== undefined ? state.order.indexOf(beforeNum) : state.order.length;
+      state.order.splice(idx < 0 ? state.order.length : idx, 0, ...block);
+    };
+    // 段落標題：loop 內為有歌段落、loop 後為空段落；點擊收合、拖標題整段搬位、拖歌入標題歸段
+    const appendHeading = (group, collapsedKey) => {
+      const heading = document.createElement('button');
+      const collapsed = collapsedSections.has(collapsedKey);
+      heading.className = 'song-section-heading';
+      heading.type = 'button';
+      heading.style.setProperty('--section-color', group.color);
+      heading.setAttribute('aria-expanded', String(!collapsed));
+      heading.setAttribute('aria-label', `${collapsed ? '展開' : '收起'}${group.name}歌曲段落`);
+      heading.innerHTML = `<span>${esc(group.name)}</span><span class="section-collapse-icon" aria-hidden="true">${collapsed ? '▸' : '▾'}</span>`;
+      heading.dataset.group = group.id;
+      heading.title = '點擊收合／展開歌曲；拖標題整段搬位';
+      heading.draggable = true;
+      heading.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (collapsedSections.has(collapsedKey)) collapsedSections.delete(collapsedKey);
+        else collapsedSections.add(collapsedKey);
+        saveCollapsedSections();
+        renderSongs();
+      });
+      heading.addEventListener('dragstart', (e) => {
+        dragSection = group.id;
+        dragSong = null;
+        e.dataTransfer.setData('text/section', group.id);
+        heading.classList.add('dragging');
+      });
+      heading.addEventListener('dragend', () => {
+        heading.classList.remove('dragging');
+        dragSection = null;
+      });
+      heading.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        heading.classList.add('over');
+      });
+      heading.addEventListener('dragleave', () => heading.classList.remove('over'));
+      heading.addEventListener('drop', (e) => {
+        e.preventDefault();
+        heading.classList.remove('over');
+        if (dragSection && dragSection !== group.id) {
+          // 整段拖：搬去本段落第一首歌之前；本段落空就放最尾
+          moveBlockBefore(dragSection, firstOfGroup(group.id));
+        } else if (dragSong) {
+          sectionState.assignments[dragSong] = group.id;
+          moveSongBeforeGroup(dragSong, group.id);
+        } else return;
+        saveSections();
+        save();
+        renderSongs();
+      });
+      songRoot.append(heading);
+    };
     function renderSongs() {
       songRoot.innerHTML = '';
+      renderSectionManager();
+      let previousGroup = null,
+        groupRunStart = null;
       for (const [i, n] of state.order.entries()) {
         const s = song(n),
           row = document.createElement('article');
+        const group = sectionState.groups.find((g) => g.id === sectionState.assignments[n]),
+          previousNumber = state.order[i - 1],
+          segueKey = (from, to) => String(from) + '→' + String(to),
+          segueOn = i > 0 && segues.includes(segueKey(previousNumber, n));
+        if (group && group.id !== previousGroup) {
+          groupRunStart = n;
+          appendHeading(group, group.id + ':' + groupRunStart);
+        }
         row.className =
-          'song' + (active === n ? ' selected' : '') + (s.track ? ' track' : defaultIds(n).length ? '' : ' no-ref');
+          'song' + (active === n ? ' selected' : '') + (s.archived ? ' archived-song' : '') + (s.track ? ' track' : defaultIds(n).length ? '' : ' no-ref') + (segueOn ? ' segue-on' : '') + (toolsOpen.has(n) ? ' tools-open' : '');
+        if (group) row.style.setProperty('--section-color', group.color);
+        row.hidden = Boolean(group && collapsedSections.has(group.id + ':' + groupRunStart));
         row.draggable = true;
         row.tabIndex = 0;
-        row.setAttribute('aria-label', s.title + '歌曲列；按 Enter 選擇');
+        row.setAttribute('aria-label', s.title + (s.archived ? '，Archive 封存曲目' : '歌曲列；按 Enter 選擇'));
         row.dataset.num = n;
         // 歌單列顯示方式由 shows.json 嘅 flow.rowMode 決定：classic＝歌號（13a／13b）＋ loop 數量；position＝序號＋樂器備註
         let num, sub;
         if (ROW_MODE === 'position') {
-          num = String(i + 1).padStart(2, '0');
-          sub = s.instrumentationNote ? `<div class="songdesc">${esc(s.instrumentationNote)}</div>` : '';
+          num = s.archived
+            ? 'A' + state.order.slice(0, i + 1).filter((x) => song(x).archived).length
+            : String(state.order.slice(0, i + 1).filter((x) => !song(x).archived).length).padStart(2, '0');
+          const detail = Object.hasOwn(detailOverrides, n) ? detailOverrides[n] : s.instrumentationNote;
+          sub = `<div class="songdesc editable-song-note${detail ? '' : ' is-empty'}" role="button" tabindex="0" title="雙擊編輯編曲／樂手">${esc(detail || '')}</div>`;
         } else {
           const refs = state.clips[n],
             match = refs.length
@@ -338,9 +512,48 @@ window.__showEmbed = { parse: EMBED.parse };
         const tp = s.track ? EMBED.parse(trackUrl(s)) : null;
         if (tp) sub = `<div class="songdesc">${esc(TRACK_NAME[tp.provider])} 連結 · 喺下欄播放</div>`;
         if (s.userFile) sub = `<div class="songdesc">本機檔案 · 只喺呢個瀏覽器</div>`;
-        const badge = s.userFile ? `<span class="srcbadge file" title="本機音訊檔">檔案</span>` : tp ? `<span class="srcbadge ${tp.provider}" title="${esc(TRACK_NAME[tp.provider])} 歌曲">${esc(TRACK_NAME[tp.provider])}</span>` : '';
+        const badge = s.archived ? `<span class="srcbadge archive-badge" title="封存；不屬正式歌單">ARCHIVE</span>` : s.userFile ? `<span class="srcbadge file" title="本機音訊檔">檔案</span>` : tp ? `<span class="srcbadge ${tp.provider}" title="${esc(TRACK_NAME[tp.provider])} 歌曲">${esc(TRACK_NAME[tp.provider])}</span>` : '';
         const del = s.userAdded ? `<button data-act="del" aria-label="${esc(s.title)}移除" title="移除呢首（只喺呢個瀏覽器）">✕</button>` : '';
-        row.innerHTML = `<span class="num">${num}</span><div><div class="songname"><span class="songtitle" role="button" tabindex="0" title="雙擊編輯歌名（只存此瀏覽器）">${esc(s.title)}</span>${badge}</div>${sub}</div><div class="songbuttons"><button data-act="up" aria-label="${esc(s.title)}上移">↑</button><button data-act="down" aria-label="${esc(s.title)}下移">↓</button>${del}</div>`;
+        const segueButton = i > 0 ? `<button class="segue-toggle${segueOn ? ' on' : ''}" data-act="segue" aria-pressed="${segueOn}" title="標記${esc(song(previousNumber).title)}與${esc(s.title)}直接銜接">${segueOn ? '↔ 已銜接' : '↔ 接上一首'}</button>` : '';
+        const unassignButton = group ? `<button type="button" class="segue-toggle" data-act="unassign">移出段落</button>` : '';
+        row.innerHTML = `<span class="num">${num}</span><div><div class="songname"><span class="songtitle" role="button" tabindex="0" title="雙擊編輯歌名（只存此瀏覽器）">${esc(s.title)}</span>${badge}</div>${sub}<div class="song-row-tools">${unassignButton}${segueButton}</div></div><div class="songbuttons"><button data-act="more" class="more" aria-label="${esc(s.title)}段落與銜接" aria-expanded="${toolsOpen.has(n)}" title="段落／接上一首">⋯</button>${del}</div>`;
+        const detailEl = row.querySelector('.editable-song-note');
+        if (detailEl) {
+          const sourceDetail = s.instrumentationNote || '';
+          const finishDetailEdit = (cancel = false) => {
+            const next = cancel ? detailEl.dataset.original : detailEl.textContent.trim();
+            detailEl.contentEditable = 'false';
+            detailEl.setAttribute('role', 'button');
+            detailEl.removeAttribute('aria-multiline');
+            detailEl.textContent = cancel ? detailEl.dataset.original : next;
+            detailEl.classList.toggle('is-empty', !detailEl.textContent.trim());
+            if (!cancel && next !== sourceDetail) detailOverrides[n] = next;
+            else delete detailOverrides[n];
+            try { localStorage.setItem(DETAILS_KEY, JSON.stringify(detailOverrides)); } catch {}
+            delete detailEl.dataset.original;
+          };
+          const beginDetailEdit = () => {
+            if (detailEl.isContentEditable) return;
+            detailEl.dataset.original = detailEl.textContent;
+            detailEl.contentEditable = 'true';
+            detailEl.setAttribute('role', 'textbox');
+            detailEl.setAttribute('aria-multiline', 'false');
+            detailEl.focus();
+            const selection = getSelection(), range = document.createRange();
+            range.selectNodeContents(detailEl);
+            selection.removeAllRanges();
+            selection.addRange(range);
+          };
+          detailEl.addEventListener('click', (e) => e.stopPropagation());
+          detailEl.addEventListener('input', () => detailEl.classList.toggle('is-empty', !detailEl.textContent.trim()));
+          detailEl.addEventListener('dblclick', (e) => { e.stopPropagation(); beginDetailEdit(); });
+          detailEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !detailEl.isContentEditable) { e.preventDefault(); beginDetailEdit(); }
+            else if (e.key === 'Enter' && detailEl.isContentEditable) { e.preventDefault(); detailEl.blur(); }
+            else if (e.key === 'Escape' && detailEl.isContentEditable) { e.preventDefault(); finishDetailEdit(true); }
+          });
+          detailEl.addEventListener('blur', () => { if (detailEl.isContentEditable) finishDetailEdit(); });
+        }
         const titleEl = row.querySelector('.songtitle');
         const finishTitleEdit = (cancel = false) => {
           const next = cancel ? titleEl.dataset.original : titleEl.textContent.trim();
@@ -419,11 +632,29 @@ window.__showEmbed = { parse: EMBED.parse };
           if ((e.key === 'Enter' || e.key === ' ') && e.target === row) {
             e.preventDefault();
             setActive(n, true);
+          } else if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown') && e.target === row) {
+            // 鍵盤改歌序：Alt＋↑／↓（滑鼠就直接拖）
+            e.preventDefault();
+            const to = i + (e.key === 'ArrowUp' ? -1 : 1);
+            if (to >= 0 && to < state.order.length) {
+              [state.order[i], state.order[to]] = [state.order[to], state.order[i]];
+              save();
+              renderSongs();
+              const moved = songRoot.querySelector(`.song[data-num="${CSS.escape(String(n))}"]`);
+              if (moved) moved.focus();
+            }
           }
         });
         row.addEventListener('click', (e) => {
           const a = e.target.dataset.act;
-          if (a === 'del') {
+          if (a === 'segue') {
+            e.stopPropagation();
+            const key = segueKey(previousNumber, n);
+            if (segues.includes(key)) segues = segues.filter((p) => p !== key);
+            else segues.push(key);
+            saveSegues();
+            renderSongs();
+          } else if (a === 'del') {
             e.stopPropagation();
             if (s.userFile) IDB.del('songs', n);
             else writeTracks(readTracks().filter((t) => t.number !== n));
@@ -431,6 +662,10 @@ window.__showEmbed = { parse: EMBED.parse };
             defaultOrder.splice(defaultOrder.indexOf(n), 1);
             state.order = state.order.filter((x) => x !== n);
             delete state.clips[n];
+            delete sectionState.assignments[n];
+            segues = segues.filter((p) => !p.endsWith('→' + String(n)) && !p.startsWith(String(n) + '→'));
+            saveSections();
+            saveSegues();
             delete titleOverrides[n];
             sourceTitles.delete(n);
             try {
@@ -439,21 +674,28 @@ window.__showEmbed = { parse: EMBED.parse };
             save();
             if (active === n) setActive(state.order[0]);
             else renderSongs();
-          } else if (a === 'up' || a === 'down') {
-            const j = i + (a === 'up' ? -1 : 1);
-            if (j >= 0 && j < state.order.length) {
-              [state.order[i], state.order[j]] = [state.order[j], state.order[i]];
-              save();
-              renderSongs();
-            }
+          } else if (a === 'unassign') {
+            e.stopPropagation();
+            delete sectionState.assignments[n];
+            saveSections();
+            renderSongs();
+          } else if (a === 'more') {
+            e.stopPropagation();
+            if (toolsOpen.has(n)) toolsOpen.delete(n);
+            else toolsOpen.add(n);
+            renderSongs();
           } else setActive(n, true);
         });
         row.addEventListener('dragstart', (e) => {
           dragSong = n;
+          dragSection = null;
           e.dataTransfer.setData('text/song', n);
           row.classList.add('dragging');
         });
-        row.addEventListener('dragend', () => row.classList.remove('dragging'));
+        row.addEventListener('dragend', () => {
+          row.classList.remove('dragging');
+          dragSong = null;
+        });
         row.addEventListener('dragover', (e) => {
           e.preventDefault();
           row.classList.add('over');
@@ -467,21 +709,38 @@ window.__showEmbed = { parse: EMBED.parse };
             assign(n, dragged);
             return;
           }
+          if (dragSection) {
+            // 整段拖：目標歌屬於同一段落就忽略
+            if (sectionState.assignments[n] !== dragSection) moveBlockBefore(dragSection, n);
+            saveSections();
+            save();
+            renderSongs();
+            return;
+          }
           const from = state.order.indexOf(dragSong),
             to = state.order.indexOf(n);
           if (from >= 0 && to >= 0 && from !== to) {
             state.order.splice(to, 0, state.order.splice(from, 1)[0]);
+            if (group) sectionState.assignments[dragSong] = group.id;
+            else delete sectionState.assignments[dragSong];
+            saveSections();
             save();
             renderSongs();
           }
         });
         songRoot.append(row);
+        previousGroup = group ? group.id : null;
+        if (!group) groupRunStart = null;
       }
-      const withLoop = state.order.filter((n) => (state.clips[n] || []).length).length,
-        nTracks = songs.filter((s) => s.track).length;
+      // 空段落（未有歌）：喺歌單最底顯示標題，畀用家拖歌入去
+      for (const g of sectionState.groups) if (!firstOfGroup(g.id)) appendHeading(g, g.id + ':empty');
+      const activeSongs = songs.filter((s) => !s.archived),
+        archivedCount = songs.filter((s) => s.archived).length,
+        withLoop = state.order.filter((n) => !song(n).archived && (state.clips[n] || []).length).length,
+        nTracks = activeSongs.filter((s) => s.track).length;
       document.querySelector('#loopCount').textContent =
-        withLoop + ' / ' + (songs.length - nTracks) + ' 首已有 loop' + (nTracks ? ' · ' + nTracks + ' 首 Suno／Spotify' : '');
-      document.querySelector('.panelhead h2').textContent = songs.length + ' 首歌曲';
+        withLoop + ' / ' + (activeSongs.length - nTracks) + ' 首已有 loop' + (nTracks ? ' · ' + nTracks + ' 首 Suno／Spotify' : '');
+      document.querySelector('.panelhead h2').textContent = activeSongs.length + ' 首歌曲' + (archivedCount ? ` · ${archivedCount} 首 Archive` : '');
     }
     // ＋加歌：貼 Suno／Spotify 連結入歌單（即時加入、即時揀、冇 reload）
     const trackForm = document.querySelector('#trackForm'),
@@ -707,6 +966,8 @@ window.__showEmbed = { parse: EMBED.parse };
       // Suno／Spotify 歌冇影片畫面：同舞台一齊開時唔留空白影片格，畀舞台用晒位
       const noPicture = !!s.track || !(state.clips[s.number] || []).length;
       if (noPicture && shown.length > 1) shown = shown.filter((k) => k !== 'video');
+      // 冇 loop 嘅歌只開咗影片格：改顯示舞台（唔改用家設定），唔好留一個黑畫面
+      if (noPicture && shown.length === 1 && shown[0] === 'video' && has.stage && !showScore) shown = ['stage'];
       const wantedMissing = ['stage', 'three', 'lyrics'].some((k) => view[k]);
       if (!shown.length && !showScore && wantedMissing) shown = ['video'];
       document.querySelectorAll('#viewbar [data-view]').forEach((b) => {
