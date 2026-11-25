@@ -179,8 +179,9 @@ input:focus-visible,
   padding: 5px;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-auto-rows: minmax(var(--song-row), auto);
-  gap: 3px;
+  grid-auto-rows: auto;
+  align-content: start;
+  gap: 2px;
   min-height: 0;
   flex: 1 1 auto;
   overflow-y: auto;
@@ -240,6 +241,7 @@ input:focus-visible,
   align-items: center;
   gap: 5px;
   padding: 2px 5px;
+  min-height: var(--song-row);
   border: 1px solid transparent;
   border-radius: 4px;
   background: #202420;
@@ -712,7 +714,7 @@ input:focus-visible,
   }
   .songs {
     max-height: var(--mobile-songlist-h);
-    grid-auto-rows: minmax(var(--song-row), auto);
+    grid-auto-rows: auto;
   }
   .groupgrid {
     grid-template-columns: repeat(auto-fill, minmax(var(--tile-min-sm), 1fr));
@@ -2926,8 +2928,8 @@ html {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 4px 8px;
-  margin-top: 3px;
+  gap: 5px;
+  margin-top: 5px;
 }
 .song-section-select {
   display: inline-flex;
@@ -2960,8 +2962,89 @@ html {
   background: color-mix(in srgb, var(--accent-fg) 15%, #191d1a);
   color: var(--fg);
 }
-.song.segue-on {
-  box-shadow: inset 0 2px 0 var(--accent-fg);
+.song-row-tools .segue-toggle[data-act='segue'] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  height: 27px;
+  min-height: 27px;
+  padding: 0 7px;
+  border-radius: 6px;
+  border-color: color-mix(in srgb, var(--accent-fg) 45%, var(--line));
+  background: color-mix(in srgb, var(--accent-fg) 7%, #191d1a);
+  color: var(--fg);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
+.song-row-tools .segue-toggle[data-act='segue']:hover {
+  border-color: var(--accent-fg);
+  background: color-mix(in srgb, var(--accent-fg) 17%, #191d1a);
+  color: var(--fg);
+}
+.song-row-tools .unassign-section {
+  min-height: 27px;
+  padding: 0 7px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 11px;
+}
+.song-row-tools .unassign-section:hover {
+  border-color: var(--line);
+  color: var(--fg);
+}
+.song.segue-on,
+.song.segue-next-on {
+  position: relative;
+  box-shadow: inset 2px 0 var(--accent-fg);
+  background: color-mix(in srgb, var(--accent-fg) 8%, #202420);
+}
+.song.segue-next-on::after,
+.song.segue-on::before {
+  position: absolute;
+  left: 16px;
+  width: 2px;
+  height: 6px;
+  background: var(--accent-fg);
+  content: '';
+  pointer-events: none;
+  z-index: 2;
+}
+.song.segue-next-on::after {
+  bottom: -4px;
+}
+.song.segue-on::before {
+  top: -4px;
+}
+.segue-joint-icon {
+  position: absolute;
+  z-index: 4;
+  top: -10px;
+  left: 7px;
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--accent-fg);
+  border-radius: 5px;
+  background: var(--panel);
+  box-shadow: 0 0 0 2px var(--panel);
+  color: var(--accent-fg);
+  pointer-events: auto;
+}
+.segue-joint-icon svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
 }
 @media (max-width: 600px) {
   .song-section-select select { max-width: 125px; }
@@ -2975,6 +3058,9 @@ html {
 }
 .song.tools-open .song-row-tools {
   display: flex;
+}
+.song.tools-open {
+  min-height: calc(var(--song-row) + 32px);
 }
 .songbuttons button.more {
   border-color: transparent;
@@ -2991,10 +3077,6 @@ html {
 .song[draggable='true'] {
   cursor: grab;
 }
-.song.segue-on .songname::after {
-  content: ' ↔';
-  color: var(--accent-fg);
-}
 @media (hover: none) {
   .songbuttons button.more {
     opacity: 1;
@@ -3009,8 +3091,8 @@ html {
   align-items: center;
   gap: 6px;
   width: 100%;
-  height: 38px;
-  min-height: 38px;
+  height: 32px;
+  min-height: 32px;
   box-sizing: border-box;
   padding: 3px 8px;
   border: 1px solid var(--line);
@@ -3063,3 +3145,24 @@ html {
 /* 段落標題拖曳：標題可拖（.song.over／.song.dragging 已有，補標題部分） */
 .song-section-heading { cursor: grab; }
 .song-section-heading.dragging { opacity: 0.45; }
+
+/* 燈光面板：燈光檔（.mvr） */
+.lightpanel .lp-mvrrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.lightpanel .lp-mvrrow select {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #111411;
+  color: var(--fg);
+  font: inherit;
+}
+.lightpanel .lp-mvrrow .smallbtn {
+  flex: none;
+  white-space: nowrap;
+}

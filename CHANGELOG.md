@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Load `.mvr` lighting files in the board: pick from the `lighting/` folder or choose a file from your computer. New `lighting/` folder (all `.mvr`, the alignment map and `index.json`), `tools/mvr-index.py`, and two generated sample rigs.
 - Renamed from cuesheet-board to **Flowboard**. Browser storage keys change with the name, so a saved layout from the old name is not carried over.
 - Removed the Night rock sample loop; added moody sample loops.
 - Add songs from an audio file (mp3, wav, m4a, flac), stored in the browser.

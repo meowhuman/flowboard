@@ -195,7 +195,11 @@ window.__showEmbed = { parse: EMBED.parse };
           }
         } catch {}
       }
-      state = { order: [...defaultOrder], clips: migratedState?.clips || {} };
+      state = {
+        order: [...defaultOrder],
+        clips: migratedState?.clips || {},
+        clipsRev: migratedState?.clipsRev,
+      };
       try {
         localStorage.setItem(key, JSON.stringify(state));
       } catch {}
@@ -327,7 +331,17 @@ window.__showEmbed = { parse: EMBED.parse };
       }).join('');
       document.querySelector('#miList').hidden = false;
     }
-    const save = () => localStorage.setItem(key, JSON.stringify(state)),
+    const save = () => {
+      try {
+        const serialized = JSON.stringify(state);
+        localStorage.setItem(key, serialized);
+        if (localStorage.getItem(key) !== serialized) throw new Error('localStorage readback mismatch');
+        return true;
+      } catch {
+        toast('自動保存失敗；請重試或先複製分享連結備份。');
+        return false;
+      }
+    },
       song = (n) => songs.find((s) => s.number === n),
       clip = (id) => videos.find((v) => v.fileId === id),
       exactIds = (n) =>
@@ -462,7 +476,7 @@ window.__showEmbed = { parse: EMBED.parse };
           moveSongBeforeGroup(dragSong, group.id);
         } else return;
         saveSections();
-        save();
+        if (save()) toast('段落及歌序已自動保存。');
         renderSongs();
       });
       songRoot.append(heading);
@@ -477,14 +491,18 @@ window.__showEmbed = { parse: EMBED.parse };
           row = document.createElement('article');
         const group = sectionState.groups.find((g) => g.id === sectionState.assignments[n]),
           previousNumber = state.order[i - 1],
+          nextNumber = state.order[i + 1],
+          previousIsActive = previousNumber !== undefined && !song(previousNumber).archived,
+          nextIsActive = nextNumber !== undefined && !song(nextNumber).archived,
           segueKey = (from, to) => String(from) + '→' + String(to),
-          segueOn = i > 0 && segues.includes(segueKey(previousNumber, n));
+          segueOn = previousIsActive && segues.includes(segueKey(previousNumber, n)),
+          nextSegueOn = nextIsActive && segues.includes(segueKey(n, nextNumber));
         if (group && group.id !== previousGroup) {
           groupRunStart = n;
           appendHeading(group, group.id + ':' + groupRunStart);
         }
         row.className =
-          'song' + (active === n ? ' selected' : '') + (s.archived ? ' archived-song' : '') + (s.track ? ' track' : defaultIds(n).length ? '' : ' no-ref') + (segueOn ? ' segue-on' : '') + (toolsOpen.has(n) ? ' tools-open' : '');
+          'song' + (active === n ? ' selected' : '') + (s.archived ? ' archived-song' : '') + (s.track ? ' track' : defaultIds(n).length ? '' : ' no-ref') + (segueOn ? ' segue-on' : '') + (nextSegueOn ? ' segue-next-on' : '') + (toolsOpen.has(n) ? ' tools-open' : '');
         if (group) row.style.setProperty('--section-color', group.color);
         row.hidden = Boolean(group && collapsedSections.has(group.id + ':' + groupRunStart));
         row.draggable = true;
@@ -512,11 +530,24 @@ window.__showEmbed = { parse: EMBED.parse };
         const tp = s.track ? EMBED.parse(trackUrl(s)) : null;
         if (tp) sub = `<div class="songdesc">${esc(TRACK_NAME[tp.provider])} 連結 · 喺下欄播放</div>`;
         if (s.userFile) sub = `<div class="songdesc">本機檔案 · 只喺呢個瀏覽器</div>`;
-        const badge = s.archived ? `<span class="srcbadge archive-badge" title="封存；不屬正式歌單">ARCHIVE</span>` : s.userFile ? `<span class="srcbadge file" title="本機音訊檔">檔案</span>` : tp ? `<span class="srcbadge ${tp.provider}" title="${esc(TRACK_NAME[tp.provider])} 歌曲">${esc(TRACK_NAME[tp.provider])}</span>` : '';
+        const badge = s.archived ? '' : s.userFile ? `<span class="srcbadge file" title="本機音訊檔">檔案</span>` : tp ? `<span class="srcbadge ${tp.provider}" title="${esc(TRACK_NAME[tp.provider])} 歌曲">${esc(TRACK_NAME[tp.provider])}</span>` : '';
         const del = s.userAdded ? `<button data-act="del" aria-label="${esc(s.title)}移除" title="移除呢首（只喺呢個瀏覽器）">✕</button>` : '';
-        const segueButton = i > 0 ? `<button class="segue-toggle${segueOn ? ' on' : ''}" data-act="segue" aria-pressed="${segueOn}" title="標記${esc(song(previousNumber).title)}與${esc(s.title)}直接銜接">${segueOn ? '↔ 已銜接' : '↔ 接上一首'}</button>` : '';
-        const unassignButton = group ? `<button type="button" class="segue-toggle" data-act="unassign">移出段落</button>` : '';
-        row.innerHTML = `<span class="num">${num}</span><div><div class="songname"><span class="songtitle" role="button" tabindex="0" title="雙擊編輯歌名（只存此瀏覽器）">${esc(s.title)}</span>${badge}</div>${sub}<div class="song-row-tools">${unassignButton}${segueButton}</div></div><div class="songbuttons"><button data-act="more" class="more" aria-label="${esc(s.title)}段落與銜接" aria-expanded="${toolsOpen.has(n)}" title="段落／接上一首">⋯</button>${del}</div>`;
+        const previousTitle = previousIsActive ? song(previousNumber).title : '',
+          nextTitle = nextIsActive ? song(nextNumber).title : '';
+        const connectionLabel = `直接銜接：${previousTitle} → ${s.title}`;
+        const connectionMark = segueOn
+          ? `<span class="segue-joint-icon" title="${esc(connectionLabel)}" aria-label="${esc(connectionLabel)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.71"/></svg></span>`
+          : '';
+        const previousSegueLabel = `接上上一首：${previousTitle} → ${s.title}`,
+          nextSegueLabel = `接到下一首：${s.title} → ${nextTitle}`;
+        const previousSegueButton = previousIsActive
+          ? `<button type="button" class="segue-toggle${segueOn ? ' on' : ''}" data-act="segue" data-from="${esc(previousNumber)}" data-to="${esc(n)}" aria-pressed="${segueOn}" aria-label="${esc(segueOn ? '取消' + previousSegueLabel : previousSegueLabel)}" title="${esc(segueOn ? '取消銜接：' + previousTitle + ' → ' + s.title : previousSegueLabel)}">${segueOn ? '✓ 前' : '↶ 前'}</button>`
+          : '';
+        const nextSegueButton = nextIsActive
+          ? `<button type="button" class="segue-toggle${nextSegueOn ? ' on' : ''}" data-act="segue" data-from="${esc(n)}" data-to="${esc(nextNumber)}" aria-pressed="${nextSegueOn}" aria-label="${esc(nextSegueOn ? '取消' + nextSegueLabel : nextSegueLabel)}" title="${esc(nextSegueOn ? '取消銜接：' + s.title + ' → ' + nextTitle : nextSegueLabel)}">${nextSegueOn ? '✓ 後' : '後 ↷'}</button>`
+          : '';
+        const unassignButton = group ? `<button type="button" class="unassign-section" data-act="unassign" title="將歌曲移出目前段落">移出段落</button>` : '';
+        row.innerHTML = `<span class="num">${num}</span><div><div class="songname"><span class="songtitle" role="button" tabindex="0" title="雙擊編輯歌名（只存此瀏覽器）">${esc(s.title)}</span>${badge}</div>${connectionMark}${sub}<div class="song-row-tools">${previousSegueButton}${nextSegueButton}${unassignButton}</div></div><div class="songbuttons"><button data-act="more" class="more" aria-label="${esc(s.title)}段落與銜接" aria-expanded="${toolsOpen.has(n)}" title="段落／銜接">⋯</button>${del}</div>`;
         const detailEl = row.querySelector('.editable-song-note');
         if (detailEl) {
           const sourceDetail = s.instrumentationNote || '';
@@ -638,7 +669,7 @@ window.__showEmbed = { parse: EMBED.parse };
             const to = i + (e.key === 'ArrowUp' ? -1 : 1);
             if (to >= 0 && to < state.order.length) {
               [state.order[i], state.order[to]] = [state.order[to], state.order[i]];
-              save();
+              if (save()) toast('歌序已自動保存。');
               renderSongs();
               const moved = songRoot.querySelector(`.song[data-num="${CSS.escape(String(n))}"]`);
               if (moved) moved.focus();
@@ -649,7 +680,7 @@ window.__showEmbed = { parse: EMBED.parse };
           const a = e.target.dataset.act;
           if (a === 'segue') {
             e.stopPropagation();
-            const key = segueKey(previousNumber, n);
+            const key = segueKey(e.target.dataset.from, e.target.dataset.to);
             if (segues.includes(key)) segues = segues.filter((p) => p !== key);
             else segues.push(key);
             saveSegues();
@@ -713,7 +744,7 @@ window.__showEmbed = { parse: EMBED.parse };
             // 整段拖：目標歌屬於同一段落就忽略
             if (sectionState.assignments[n] !== dragSection) moveBlockBefore(dragSection, n);
             saveSections();
-            save();
+            if (save()) toast('段落及歌序已自動保存。');
             renderSongs();
             return;
           }
@@ -724,7 +755,7 @@ window.__showEmbed = { parse: EMBED.parse };
             if (group) sectionState.assignments[dragSong] = group.id;
             else delete sectionState.assignments[dragSong];
             saveSections();
-            save();
+            if (save()) toast('歌序已自動保存。');
             renderSongs();
           }
         });

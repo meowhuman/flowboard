@@ -2,7 +2,7 @@
 '''MVR 匯入：燈光師 .mvr 匯出 → stage-plans.json lighting.rig（dry-run 預設；--apply 先備份再寫）。
 
 用法：
-  python3 -I tools/mvr-import.py samples/mvr/capture_demo_show.mvr \
+  python3 -I tools/mvr-import.py lighting/capture_demo_show.mvr \
       [--map map.json] [--stage-plans path.json] [--report path.json] [--apply]
 
 安全：只讀 zip 內 GeneralSceneDescription.xml（唔解壓）、拒絕 DOCTYPE/ENTITY、大細上限。
@@ -19,7 +19,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-DEFAULT_MAP = ROOT / 'tools' / 'mvr-map.default.json'
+DEFAULT_MAP = ROOT / 'lighting' / 'mvr-map.json'
 WORK_DIR = ROOT / 'tools' / '.mvr-import'
 XML_NAME = 'GeneralSceneDescription.xml'
 GROUPS = ('wash', 'back', 'follow')
@@ -300,7 +300,7 @@ def stage_check(fixtures, m) -> dict:
 def main() -> None:
     ap = argparse.ArgumentParser(description='MVR 匯入 stage-plans.json 嘅燈位（dry-run 預設）')
     ap.add_argument('mvr', help='.mvr 檔路徑')
-    ap.add_argument('--map', default=None, help='map json（預設 mvr-map.default.json）')
+    ap.add_argument('--map', default=None, help='map json（預設 lighting/mvr-map.json）')
     ap.add_argument('--stage-plans', default=None, help='stage-plans.json 路徑（預設 repo 根目錄嗰份）')
     ap.add_argument('--report', default=str(WORK_DIR / 'mvr-import-report.json'))
     ap.add_argument('--apply', action='store_true', help='寫入（先備份 .bak-<YYYYMMDD>-before-mvr）')

@@ -68,7 +68,7 @@ The sample set exercises every feature, so you can click through them before loa
 |---|---|
 | Sections and timeline | Pick any song. Song 01 has 11 sections with a lyric-driven timeline |
 | 2D plan, solo and highlight | Stage view. Grand Piano and Vocal are placed on the sample stage; the timeline colours show on-stage, solo and highlight |
-| 3D lighting with an imported rig | Stage view, `僅 3D`, then the lighting button. 76 fixtures come from `samples/mvr/capture_demo_show.mvr` |
+| 3D lighting with an imported rig | Stage view, `僅 3D`, then the lighting button. The `燈光檔` list in the panel switches between the five rigs in `lighting/`. 76 fixtures come from `lighting/capture_demo_show.mvr` |
 | Versions | Song 06 has instrumental and vocal audio versions |
 | Suno and Spotify tracks | Rows T1 and T2 are Suno songs, T3 and T4 are Spotify tracks. Each has a small mark and plays inside the board. Try `+ Add song` at the bottom of the list |
 | Venues | Stage view: the venue list next to `聚焦` (2D) or in the 3D toolbar: black box, jazz club, concert hall, open stage |
@@ -117,21 +117,30 @@ python3 tools/add-venues.py --apply    # writes stage-plans.json (a .bak copy is
 
 Venue sizes live in `tools/venues.default.json`. Run it after an MVR import so the lights it scales are the imported ones.
 
-## Import a lighting rig (MVR)
+## Load a lighting rig (MVR)
+
+Lighting designers can export their rig as an `.mvr` file. There are two ways to use one:
+
+- **In the board.** Open the 3D view, then the lighting panel. The `燈光檔` list at the top shows every file in the `lighting/` folder, and `揀檔…` loads any `.mvr` from your computer. The board reads the file in your browser (nothing is uploaded), replaces the lights of the current venue, and remembers the choice in this browser.
+- **From the command line**, to write a rig into `stage-plans.json` for good (below).
+
+Save all your `.mvr` files in `lighting/`, then run `python3 tools/mvr-index.py` once. It rebuilds `lighting/index.json`, the list the board reads (a static server cannot list a folder). Edit `title` and `note` in that file by hand if you like. Alignment and grouping for both ways come from `lighting/mvr-map.json`.
+
+### Import from the command line
 
 Lighting designers can export their rig as an `.mvr` file. `tools/mvr-import.py` reads it and fills `lighting.rig.fixtures` in `stage-plans.json`:
 
 ```bash
 # preview: prints a table and a summary, writes nothing
-python3 tools/mvr-import.py samples/mvr/capture_demo_show.mvr
+python3 tools/mvr-import.py lighting/capture_demo_show.mvr
 # write it (a .bak copy of stage-plans.json is made first)
-python3 tools/mvr-import.py samples/mvr/capture_demo_show.mvr --apply
+python3 tools/mvr-import.py lighting/capture_demo_show.mvr --apply
 ```
 
-- Alignment and grouping live in `tools/mvr-map.default.json`: origin offset, rotation, flips, which fixture models go to the front, back or follow group, and default aim points. Edit that file, run the preview, and check how many fixtures land on the stage.
+- Alignment and grouping live in `lighting/mvr-map.json`: origin offset, rotation, flips, which fixture models go to the front, back or follow group, and default aim points. Edit that file, run the preview, and check how many fixtures land on the stage.
 - Aim comes from the file's focus points when there are any; otherwise from the fixture's direction when it points at the floor; otherwise from the group default. The summary shows which source each fixture used. Check the 3D view after the first import.
 - It reads only `GeneralSceneDescription.xml` from the zip, never extracts files, and rejects XML with a DOCTYPE.
-- `samples/mvr/` holds three public test files (MIT, see `samples/mvr/LICENSE-python-mvr.txt`). `capture_demo_show.mvr` is a Capture export with 76 fixtures; the sample stage uses it.
+- `lighting/` is the folder for all your `.mvr` files. It holds three public test files (MIT, see `lighting/LICENSE-python-mvr.txt`) and two generated sample rigs. `capture_demo_show.mvr` is a Capture export with 76 fixtures; the sample stage uses it.
 
 ## Use your own set
 
@@ -154,7 +163,7 @@ npm run serve &        # range-capable static server on :9424
 npm test               # Playwright smoke test and the add-songs/videos test
 ```
 
-`qa/files.mjs` checks adding an audio file and a video from the board, that they survive a reload and can be removed, and that the middle column has no scroll bars. The smoke test checks: no external network requests, audio and video load, lyrics, charts and timeline render, the 3D view mounts with the imported rig and the lighting presets light fixtures, Suno and Spotify rows play in a player that appears and is removed again, pasting a link adds a row (the iframe target is faked, so no network is used), the venue list changes the stage and the light positions, the song-list button works, the report exports as a self-contained file, the phone layout does not overflow, and the repository contains no leftover private strings.
+`qa/lighting.mjs` checks the lighting file list, loading a file from the folder and from your computer, remembering it per venue, and a broken file. `qa/files.mjs` checks adding an audio file and a video from the board, that they survive a reload and can be removed, and that the middle column has no scroll bars. The smoke test checks: no external network requests, audio and video load, lyrics, charts and timeline render, the 3D view mounts with the imported rig and the lighting presets light fixtures, Suno and Spotify rows play in a player that appears and is removed again, pasting a link adds a row (the iframe target is faked, so no network is used), the venue list changes the stage and the light positions, the song-list button works, the report exports as a self-contained file, the phone layout does not overflow, and the repository contains no leftover private strings.
 
 ## Roadmap
 
@@ -169,7 +178,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. If you run
 ## Credits and prior art
 
 - [three.js](https://threejs.org) renders the 3D view.
-- `samples/mvr/` test files come from [open-stage/python-mvr](https://github.com/open-stage/python-mvr) (MIT).
+- The `lighting/` test files `basic_fixture.mvr`, `scene_objects.mvr` and `capture_demo_show.mvr` come from [open-stage/python-mvr](https://github.com/open-stage/python-mvr) (MIT).
 - Instrument models were generated with TRELLIS.2 and normalised in Blender.
 - Free tools that overlap in part: Limelight (3D lighting and cue paperwork), TecRider and Stageplot Pro (stage plots and input lists), BandHelper (setlists and scheduling). Flowboard is aimed at the gap between them: the song-by-song staging and lighting of a whole set, with the audio.
 

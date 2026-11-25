@@ -1,0 +1,35 @@
+{
+ "_說明": "板上「燈光檔」選單嘅清單；跑 python3 tools/mvr-index.py 重建。title／note 可手改。",
+ "files": [
+  {
+   "file": "basic_fixture.mvr",
+   "title": "Single LED par",
+   "fixtures": 1,
+   "note": "One fixture. Smallest test file."
+  },
+  {
+   "file": "capture_demo_show.mvr",
+   "title": "Capture demo show",
+   "fixtures": 76,
+   "note": "Capture export (MVR 1.4), truss rig. From open-stage/python-mvr."
+  },
+  {
+   "file": "scene_objects.mvr",
+   "title": "Scene objects",
+   "fixtures": 72,
+   "note": "Truss and set pieces with 72 fixtures. Test file from python-mvr."
+  },
+  {
+   "file": "small-club-rig.mvr",
+   "title": "Small club rig",
+   "fixtures": 12,
+   "note": "Generated sample: 6 front pars, 4 back washes, 2 follow spots."
+  },
+  {
+   "file": "theatre-rig.mvr",
+   "title": "Theatre rig",
+   "fixtures": 32,
+   "note": "Generated sample: 3 front bars, back truss, 4 follow spots."
+  }
+ ]
+}

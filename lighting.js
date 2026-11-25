@@ -2,6 +2,128 @@
 // 全部參數喺 stage-plans.json 嘅 lighting；使用者揀嘅 preset／煙霧設定存 localStorage。
 const KEY = 'flowboard-light-v1';
 
+// ---- MVR 燈光檔（My Virtual Rig）：喺瀏覽器內讀 zip → 燈位。同 tools/mvr-import.py 同一套對位邏輯（參數喺 lighting/mvr-map.json）----
+const MVR_XML = 'GeneralSceneDescription.xml';
+const MVR_DESCEND = new Set(['Scene', 'Layers', 'Layer', 'ChildList', 'GroupObject', 'Fixture', 'FocusPoint']);
+const MVR_IDENT = { u: [1, 0, 0], v: [0, 1, 0], w: [0, 0, 1], o: [0, 0, 0] };
+const mvrRound = (x) => Math.round(x * 1000) / 1000;
+
+async function mvrReadXml(buf, map) {
+  const bytes = new Uint8Array(buf), dv = new DataView(buf), u16 = (o) => dv.getUint16(o, true), u32 = (o) => dv.getUint32(o, true);
+  let eocd = -1;
+  for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 22 - 65535); i--) if (u32(i) === 0x06054b50) { eocd = i; break; }
+  if (eocd < 0) throw new Error('唔係 zip 檔（MVR 應該係 zip）');
+  const total = u16(eocd + 10);
+  if (total > map.maxZipEntries) throw new Error(`zip 條目數 ${total} 超過上限 ${map.maxZipEntries}`);
+  let p = u32(eocd + 16), found = null;
+  for (let i = 0; i < total; i++) {
+    if (u32(p) !== 0x02014b50) throw new Error('zip 目錄損壞');
+    const nlen = u16(p + 28), elen = u16(p + 30), clen = u16(p + 32);
+    if (new TextDecoder().decode(bytes.subarray(p + 46, p + 46 + nlen)) === MVR_XML) { found = { method: u16(p + 10), csize: u32(p + 20), usize: u32(p + 24), loff: u32(p + 42) }; break; }
+    p += 46 + nlen + elen + clen;
+  }
+  if (!found) throw new Error(`zip 內冇 ${MVR_XML}`);
+  if (found.usize > map.maxXmlBytes) throw new Error(`${MVR_XML} 太大（${found.usize} bytes，上限 ${map.maxXmlBytes}）`);
+  if (u32(found.loff) !== 0x04034b50) throw new Error('zip 檔頭損壞');
+  const start = found.loff + 30 + u16(found.loff + 26) + u16(found.loff + 28), raw = bytes.subarray(start, start + found.csize);
+  let out;
+  if (found.method === 0) out = raw;
+  else if (found.method === 8) out = new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+  else throw new Error('zip 壓縮方式唔支援');
+  if (out.length > map.maxXmlBytes) throw new Error(`${MVR_XML} 解壓後太大`);
+  let text;
+  try { text = new TextDecoder('utf-8', { fatal: true }).decode(out); } catch { throw new Error(`${MVR_XML} 唔係 UTF-8`); }
+  if (/<!DOCTYPE|<!ENTITY/i.test(text)) throw new Error('XML 含 DOCTYPE/ENTITY，拒絕');
+  return text;
+}
+const mvrNums = (t) => (String(t || '').match(/[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?/g) || []).map(Number);
+function mvrParseMatrix(t) {
+  const a = mvrNums(t);
+  if (a.length !== 12) throw new Error(`Matrix 要 4 組各 3 個數，實得 ${a.length} 個`);
+  return { u: a.slice(0, 3), v: a.slice(3, 6), w: a.slice(6, 9), o: a.slice(9, 12) };
+}
+function mvrMul(P, C) {                                              // 世界 = P(C(x))
+  const col = (c) => [0, 1, 2].map((i) => P.u[i] * c[0] + P.v[i] * c[1] + P.w[i] * c[2]);
+  return { u: col(C.u), v: col(C.v), w: col(C.w), o: [0, 1, 2].map((i) => P.o[i] + P.u[i] * C.o[0] + P.v[i] * C.o[1] + P.w[i] * C.o[2]) };
+}
+function mvrAlign(x, y, m) {                                         // 轉向＋翻轉（先 rotZ 後 flip）
+  const th = (m.rotZDeg * Math.PI) / 180, c = Math.cos(th), s = Math.sin(th);
+  let X = c * x - s * y, Y = s * x + c * y;
+  if (m.flipX) X = -X;
+  if (m.flipY) Y = -Y;
+  return [X, Y];
+}
+const mvrChild = (el, tag) => [...el.children].find((c) => c.tagName === tag);
+const mvrText = (el, tag) => { const c = mvrChild(el, tag); return c ? (c.textContent || '').trim() : ''; };
+
+// 返回 [{id,group,x,y,h,aim:[x,y,h]}]（米）；陣列上 .warnings 係警告文字
+export async function parseMvr(arrayBuffer, map) {
+  const text = await mvrReadXml(arrayBuffer, map);
+  const doc = new DOMParser().parseFromString(text, 'application/xml');
+  if (doc.getElementsByTagName('parsererror').length) throw new Error('XML 解析失敗');
+  const root = doc.documentElement;
+  if (root.tagName !== 'GeneralSceneDescription') throw new Error(`root 標籤應該係 GeneralSceneDescription，實得 ${root.tagName}`);
+  const layers = [...root.getElementsByTagName('Layer')];
+  if (!layers.length) throw new Error('冇 Layer，冇嘢可匯入');
+  const warnings = [], fixtures = [], focus = {};
+  const ownMat = (el) => {
+    const mm = mvrChild(el, 'Matrix');
+    if (!mm || !(mm.textContent || '').trim()) return MVR_IDENT;
+    try { return mvrParseMatrix(mm.textContent); } catch (e) { warnings.push(`${el.tagName} 嘅 Matrix 格式錯，當 identity：${e.message}`); return MVR_IDENT; }
+  };
+  const rec = (el, parent, inGroup, layerName) => {
+    const tag = el.tagName;
+    if (tag === 'Fixture' || tag === 'FocusPoint') {
+      const cm = mvrMul(parent, ownMat(el));
+      if (tag === 'Fixture') {
+        if ((el.getAttribute('multipatch') || '').trim()) { warnings.push(`multipatch 子 fixture 唔重複計，略過：${el.getAttribute('name') || ''}`); return; }
+        fixtures.push({ name: el.getAttribute('name') || '', spec: mvrText(el, 'GDTFSpec'), mode: mvrText(el, 'GDTFMode'), layer: layerName, fid: mvrText(el, 'FixtureID'), unit: mvrText(el, 'UnitNumber'), focus: mvrText(el, 'Focus'), mat: cm });
+      } else focus[(el.getAttribute('uuid') || '').trim()] = { mat: cm };
+      return;
+    }
+    if (tag === 'GroupObject') inGroup = true;
+    const cm = tag === 'Layer' || tag === 'GroupObject' ? mvrMul(parent, ownMat(el)) : parent;
+    const ln = tag === 'Layer' ? el.getAttribute('name') ?? layerName : layerName;
+    for (const ch of el.children) if (MVR_DESCEND.has(ch.tagName)) rec(ch, cm, inGroup, ln);
+  };
+  for (const layer of layers) rec(layer, MVR_IDENT, false, layer.getAttribute('name') || '');
+  const off = map.originOffset, used = new Set(), out = [];
+  const pos = (o) => { const [x, y] = mvrAlign((o[0] - off.x) / 1000, (o[1] - off.y) / 1000, map); return [x, y, (o[2] - off.z) / 1000]; };
+  fixtures.forEach((fx, idx) => {
+    const p = pos(fx.mat.o);
+    let group = map.defaultGroup;
+    const sources = [fx.spec, fx.layer, fx.mode].filter(Boolean);
+    outer: for (const r of map.groupRules) for (const pat of r.anyOf || []) if (sources.some((s) => new RegExp(pat, 'i').test(s))) { group = r.group; break outer; }
+    const base = String(fx.fid || fx.unit || fx.name || `fx-${String(idx + 1).padStart(3, '0')}`);
+    let fid = base;
+    if (used.has(fid)) { let i = 2; while (used.has(`${base}-${i}`)) i++; fid = `${base}-${i}`; }
+    used.add(fid);
+    let aim = null;
+    const fp = fx.focus ? focus[fx.focus] : null;
+    if (fp) aim = pos(fp.mat.o);
+    else {
+      const fa = (fx.fid && map.fixtureAims[fx.fid]) || (fx.unit && map.fixtureAims[fx.unit]) || (fx.name && map.fixtureAims[fx.name]);
+      if (fa) aim = [...fa];
+    }
+    if (!aim) {
+      const [bx, by] = mvrAlign(-fx.mat.w[0], -fx.mat.w[1], map), bz = -fx.mat.w[2];
+      if (bz < -0.05 && p[2] > 0) { const t = -p[2] / bz; aim = [p[0] + t * bx, p[1] + t * by, 0]; }
+    }
+    if (!aim) {
+      const ga = map.groupAim[group];
+      aim = ga ? [...ga] : [p[0], p[1], 0];
+    }
+    out.push({ id: fid, group, x: mvrRound(p[0]), y: mvrRound(p[1]), h: mvrRound(p[2]), aim: aim.map(mvrRound) });
+  });
+  out.warnings = warnings;
+  return out;
+}
+export const mvrInStage = (list, map) => list.filter((f) => Math.abs(f.x) <= map.stage.widthM / 2 + 1e-6 && f.y >= -1e-6 && f.y <= map.stage.depthM + 1e-6).length;
+let mvrMapP = null, mvrIndexP = null;
+const mvrFetchJson = (url) => fetch(url).then((r) => { if (!r.ok) throw new Error(`${url} ${r.status}`); return r.json(); });
+export const mvrMap = () => (mvrMapP = mvrMapP || mvrFetchJson('lighting/mvr-map.json').catch((e) => { mvrMapP = null; throw e; }));
+export const mvrIndex = () => (mvrIndexP = mvrIndexP || mvrFetchJson('lighting/index.json').catch((e) => { mvrIndexP = null; throw e; }));
+
 export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHang }) {
   let cfg = null, cfgKey = '', snap = null, panel = null, lightBtn = null;
   let st = { preset: null, mix: null, spot: null, fog: {} };
@@ -11,6 +133,14 @@ export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHa
     if (isObj(s)) st = { preset: s.preset || null, mix: isObj(s.mix) ? s.mix : null, spot: isObj(s.spot) ? s.spot : null, fog: isObj(s.fog) ? s.fog : {} };
   } catch {}
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch {} };
+  // ---- 燈光檔（.mvr）：按舞台方案記住揀咗邊個燈位（key＝原本 cfg 嘅雜湊，每個方案各自一份）----
+  const MVR_KEY = 'flowboard-mvr-v1', MVR_KEEP = 400;
+  let origCfg = null, origHash = '', mvrMeta = null;
+  const hashOf = (s) => { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return String(h >>> 0); };
+  const mvrStore = () => { try { const s = JSON.parse(localStorage.getItem(MVR_KEY)); return isObj(s) ? s : {}; } catch { return {}; } };
+  const mvrSave = (s) => { try { localStorage.setItem(MVR_KEY, JSON.stringify(s)); } catch {} };
+  const useFixtures = (list, meta) => { cfg = { ...origCfg, rig: { ...origCfg.rig, fixtures: list } }; mvrMeta = meta; buildRig(); };
+  const resetFixtures = () => { cfg = origCfg; mvrMeta = null; buildRig(); };
 
   const root = new THREE.Group();
   scene.add(root);
@@ -132,6 +262,63 @@ export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHa
     panel.querySelector('button[data-lp="add"]').disabled = sel.disabled;
     targetKey = targetList().map((t) => t[0]).join();
   }
+  async function applyMvr(buf, title, file) {
+    const map = await mvrMap(), list = await parseMvr(buf, map);
+    if (!list.length) throw new Error('檔內冇燈');
+    useFixtures(list, { title, file });
+    const store = mvrStore();
+    if (list.length <= MVR_KEEP) store[origHash] = { title, file, fixtures: list };
+    else if (file) store[origHash] = { title, file };
+    else delete store[origHash];
+    mvrSave(store);
+    return { n: list.length, inStage: mvrInStage(list, map), kept: list.length <= MVR_KEEP || !!file, warnings: list.warnings };
+  }
+  async function loadFolderFile(file, title, quiet) {
+    const r = await fetch('lighting/' + encodeURIComponent(file));
+    if (!r.ok) throw new Error(`搵唔到 ${file}（${r.status}）`);
+    return applyMvr(await r.arrayBuffer(), title || file, file);
+  }
+  async function wireMvr() {
+    const q = (k) => panel && panel.querySelector(`[data-mvr="${k}"]`);
+    const box = q('box'), sel = q('sel'), pick = q('pick'), input = q('file'), status = q('status');
+    if (!box) return;
+    let index = null;
+    try { await mvrMap(); } catch { return; }                       // 呢個板冇 lighting/mvr-map.json（例如籌備站）就唔出呢個區塊
+    try { index = (await mvrIndex()).files || []; } catch { sel.hidden = true; }
+    if (!panel || q('box') !== box) return;
+    box.hidden = false;
+    if (index) for (const f of index) sel.append(new Option(`${f.title || f.file}（${f.fixtures} 支）`, f.file));
+    const showCurrent = () => {
+      const f = mvrMeta && mvrMeta.file;
+      if (f && ![...sel.options].some((o) => o.value === f)) sel.append(new Option(mvrMeta.title || f, f));
+      if (mvrMeta && !f) { sel.append(new Option(`（本機）${mvrMeta.title}`, '@local')); sel.value = '@local'; } else sel.value = f || '';
+      if (mvrMeta) status.textContent = `而家用：${mvrMeta.title}（${cfg.rig.fixtures.length} 支）`;
+    };
+    showCurrent();
+    const busy = (b) => { sel.disabled = pick.disabled = b; };
+    const done = (r, name) => {
+      status.textContent = `已載入：${name}（${r.n} 支，台上 ${r.inStage} 支）` + (r.kept ? '' : '。檔太大，reload 後要重新揀') + (r.warnings && r.warnings.length ? `。${r.warnings.length} 項警告` : '');
+    };
+    sel.addEventListener('change', async () => {
+      const f = sel.value;
+      if (f === '@local') return;
+      if (!f) { resetFixtures(); const s = mvrStore(); delete s[origHash]; mvrSave(s); status.textContent = '已還原預設燈位'; return; }
+      busy(true); status.textContent = '載入中…';
+      try { const e = (index || []).find((x) => x.file === f); done(await loadFolderFile(f, e && e.title), (e && e.title) || f); } catch (err) { status.textContent = `載入失敗：${err.message}`; showCurrent(); }
+      busy(false);
+    });
+    pick.addEventListener('click', () => input.click());
+    input.addEventListener('change', async () => {
+      const file = input.files[0];
+      if (!file) return;
+      busy(true); status.textContent = '載入中…';
+      try {
+        const r = await applyMvr(await file.arrayBuffer(), file.name, null);
+        showCurrent(); done(r, file.name);
+      } catch (err) { status.textContent = `載入失敗：${err.message}`; }
+      input.value = ''; busy(false);
+    });
+  }
   function buildPanel() {
     if (panel) panel.remove();
     panel = document.createElement('div');
@@ -152,6 +339,7 @@ export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHa
     })() : '';
     panel.innerHTML =
       '<div class="lp-head"><b>燈光 / 煙霧</b><button class="smallbtn" data-lp="close" aria-label="收埋燈光面板">✕</button></div>' +
+      '<div class="lp-sec lp-mvr" data-mvr="box" hidden><div class="lp-title">燈光檔（.mvr）</div><div class="lp-line lp-mvrrow"><select data-mvr="sel" aria-label="燈光檔"><option value="">預設燈位</option></select><button class="smallbtn" data-mvr="pick" type="button">揀檔…</button><input type="file" accept=".mvr" data-mvr="file" hidden></div><div class="lp-hint" data-mvr="status" role="status"></div></div>' +
       '<div class="lp-sec"><div class="lp-title">燈光 preset（揀咗會載入對應顏色同強度）</div><div class="lp-presets">' +
       cfg.presets.map((p) => `<button class="smallbtn" data-preset="${esc(p.id)}" title="${esc(p.hint || '')}" aria-pressed="${P && P.id === p.id}">${esc(p.name)}</button>`).join('') +
       '</div><div class="lp-hint" data-lp="hint"></div></div>' +
@@ -170,6 +358,7 @@ export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHa
     syncMix();
     const hint = () => { const q = presetOf(); panel.querySelector('[data-lp="hint"]').textContent = q ? q.hint || '' : ''; };
     hint();
+    wireMvr();
     panel.addEventListener('click', (e) => {
       const btn = e.target.closest('button'), d = (btn && btn.dataset) || {};
       if (d.lp === 'close') api.toggle(false);
@@ -225,12 +414,17 @@ export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHa
       if (!c) return;
       const k = JSON.stringify(c);
       if (k === cfgKey) return;
-      cfgKey = k; cfg = c;
+      cfgKey = k; cfg = c; origCfg = c; origHash = hashOf(k); mvrMeta = null;
+      const saved = mvrStore()[origHash];
+      if (saved && Array.isArray(saved.fixtures) && saved.fixtures.length) { cfg = { ...c, rig: { ...c.rig, fixtures: saved.fixtures } }; mvrMeta = { title: saved.title, file: saved.file }; }
       buildRig();
       buildPanel();
+      if (saved && !saved.fixtures && saved.file) loadFolderFile(saved.file, saved.title, true).catch(() => {});
       if (lightBtn) lightBtn.hidden = false;
     },
     setSnap(s) { snap = s; refreshTargets(); },
+    fixtureCount() { return cfg ? cfg.rig.fixtures.length : 0; },
+    rigTitle() { return mvrMeta ? mvrMeta.title || '' : ''; },
     describe() {                                                    // 輸出報告用：而家生效嘅設定（人睇得明嘅名同 1–10 數值）
       if (!cfg) return null;
       const P = presetOf(), lv = LV(), q = spotState();

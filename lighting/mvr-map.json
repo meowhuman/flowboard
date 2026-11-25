@@ -1,5 +1,5 @@
 {
-  "_說明": "MVR import alignment and grouping for the sample stage (black box, dance floor 18 x 14 m). Tuned for samples/mvr/capture_demo_show.mvr (Capture export). All venue numbers live here, not in the script.",
+  "_說明": "MVR import alignment and grouping for the sample stage (black box, dance floor 18 x 14 m). Tuned for lighting/capture_demo_show.mvr (Capture export). All venue numbers live here, not in the script.",
   "_originOffset": "MVR 原點相對 board 原點（後牆舞台中線地面）嘅位移，單位 mm。MVR 原點唔喺 board 原點就填差值（例如 MVR 原點喺右 2 m 就填 x:2000）。",
   "_rotZDeg": "MVR 座標繞垂直軸逆時針轉幾多度先對齊 board（俯瞰：x 向右、y 向前）。0 = 唔使轉。",
   "_flipX": "true = 對齊後 x 左右翻轉（先 rotZ 先 flip）。",

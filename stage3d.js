@@ -525,19 +525,21 @@ export async function mount(box, api) {
   }
 
   function heldArms(target, points) {
-    const sleeve = new THREE.MeshStandardMaterial({ color: 0x414540, roughness: 0.82 });
+    const sleeve = new THREE.MeshStandardMaterial({ color: 0x969b94, roughness: 0.82 });
     const skin = new THREE.MeshStandardMaterial({ color: 0xe0d6c8, roughness: 0.9 });
     const limb = (a, b, radius, material) => {
       const start = new THREE.Vector3(...a), end = new THREE.Vector3(...b), delta = end.clone().sub(start);
       const mesh = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.82, radius, delta.length(), 10), material);
+      mesh.userData.heldArm = true;
       mesh.position.copy(start.add(end).multiplyScalar(0.5));
       mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), delta.normalize());
       target.add(mesh);
     };
     for (const arm of points) {
-      limb(arm.shoulder, arm.elbow, 0.065, sleeve);
-      limb(arm.elbow, arm.hand, 0.052, sleeve);
-      const hand = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 8), skin);
+      limb(arm.shoulder, arm.elbow, 0.085, sleeve);
+      limb(arm.elbow, arm.hand, 0.07, sleeve);
+      const hand = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), skin);
+      hand.userData.heldArm = true;
       hand.position.set(...arm.hand);
       target.add(hand);
     }
@@ -563,25 +565,27 @@ export async function mount(box, api) {
       body = new THREE.Group();
       body.rotation.order = 'YXZ';
       const instrument = saxophoneModel();
+      instrument.traverse((o) => { if (o.isMesh) o.userData.heldInstrument = true; });
       instrument.scale.setScalar(0.68);
-      instrument.position.set(0, 0.45, 0.55);
+      instrument.position.set(0, 0.45, 0.42);
       body.add(instrument);
       group.add(body);
       const person = (await load('musician-standing')).clone(true);
-      person.position.set(0, 0, 0.55);
+      person.position.set(0.08, 0, 0.28);
       person.rotation.y = -FIGURE_FRONT_YAW;
       person.userData.facing = true;
       person.userData.pose = 'standing';
       body.add(person);
       heldArms(body, [
-        { shoulder: [-0.1, 1.42, 0.68], elbow: [-0.08, 1.2, 0.7], hand: [-0.02, 1.04, 0.72] },
-        { shoulder: [0.22, 1.42, 0.68], elbow: [0.18, 1.18, 0.7], hand: [0.08, 0.98, 0.72] },
+        { shoulder: [-0.02, 1.42, 0.34], elbow: [-0.05, 1.29, 0.48], hand: [-0.02, 1.16, 0.63] },
+        { shoulder: [0.2, 1.42, 0.34], elbow: [0.15, 1.16, 0.48], hand: [0.08, 0.94, 0.63] },
       ]);
     }
     else try {
       const inst = (await load(MODEL_OF[it.type])).clone(true),
         play = PLAY[it.type] || { flip: false, behind: 0.6 };
       inst.rotation.y = play.flip ? Math.PI : 0;
+      if (it.type === 'bass') inst.traverse((o) => { if (o.isMesh) o.userData.heldInstrument = true; });
       inst.userData.isInst = true;
       body = new THREE.Group();                                      // 人（同拎住嘅器材）一齊搖擺嘅容器
       body.rotation.order = 'YXZ';
@@ -596,7 +600,7 @@ export async function mount(box, api) {
         pivot.add(inst);
         body.add(pivot);
       } else group.add(inst);
-      if (it.type === 'bass') inst.position.set(0.05, 0, 0.55);
+      if (it.type === 'bass') { inst.position.x = 0; inst.position.z = 0.42; }
       if (play.pitch) {                                              // 校正歪咗嘅模型：繞器材本地 X 軸抬高琴鍵端，再貼返地
         inst.rotation.order = 'YXZ';
         inst.rotation.x = (-play.pitch * Math.PI) / 180;
@@ -606,14 +610,14 @@ export async function mount(box, api) {
       if (!it.player) {                                              // 共用樂手（例如鋼琴＋Keyboard）喺 players 處理
         const person = (await load(SEATED.has(it.type) ? 'musician-seated' : 'musician-standing')).clone(true);
         person.position.set(0, 0, play.behind);                      // 本地 +z ＝ 器材 front 嘅反方向：人企喺器材後面，器材喺人前面
-        if (it.type === 'bass') person.position.set(0.16, 0, 0.42);
+        if (it.type === 'bass') person.position.set(0.08, 0, 0.28);
         person.rotation.y = -FIGURE_FRONT_YAW;                       // 樂手面向器材 front 方向（rot 0 ＝ 觀眾）
         person.userData.facing = true;
         person.userData.pose = SEATED.has(it.type) ? 'seated' : 'standing';
         body.add(person);
         if (it.type === 'bass') heldArms(body, [
-          { shoulder: [0.06, 1.42, 0.68], elbow: [0.01, 1.3, 0.7], hand: [0.06, 1.38, 0.72] },
-          { shoulder: [0.32, 1.4, 0.68], elbow: [0.25, 1.18, 0.7], hand: [0.16, 1.08, 0.72] },
+          { shoulder: [-0.02, 1.42, 0.34], elbow: [-0.08, 1.34, 0.49], hand: [-0.02, 1.38, 0.68] },
+          { shoulder: [0.2, 1.4, 0.34], elbow: [0.17, 1.2, 0.49], hand: [0.08, 1.08, 0.68] },
         ]);
         if (it.chair && it.sitWhen) {                                // 有凳（例如結他嘅高凳）：另外有一個坐姿，指定狀態（例如 solo）先坐
           const sp = (await load('musician-seated')).clone(true);
@@ -627,7 +631,13 @@ export async function mount(box, api) {
       }
     } catch (e) { note.textContent = '模型載入失敗：' + e.message; }
     // 每個 mesh 只 clone 一次物料，之後只改 emissive
-    group.traverse((o) => { if (o.isMesh) { o.material = o.material.clone(); o.userData.hasEmissive = 'emissive' in o.material; } });
+    group.traverse((o) => {
+      if (!o.isMesh) return;
+      o.material = o.material.clone();
+      o.userData.hasEmissive = 'emissive' in o.material;
+      if (o.userData.heldInstrument) { o.material.depthTest = false; o.renderOrder = 8; }
+      if (o.userData.heldArm) { o.material.depthTest = false; o.renderOrder = 9; }
+    });
     const persons = [];
     group.traverse((o) => { if (o.userData.facing) persons.push(o); });
     for (const fig of persons) { const f = { root: fig, kind: fig.userData.pose || (SEATED.has(it.type) ? 'seated' : 'standing'), itemId: it.id }; figs.push(f); dressFigure(f); }
