@@ -1,6 +1,6 @@
 // 3D 舞台燈光 preset ＋ 煙霧機。純視覺預覽（試吓感覺），唔係燈光師 cue。
 // 全部參數喺 stage-plans.json 嘅 lighting；使用者揀嘅 preset／煙霧設定存 localStorage。
-const KEY = 'cuesheet-board-light-v1';
+const KEY = 'flowboard-light-v1';
 
 export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHang }) {
   let cfg = null, cfgKey = '', snap = null, panel = null, lightBtn = null;

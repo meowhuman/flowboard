@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const { chromium } = createRequire(process.env.PW_FROM || import.meta.url)('playwright');
 const BASE = process.env.BASE || 'http://127.0.0.1:9424/index.html';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'cuesheet-files-'));
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'flowboard-files-'));
 let bad = 0;
 const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
 const ctx = await b.newContext({ viewport: { width: 1440, height: 800 } });

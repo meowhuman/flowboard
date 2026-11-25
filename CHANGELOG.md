@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Renamed from cuesheet-board to **Flowboard**. Browser storage keys change with the name, so a saved layout from the old name is not carried over.
+- Removed the Night rock sample loop; added moody sample loops.
 - Add songs from an audio file (mp3, wav, m4a, flac), stored in the browser.
 - Add your own videos to the loop library, with a first-frame thumbnail.
 - Suno and Spotify rows in the set list, with a `SUNO` or `SPOTIFY` mark; compact player (80 to 96 px) instead of a large embed.

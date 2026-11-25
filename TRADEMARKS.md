@@ -2,11 +2,11 @@
 
 The code in this repository is MIT licensed. The licence covers the code. It does not cover the name or the logo.
 
-**Marks:** "cuesheet-board", "Mono Labs", and the logo files in `docs/` (`logo.svg`, `logo-mark.svg`, `social-preview.png`).
+**Marks:** "Flowboard", "Mono Labs", and the logo files in `docs/` (`logo.svg`, `logo-mark.svg`, `social-preview.png`).
 
 ## You may
 
-- Say your project is based on, built with, or compatible with cuesheet-board, and link to this repository.
+- Say your project is based on, built with, or compatible with Flowboard, and link to this repository.
 - Use the marks to refer to this project in articles, talks and reviews.
 - Run the board for your own rehearsals and shows. No permission needed.
 
@@ -18,7 +18,7 @@ The code in this repository is MIT licensed. The licence covers the code. It doe
 
 ## If you fork
 
-Pick your own name, replace the logo and the header text, and keep the MIT copyright notice and `NOTICE` in the repository. A line such as "Based on cuesheet-board by Teriver Cheung" is welcome.
+Pick your own name, replace the logo and the header text, and keep the MIT copyright notice and `NOTICE` in the repository. A line such as "Based on Flowboard by Teriver Cheung" is welcome.
 
 ## Questions
 

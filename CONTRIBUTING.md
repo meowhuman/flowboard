@@ -29,4 +29,4 @@ By sending a pull request you agree that your contribution is licensed under the
 
 ## Name and logo
 
-The code is MIT. The name "cuesheet-board", "Mono Labs" and the logo are not part of that licence, see `TRADEMARKS.md`.
+The code is MIT. The name "Flowboard", "Mono Labs" and the logo are not part of that licence, see `TRADEMARKS.md`.

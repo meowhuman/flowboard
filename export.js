@@ -1,6 +1,6 @@
 // 輸出：揀要輸出乜（歌單、2D 舞台圖、3D 畫面、燈光設定…）→ 產生一份自包含 HTML 報告（可下載，或列印／存成 PDF）。
 // 尺寸、鏡頭、出圖品質喺 stage-plans.json 嘅 export；揀咗乜記喺 localStorage。
-const KEY = 'cuesheet-board-export-v1';
+const KEY = 'flowboard-export-v1';
 const SECTIONS = [
   { id: 'order', label: '歌單與次序', hint: '次序、段落、BPM、配咗嘅 loop', def: true },
   { id: 'matrix', label: '全場總表', hint: '每首歌邊個上台／SOLO／HIGHLIGHT', def: true },
@@ -251,7 +251,7 @@ export async function openExport(api) {
       if (sel.people && window.People) m.people = { ...People.export(), styles: { dress: '連身裙', skirt: '上衣＋裙', trousers: '上衣＋褲' } };
       if (sel.people && !m.people) { skipped.push('服裝資料讀唔到，冇輸出'); m.sel.people = false; }
       html = buildReport(m);
-      fileName = `cuesheet-board-${fileStamp(new Date())}.html`;
+      fileName = `flowboard-${fileStamp(new Date())}.html`;
     } catch (e) {
       prog('輸出失敗：' + e.message, 0);
       foot.innerHTML = '<span></span><button class="smallbtn" data-back>返回</button>';

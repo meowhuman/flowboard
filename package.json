@@ -1,5 +1,5 @@
 {
-  "name": "cuesheet-board",
+  "name": "flowboard",
   "version": "0.1.0",
   "description": "Per-song, per-section stage and lighting board for live music sets. 2D plan, 3D lighting preview, rehearsal audio and video loops, one-click report.",
   "license": "MIT",
@@ -15,10 +15,10 @@
   "homepage": "https://cuesheet-board-demo.netlify.app/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/meowhuman/cuesheet-board.git"
+    "url": "git+https://github.com/meowhuman/flowboard.git"
   },
   "bugs": {
-    "url": "https://github.com/meowhuman/cuesheet-board/issues"
+    "url": "https://github.com/meowhuman/flowboard/issues"
   },
   "keywords": [
     "live-music",

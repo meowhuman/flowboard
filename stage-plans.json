@@ -1695,7 +1695,7 @@
         "mvrImport": {
           "map": "tools/mvr-map.default.json",
           "source": "capture_demo_show.mvr",
-          "importedAt": "2026-11-25T09:00:18+08:00",
+          "importedAt": "2026-11-25T09:37:01+08:00",
           "fixtureCount": 76,
           "aimSources": {
             "focus": 0,
@@ -3107,7 +3107,7 @@
         "mvrImport": {
           "map": "tools/mvr-map.default.json",
           "source": "capture_demo_show.mvr",
-          "importedAt": "2026-11-25T09:00:18+08:00",
+          "importedAt": "2026-11-25T09:37:01+08:00",
           "fixtureCount": 76,
           "aimSources": {
             "focus": 0,
@@ -4514,7 +4514,7 @@
         "mvrImport": {
           "map": "tools/mvr-map.default.json",
           "source": "capture_demo_show.mvr",
-          "importedAt": "2026-11-25T09:00:18+08:00",
+          "importedAt": "2026-11-25T09:37:01+08:00",
           "fixtureCount": 76,
           "aimSources": {
             "focus": 0,
@@ -5791,7 +5791,7 @@
     "mvrImport": {
       "map": "tools/mvr-map.default.json",
       "source": "capture_demo_show.mvr",
-      "importedAt": "2026-11-25T09:00:18+08:00",
+      "importedAt": "2026-11-25T09:37:01+08:00",
       "fixtureCount": 76,
       "aimSources": {
         "focus": 0,
@@ -5817,11 +5817,11 @@
   "export": {
     "credit": {
       "_說明": "報告頁尾署名；url 只當文字顯示（報告冇外部連結）。冇 text 就唔出。",
-      "text": "Made with cuesheet-board",
+      "text": "Made with Flowboard",
       "url": ""
     },
     "_說明": "輸出報告（自包含 HTML，可列印做 PDF）。image＝3D 出圖尺寸同 JPEG 品質；cams＝可揀嘅 3D 鏡頭（id 對應 3D 工具列）；settleSteps×settleDt＝出圖前將燈光／煙霧快轉幾多秒；svgWidth＝2D 圖排標籤時用嘅寬度（px）。",
-    "title": "cuesheet-board — Show Flow",
+    "title": "Flowboard",
     "image": {
       "width": 1280,
       "height": 720,
@@ -5845,8 +5845,8 @@
   },
   "site": {
     "_說明": "標題列文字（可選）。冇寫就用 index.html 預設。",
-    "title": "cuesheet-board — Show Flow",
-    "brand": "CUESHEET BOARD",
-    "meta": "SHOW FLOW · SAMPLE SET"
+    "title": "Flowboard",
+    "brand": "FLOWBOARD",
+    "meta": "SAMPLE SET"
   }
 }

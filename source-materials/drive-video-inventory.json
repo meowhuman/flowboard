@@ -29,6 +29,51 @@
     "06"
    ],
    "matchType": "section-only"
+  },
+  {
+   "filename": "Rain on glass (10s loop).mp4",
+   "folder": "Sample loops",
+   "fileId": "rain-window",
+   "sizeBytes": 300907,
+   "songNumbers": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06"
+   ],
+   "matchType": "section-only"
+  },
+  {
+   "filename": "Stage haze (10s loop).mp4",
+   "folder": "Sample loops",
+   "fileId": "stage-haze",
+   "sizeBytes": 118741,
+   "songNumbers": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06"
+   ],
+   "matchType": "section-only"
+  },
+  {
+   "filename": "Lamp smoke (10s loop).mp4",
+   "folder": "Sample loops",
+   "fileId": "club-smoke",
+   "sizeBytes": 264439,
+   "songNumbers": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06"
+   ],
+   "matchType": "section-only"
   }
  ]
 }

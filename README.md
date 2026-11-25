@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/logo.svg" alt="cuesheet-board, a Mono Labs tool" width="420"></p>
+<p align="center"><img src="docs/logo.svg" alt="Flowboard, a Mono Labs tool" width="420"></p>
 
 <p align="center"><strong>Who is on stage, who solos and how it is lit, song by song, tied to the rehearsal audio.</strong></p>
 
@@ -16,7 +16,7 @@ A browser board for the part of a live set that usually lives in a Word file and
 
 Open it, pick a song, press play. The 2D plan, the 3D lighting preview and the section timeline follow the audio. When the set is ready, tick what you need and export one report for the lighting operator.
 
-> A [Mono Labs](https://github.com/meowhuman) tool. Built by a working music director for a real festival set, then cleaned up and published with a sample set so you can try it.
+> A [Mono Labs](https://github.com/meowhuman) tool. Not related to other projects that happen to be called Flowboard. Built by a working music director for a real festival set, then cleaned up and published with a sample set so you can try it.
 
 ![Desktop: song list, 2D stage plan, section timeline, loop library and player](docs/board-desktop.png)
 
@@ -51,7 +51,7 @@ Live sample (unlisted, not indexed): https://cuesheet-board-demo.netlify.app/
 Or run it yourself:
 
 ```bash
-git clone https://github.com/meowhuman/cuesheet-board && cd cuesheet-board
+git clone https://github.com/meowhuman/flowboard && cd flowboard
 python3 qa/range-server.py 8080 . 127.0.0.1
 # open http://127.0.0.1:8080/
 ```
@@ -72,7 +72,7 @@ The sample set exercises every feature, so you can click through them before loa
 | Versions | Song 06 has instrumental and vocal audio versions |
 | Suno and Spotify tracks | Rows T1 and T2 are Suno songs, T3 and T4 are Spotify tracks. Each has a small mark and plays inside the board. Try `+ Add song` at the bottom of the list |
 | Venues | Stage view: the venue list next to `聚焦` (2D) or in the 3D toolbar: black box, jazz club, concert hall, open stage |
-| Loops | Two sample video loops sit in the library on the right. Click one to play it, `+` assigns it to the current song, `+ Add video` adds your own |
+| Loops | Sample video loops (moody, no people) sit in the library on the right. Click one to play it, `+` assigns it to the current song, `+ Add video` adds your own |
 | Lyrics and form chart | Song 01 has lyrics and a generated form chart |
 | One-click report | `輸出`, tick sections, get a self-contained HTML file |
 | Phone layout | Open it on a phone, or narrow the window to 390 px |
@@ -171,10 +171,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. If you run
 - [three.js](https://threejs.org) renders the 3D view.
 - `samples/mvr/` test files come from [open-stage/python-mvr](https://github.com/open-stage/python-mvr) (MIT).
 - Instrument models were generated with TRELLIS.2 and normalised in Blender.
-- Free tools that overlap in part: Limelight (3D lighting and cue paperwork), TecRider and Stageplot Pro (stage plots and input lists), BandHelper (setlists and scheduling). cuesheet-board is aimed at the gap between them: the song-by-song staging and lighting of a whole set, with the audio.
+- Free tools that overlap in part: Limelight (3D lighting and cue paperwork), TecRider and Stageplot Pro (stage plots and input lists), BandHelper (setlists and scheduling). Flowboard is aimed at the gap between them: the song-by-song staging and lighting of a whole set, with the audio.
 
 ## Licence and name
 
 - **Code: MIT**, see [LICENSE](LICENSE). You may use, change and sell it, and you must keep the copyright notice.
 - **Sample media** has separate terms, see [NOTICE](NOTICE).
-- **Name and logo are not licensed.** "cuesheet-board", "Mono Labs" and the logo are the author's marks. A fork or a product built on this code needs its own name and logo, and must not suggest it is the original or endorsed by it. See [TRADEMARKS.md](TRADEMARKS.md).
+- **Name and logo are not licensed.** "Flowboard", "Mono Labs" and the logo are the author's marks. A fork or a product built on this code needs its own name and logo, and must not suggest it is the original or endorsed by it. See [TRADEMARKS.md](TRADEMARKS.md).

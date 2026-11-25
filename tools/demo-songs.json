@@ -149,6 +149,21 @@
    "id": "clouds",
    "filename": "Clouds (14s).mp4",
    "folder": "Sample loops"
+  },
+  {
+   "id": "rain-window",
+   "filename": "Rain on glass (10s loop).mp4",
+   "folder": "Sample loops"
+  },
+  {
+   "id": "stage-haze",
+   "filename": "Stage haze (10s loop).mp4",
+   "folder": "Sample loops"
+  },
+  {
+   "id": "club-smoke",
+   "filename": "Lamp smoke (10s loop).mp4",
+   "folder": "Sample loops"
   }
  ],
  "tracks": [

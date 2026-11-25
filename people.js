@@ -1,7 +1,7 @@
 // 人物：每位樂手嘅性別（男／女）同服裝（上身／下身／鞋／髮色／款式），由主題色（hex）隨機配衣。
 // 資料存 localStorage；3D（stage3d.js）同設定視窗都經呢度讀寫。
 (() => {
-  const KEY = 'cuesheet-board-people-v1';
+  const KEY = 'flowboard-people-v1';
   // 預設主題色：示範用 Pantone 19-1650 TCX Biking Red、15-3920 TCX Placid Blue（hex 係近似值，要用確實 hex 就喺視窗改）
   const DEFAULT_PALETTE = ["#7b1e2e","#8fa9d2"];
   const DEFAULT_OUTFIT = null;

@@ -1,7 +1,7 @@
 // 舞台：按歌曲同段落標示邊個喺台上、邊個 solo／highlight，可拖動位置。
 // 資料：stage-plans.json（舞台圖 + 器材位置）、stage-cues.json（可選，預設 cues）、localStorage（個人修改）。
 (() => {
-  const KEY = 'cuesheet-board-stage-v2';
+  const KEY = 'flowboard-stage-v2';
   const NS = 'http://www.w3.org/2000/svg';
   const K = 24; // 1 m = 24 個 SVG 單位，令文字用正常字體大小
   const FONT = 12; // 標籤字體（SVG 單位）
@@ -426,7 +426,9 @@
   function modeSeg() {
     const m = ctx.getMode ? ctx.getMode() : '';
     return '<span class="modeseg" role="group" aria-label="舞台視圖">' +
-      [['2d', '僅 2D'], ['3d', '僅 3D'], ['both', '2D + 3D']].map(([k, l]) => `<button class="smallbtn" data-mode="${k}" aria-pressed="${m === k}">${l}</button>`).join('') + '</span>';
+      [['2d', '僅 2D'], ['3d', '僅 3D'], ['both', '2D + 3D'], ['off', '關閉舞台']]
+        .map(([k, l]) => `<button class="smallbtn" data-mode="${k}" aria-pressed="${k === 'off' ? !m : m === k}">${l}</button>`)
+        .join('') + '</span>';
   }
   const fmt = (t) => Math.floor(t / 60) + ':' + String(Math.floor(t % 60)).padStart(2, '0');
   function rotateTools() {
@@ -456,9 +458,7 @@
       modeSeg() +
       '<button class="smallbtn" data-act="outfit" title="樂手性別同服裝（主題色隨機配衣）">服裝</button>' +
       `<button class="smallbtn" data-act="fit" aria-pressed="${store.fit !== false}" title="畫面貼住器材放大／顯示成個舞台">聚焦</button>` +
-      (data.plans.length > 3
-        ? `<select class="venuesel" data-planselect aria-label="場地">${data.plans.map((p) => `<option value="${esc(p.id)}"${p.id === store.planId ? ' selected' : ''}>${esc(p.title)}</option>`).join('')}</select>`
-        : data.plans.length > 1 ? data.plans.map((p) => `<button class="vchip" data-plan="${esc(p.id)}" aria-pressed="${p.id === store.planId}">${esc(p.title)}</button>`).join('') : '') +
+      `<label class="venue-picker"><span>場地</span><select class="venuesel" data-planselect aria-label="選擇場地">${data.plans.map((p) => `<option value="${esc(p.id)}"${p.id === store.planId ? ' selected' : ''}>${esc(p.title)}</option>`).join('')}</select></label>` +
       '<span class="stagelegend"><i class="sw on"></i>台上 <i class="sw solo"></i>SOLO <i class="sw hl"></i>HIGHLIGHT</span>' +
       `<label class="showoff"><input type="checkbox" data-act="showoff" ${store.showOff ? 'checked' : ''}> 顯示休息樂手</label>` +
       (readOnly ? '' : `<button class="smallbtn" data-act="edit" aria-pressed="${editing}">${editing ? '完成編輯' : '編輯'}</button>`) +

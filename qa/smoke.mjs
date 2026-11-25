@@ -29,7 +29,7 @@ const titles = await p.locator('#songs .songname').allInnerTexts();
 ok('歌單 10 首（6 首有音訊 ＋ 4 首 Suno／Spotify，來自 songs.json）', titles.length === 10 && titles.some((x) => x.startsWith('Le Dernier Bal')), titles.join(' / '));
 const badges = await p.$$eval('#songs .srcbadge', (e) => e.map((x) => x.textContent));
 ok('歌單：Suno／Spotify 歌有細標記（Suno ×2、Spotify ×2），本地歌冇', badges.filter((x) => x === 'Suno').length === 2 && badges.filter((x) => x === 'Spotify').length === 2 && badges.length === 4, badges.join(','));
-ok('標題列由 stage-plans.json 設定', (await p.title()) === 'cuesheet-board — Show Flow' && /CUESHEET/.test(await p.locator('.top .brand').innerText()));
+ok('標題列由 stage-plans.json 設定', (await p.title()) === 'Flowboard' && /FLOWBOARD/.test(await p.locator('.top .brand').innerText()));
 
 await p.click('.song[data-num="01"]'); await p.waitForTimeout(1200);
 const au = await p.evaluate(() => { const a = document.querySelector('#audio'); return { src: a.getAttribute('src') || a.src, rs: a.readyState, d: a.duration }; });

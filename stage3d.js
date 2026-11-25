@@ -40,7 +40,7 @@ export async function mount(box, api) {
   const canvas = document.createElement('canvas');
   const bar = document.createElement('div');
   bar.className = 'threebar';
-  bar.innerHTML = '<span class="modeseg" role="group" aria-label="舞台視圖"><button data-mode="2d" class="smallbtn">僅 2D</button><button data-mode="3d" class="smallbtn">僅 3D</button><button data-mode="both" class="smallbtn">2D + 3D</button></span><span class="camseg"><button data-cam="aud" class="smallbtn">觀眾席</button><button data-cam="top" class="smallbtn">俯視</button><button data-cam="seat" class="smallbtn">座位視角</button><button data-cam="side" class="smallbtn">側面</button></span><button data-labels="1" class="smallbtn" aria-pressed="true">名牌</button><button data-outfit="1" class="smallbtn" title="樂手性別同服裝">服裝</button><button data-light="1" class="smallbtn" aria-pressed="false" title="燈光 preset 同煙霧機（試吓感覺）" hidden>燈光</button>';
+  bar.innerHTML = '<span class="modeseg" role="group" aria-label="舞台視圖"><button data-mode="2d" class="smallbtn">僅 2D</button><button data-mode="3d" class="smallbtn">僅 3D</button><button data-mode="both" class="smallbtn">2D + 3D</button><button data-mode="off" class="smallbtn">關閉舞台</button></span><span class="camseg"><button data-cam="aud" class="smallbtn">觀眾席</button><button data-cam="top" class="smallbtn">俯視</button><button data-cam="seat" class="smallbtn">座位視角</button><button data-cam="side" class="smallbtn">側面</button></span><button data-labels="1" class="smallbtn" aria-pressed="true">名牌</button><button data-outfit="1" class="smallbtn" title="樂手性別同服裝">服裝</button><button data-light="1" class="smallbtn" aria-pressed="false" title="燈光 preset 同煙霧機（試吓感覺）" hidden>燈光</button>';
   const note = document.createElement('div');
   note.className = 'threenote';
   note.textContent = '載入模型中…';
@@ -76,15 +76,15 @@ export async function mount(box, api) {
   // 場地選單：stage-plans.json 有多張舞台圖（各自 venue／stage／room／燈位）就出現，揀咗即換 3D 場地同 2D 圖
   const venueSel = document.createElement('select');
   venueSel.className = 'smallbtn venuesel';
-  venueSel.setAttribute('aria-label', '場地');
-  venueSel.title = '揀場地';
+  venueSel.setAttribute('aria-label', '選擇場地');
+  venueSel.title = '選擇場地／舞台方案';
   venueSel.hidden = true;
   bar.append(venueSel);
   venueSel.onchange = () => api.setPlan && api.setPlan(venueSel.value);
   function syncVenue() {
     const ps = api.plans ? api.plans() : [];
-    venueSel.hidden = ps.length < 2;
-    if (ps.length < 2) return;
+    venueSel.hidden = ps.length === 0;
+    if (!ps.length) return;
     const sig = ps.map((p) => p.id + p.title).join('|');
     if (venueSel.dataset.sig !== sig) {
       venueSel.dataset.sig = sig;
@@ -452,7 +452,7 @@ export async function mount(box, api) {
     touched = false;
   controls.addEventListener('start', () => (touched = true));
   let lastStage = null;
-  const syncModeBtns = () => bar.querySelectorAll('[data-mode]').forEach((b) => b.setAttribute('aria-pressed', String(api.getMode() === b.dataset.mode)));
+  const syncModeBtns = () => bar.querySelectorAll('[data-mode]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === 'off' ? !api.getMode() : api.getMode() === b.dataset.mode)));
   const syncCamBtns = () => bar.querySelectorAll('[data-cam]').forEach((b) => b.setAttribute('aria-pressed', String(camKind === b.dataset.cam)));
   syncCamBtns();
   bar.onclick = (e) => {

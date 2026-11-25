@@ -265,6 +265,23 @@ input:focus-visible,
   font: var(--fs-body) var(--serif);
   overflow-wrap: anywhere;
 }
+.songtitle {
+  border-radius: 2px;
+  cursor: text;
+}
+.songtitle:hover {
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+.songtitle:focus-visible,
+.songtitle[contenteditable='true'] {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  background: var(--soft);
+}
+.songtitle[contenteditable='true'] {
+  cursor: text;
+}
 .songdesc {
   font-size: var(--fs-small);
   color: var(--muted);
@@ -878,6 +895,13 @@ img.docframe {
 }
 .stagebar .stagelegend {
   margin-left: auto;
+  color: var(--muted);
+  font-size: var(--fs-small);
+}
+.venue-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   color: var(--muted);
   font-size: var(--fs-small);
 }

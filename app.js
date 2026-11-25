@@ -46,8 +46,16 @@ window.__showEmbed = { parse: EMBED.parse };
       if (!r.ok) throw Error('songs.json ' + r.status);
       return r.json();
     });
+    const TITLES_KEY = 'flowboard-titles-v1';
+    let titleOverrides = {};
+    try {
+      const saved = JSON.parse(localStorage.getItem(TITLES_KEY));
+      if (saved && typeof saved === 'object' && !Array.isArray(saved)) titleOverrides = saved;
+    } catch {}
+    const sourceTitles = new Map(songs.map((s) => [s.number, s.title]));
+    for (const s of songs) if (typeof titleOverrides[s.number] === 'string') s.title = titleOverrides[s.number];
     // 歌單入面嘅 Suno／Spotify 歌：songs.json 可寫 track（長期），亦可喺板上「＋加歌」貼連結（只存喺呢個瀏覽器）
-    const TRACKS_KEY = 'cuesheet-board-tracks-v1';
+    const TRACKS_KEY = 'flowboard-tracks-v1';
     const TRACK_NAME = { suno: 'Suno', spotify: 'Spotify' };
     const trackUrl = (s) => (s && s.track ? (typeof s.track === 'string' ? s.track : s.track.url) : null);
     const readTracks = () => {
@@ -65,12 +73,16 @@ window.__showEmbed = { parse: EMBED.parse };
     };
     const userTrackSong = (t) => ({ number: t.number, title: t.title, section: TRACK_NAME[EMBED.parse(t.url).provider], credit: '', parts: [], track: { url: t.url }, userAdded: true });
     for (const t of readTracks()) if (!songs.some((s) => s.number === t.number)) songs.push(userTrackSong(t));
+    for (const s of songs) {
+      if (!sourceTitles.has(s.number)) sourceTitles.set(s.number, s.title);
+      if (typeof titleOverrides[s.number] === 'string') s.title = titleOverrides[s.number];
+    }
     // 本機檔案（歌、影片）：存喺瀏覽器 IndexedDB，唔上傳；reload 後仍然喺
     const IDB = (() => {
       const open = () =>
         new Promise((res, rej) => {
           try {
-            const r = indexedDB.open('cuesheet-board-files-v1', 1);
+            const r = indexedDB.open('flowboard-files-v1', 1);
             r.onupgradeneeded = () => {
               r.result.createObjectStore('songs', { keyPath: 'number' });
               r.result.createObjectStore('videos', { keyPath: 'id' });
@@ -98,6 +110,10 @@ window.__showEmbed = { parse: EMBED.parse };
     })();
     const fileSong = (f) => ({ number: f.number, title: f.title, section: '本機檔案', credit: '', parts: [], demo: URL.createObjectURL(f.blob), demoLabel: 'file', userAdded: true, userFile: true });
     for (const f of await IDB.all('songs')) if (f && f.blob && !songs.some((s) => s.number === f.number)) songs.push(fileSong(f));
+    for (const s of songs) {
+      if (!sourceTitles.has(s.number)) sourceTitles.set(s.number, s.title);
+      if (typeof titleOverrides[s.number] === 'string') s.title = titleOverrides[s.number];
+    }
     const inventory = await fetch('source-materials/drive-video-inventory.json').then((r) => {
       if (!r.ok) throw Error('影片清單 ' + r.status);
       return r.json();
@@ -110,8 +126,8 @@ window.__showEmbed = { parse: EMBED.parse };
     const fileVideo = (f) => ({ filename: f.name, folder: '我加嘅影片', fileId: 'u-' + f.id, sizeBytes: f.blob.size, songNumbers: [], matchType: 'pool', localSrc: URL.createObjectURL(f.blob), thumb: f.thumb || '', userAdded: true, idbId: f.id });
     for (const f of await IDB.all('videos')) if (f && f.blob) videos.push(fileVideo(f));
     const defaultOrder = songs.map((s) => s.number),
-      key = 'cuesheet-board-drive-v7',
-      legacyPrefix = 'cuesheet-board-drive-v';
+      key = 'flowboard-drive-v7',
+      legacyPrefix = 'flowboard-drive-v';
     let state,
       migratedState = null,
       hasSavedState = false;
@@ -324,7 +340,81 @@ window.__showEmbed = { parse: EMBED.parse };
         if (s.userFile) sub = `<div class="songdesc">本機檔案 · 只喺呢個瀏覽器</div>`;
         const badge = s.userFile ? `<span class="srcbadge file" title="本機音訊檔">檔案</span>` : tp ? `<span class="srcbadge ${tp.provider}" title="${esc(TRACK_NAME[tp.provider])} 歌曲">${esc(TRACK_NAME[tp.provider])}</span>` : '';
         const del = s.userAdded ? `<button data-act="del" aria-label="${esc(s.title)}移除" title="移除呢首（只喺呢個瀏覽器）">✕</button>` : '';
-        row.innerHTML = `<span class="num">${num}</span><div><div class="songname">${esc(s.title)}${badge}</div>${sub}</div><div class="songbuttons"><button data-act="up" aria-label="${esc(s.title)}上移">↑</button><button data-act="down" aria-label="${esc(s.title)}下移">↓</button>${del}</div>`;
+        row.innerHTML = `<span class="num">${num}</span><div><div class="songname"><span class="songtitle" role="button" tabindex="0" title="雙擊編輯歌名（只存此瀏覽器）">${esc(s.title)}</span>${badge}</div>${sub}</div><div class="songbuttons"><button data-act="up" aria-label="${esc(s.title)}上移">↑</button><button data-act="down" aria-label="${esc(s.title)}下移">↓</button>${del}</div>`;
+        const titleEl = row.querySelector('.songtitle');
+        const finishTitleEdit = (cancel = false) => {
+          const next = cancel ? titleEl.dataset.original : titleEl.textContent.trim();
+          titleEl.contentEditable = 'false';
+          titleEl.setAttribute('role', 'button');
+          titleEl.removeAttribute('aria-multiline');
+          if (!next) {
+            titleEl.textContent = s.title;
+            return;
+          }
+          titleEl.textContent = next;
+          if (!cancel && next !== s.title) {
+            const source = sourceTitles.get(n) || s.sourceTitle || s.title;
+            s.title = next;
+            if (next === source) delete titleOverrides[n];
+            else titleOverrides[n] = next;
+            try {
+              localStorage.setItem(TITLES_KEY, JSON.stringify(titleOverrides));
+            } catch {}
+            renderSongs();
+            renderLibrary();
+            renderAssigned();
+            if (active === n) {
+              document.querySelector('#nowTitle').textContent = n + ' · ' + s.title;
+              document.querySelector('#npTitle').textContent = n + ' · ' + s.title;
+              renderPanes(s);
+            }
+            if (window.StageView) StageView.renderTimeline();
+          }
+          delete titleEl.dataset.original;
+        };
+        const beginTitleEdit = () => {
+          if (titleEl.isContentEditable) return;
+          titleEl.dataset.original = s.title;
+          titleEl.contentEditable = 'true';
+          titleEl.setAttribute('role', 'textbox');
+          titleEl.setAttribute('aria-multiline', 'false');
+          titleEl.focus();
+          const selection = getSelection();
+          const range = document.createRange();
+          range.selectNodeContents(titleEl);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        };
+        let titleClickTimer;
+        titleEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (titleEl.isContentEditable) return;
+          clearTimeout(titleClickTimer);
+          if (e.detail > 1) {
+            beginTitleEdit();
+            return;
+          }
+          titleClickTimer = setTimeout(() => setActive(n, true), 260);
+        });
+        titleEl.addEventListener('dblclick', (e) => {
+          e.stopPropagation();
+          beginTitleEdit();
+        });
+        titleEl.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !titleEl.isContentEditable) {
+            e.preventDefault();
+            beginTitleEdit();
+          } else if (e.key === 'Enter' && titleEl.isContentEditable) {
+            e.preventDefault();
+            titleEl.blur();
+          } else if (e.key === 'Escape' && titleEl.isContentEditable) {
+            e.preventDefault();
+            finishTitleEdit(true);
+          }
+        });
+        titleEl.addEventListener('blur', () => {
+          if (titleEl.isContentEditable) finishTitleEdit();
+        });
         row.addEventListener('keydown', (e) => {
           if ((e.key === 'Enter' || e.key === ' ') && e.target === row) {
             e.preventDefault();
@@ -341,6 +431,11 @@ window.__showEmbed = { parse: EMBED.parse };
             defaultOrder.splice(defaultOrder.indexOf(n), 1);
             state.order = state.order.filter((x) => x !== n);
             delete state.clips[n];
+            delete titleOverrides[n];
+            sourceTitles.delete(n);
+            try {
+              localStorage.setItem(TITLES_KEY, JSON.stringify(titleOverrides));
+            } catch {}
             save();
             if (active === n) setActive(state.order[0]);
             else renderSongs();
@@ -403,6 +498,7 @@ window.__showEmbed = { parse: EMBED.parse };
       const tfile = trackForm.querySelector('[name=file]');
       const addSong = (s) => {
         songs.push(s);
+        sourceTitles.set(s.number, s.title);
         defaultOrder.push(s.number);
         state.order.push(s.number);
         state.clips[s.number] = [];
@@ -550,7 +646,7 @@ window.__showEmbed = { parse: EMBED.parse };
       }
     }
     // 顯示內容：影片／舞台／歌詞／譜 可以自由組合開關，素材庫可收埋令中欄更闊
-    const VIEW_KEY = 'cuesheet-board-view-v1';
+    const VIEW_KEY = 'flowboard-view-v1';
     const view = {"video":true,"stage":false,"timeline":false,"three":false,"lyrics":false,"charts":false,"library":true,"dock":"full"};
     try {
       Object.assign(view, JSON.parse(localStorage.getItem(VIEW_KEY)) || {});
@@ -611,8 +707,6 @@ window.__showEmbed = { parse: EMBED.parse };
       // Suno／Spotify 歌冇影片畫面：同舞台一齊開時唔留空白影片格，畀舞台用晒位
       const noPicture = !!s.track || !(state.clips[s.number] || []).length;
       if (noPicture && shown.length > 1) shown = shown.filter((k) => k !== 'video');
-      // 冇 loop 嘅歌只開咗影片格：改顯示舞台（唔改用家設定），唔好留一個黑畫面
-      if (noPicture && shown.length === 1 && shown[0] === 'video' && has.stage && !showScore) shown = ['stage'];
       const wantedMissing = ['stage', 'three', 'lyrics'].some((k) => view[k]);
       if (!shown.length && !showScore && wantedMissing) shown = ['video'];
       document.querySelectorAll('#viewbar [data-view]').forEach((b) => {
@@ -800,7 +894,7 @@ window.__showEmbed = { parse: EMBED.parse };
     {
       const dock = document.querySelector('#scoredock'),
         handle = document.querySelector('#scorehandle'),
-        SKEY = 'cuesheet-board-score-h-v1';
+        SKEY = 'flowboard-score-h-v1';
       let h = 0;
       try {
         h = +localStorage.getItem(SKEY) || 0;
@@ -1248,7 +1342,7 @@ window.__showEmbed = { parse: EMBED.parse };
     });
     audio.addEventListener('pause', () => vplayer.pause());
     // 連播：預設開；播完自動接下一首。關閉後只停低，設定存 localStorage。
-    const AUTONEXT_KEY = 'cuesheet-board-autonext-v1';
+    const AUTONEXT_KEY = 'flowboard-autonext-v1';
     let autoNext = true;
     try {
       autoNext = localStorage.getItem(AUTONEXT_KEY) !== 'off';
