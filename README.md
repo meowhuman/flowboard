@@ -124,6 +124,19 @@ Lighting designers can export their rig as an `.mvr` file. There are two ways to
 - **In the board.** Open the 3D view, then the lighting panel. The `燈光檔` list at the top shows every file in the `lighting/` folder, and `揀檔…` loads any `.mvr` from your computer. The board reads the file in your browser (nothing is uploaded), replaces the lights of the current venue, and remembers the choice in this browser.
 - **From the command line**, to write a rig into `stage-plans.json` for good (below).
 
+### What the board shows and what it can set
+
+An `.mvr` file is a **rig**: where each light is, which way it points, what model it is. It does not hold the designer's looks or cues; those live in the lighting console or the visualiser. So:
+
+| | |
+|---|---|
+| **Shown from the file** | Every light's position, height, aim, model and group (wash, back, follow). Small dots mark the lights even when they are off |
+| **Shown if the file has it** | The colour and dimmer each light had when the file was exported. The `檔案原狀` look uses them, and is picked automatically |
+| **Set on the board** | Per group: colour and level. Per light: on or off, colour, level (pick the light in `單支燈`). Follow spots, haze, looks per preset. Your changes stay in this browser |
+| **Not in the board** | Pan, tilt, zoom, gobos, effects, DMX channels, a full cue list. The board is a rehearsal sketch, not a console |
+
+For real looks per song section, ask the designer for a short render of each section and attach it as a loop. A cue sheet import (colour and level per group per section) is on the roadmap.
+
 Save all your `.mvr` files in `lighting/`, then run `python3 tools/mvr-index.py` once. It rebuilds `lighting/index.json`, the list the board reads (a static server cannot list a folder). Edit `title` and `note` in that file by hand if you like. Alignment and grouping for both ways come from `lighting/mvr-map.json`.
 
 ### Import from the command line

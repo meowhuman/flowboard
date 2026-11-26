@@ -103,6 +103,7 @@ input:focus-visible,
   outline-offset: 2px;
 }
 .top {
+  position: relative;
   height: var(--top-h);
   display: flex;
   align-items: center;
@@ -110,6 +111,9 @@ input:focus-visible,
   border-bottom: 1px solid var(--line);
   padding: 0 16px;
   background: #141714;
+}
+.mobile-actions-toggle {
+  display: none;
 }
 .brand {
   font: 700 12px var(--mono);
@@ -614,7 +618,7 @@ input:focus-visible,
 .gate {
   position: fixed;
   inset: 0;
-  z-index: 10;
+  z-index: 100;
   display: grid;
   place-items: center;
   background: #101211;
@@ -673,11 +677,16 @@ input:focus-visible,
   }
 }
 @media (max-width: 900px) {
-  html,
+  html {
+    height: auto;
+    min-height: 100%;
+    overflow-x: clip;
+    overflow-y: auto;
+  }
   body {
     height: auto;
     min-height: 100%;
-    overflow: auto;
+    overflow: visible;
   }
   .layout {
     height: auto;
@@ -688,8 +697,12 @@ input:focus-visible,
   .panel {
     overflow: visible;
   }
-  .center {
+  /* 手機先顯示 setlist；舞台預演和素材庫排在歌單之後。 */
+  .layout > .panel:first-child {
     order: -1;
+  }
+  .center {
+    order: 0;
   }
   .videohold {
     flex: none;
@@ -949,6 +962,12 @@ img.docframe {
   border: 1px solid var(--line);
   border-radius: 5px;
   overflow: hidden;
+}
+.mobile-tools-toggle {
+  display: none;
+}
+.mobile-tools-close {
+  display: none;
 }
 .stage-svg {
   width: 100%;
@@ -2521,6 +2540,11 @@ body.score-resizing iframe {
   background: #141714;
   border-top: 1px solid var(--line);
 }
+.player-hide,
+.player-restore {
+  display: none;
+}
+.player-restore[hidden] { display: none; }
 .playerbar .player {
   max-width: 1400px;
   margin: 0 auto;
@@ -3165,4 +3189,234 @@ html {
 .lightpanel .lp-mvrrow .smallbtn {
   flex: none;
   white-space: nowrap;
+}
+
+/* Mobile: let the whole setlist scroll with the page, instead of trapping it in a short pane. */
+@media (max-width: 900px) {
+  .layout > .panel:first-child {
+    flex: none;
+  }
+  .mobile-tools-toggle {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    scroll-margin-top: calc(var(--top-h) + 52px);
+    border-color: var(--accent);
+    color: var(--fg);
+    background: #25201c;
+    font-weight: 650;
+  }
+  .mobile-tools-close {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    margin-bottom: 8px;
+  }
+  #toolsPanel {
+    scroll-margin-top: calc(var(--top-h) + 8px);
+  }
+  .center.mobile-tools-collapsed {
+    display: none;
+  }
+  .layout > .panel:first-child .panelhead {
+    position: sticky;
+    top: var(--top-h);
+    z-index: 3;
+    background: var(--panel);
+  }
+  .layout > .panel:first-child .panelhead .sub,
+  .layout > .panel:first-child .panelhead .loopcount {
+    display: none;
+  }
+  .layout > .panel:first-child .songs {
+    flex: 0 0 auto;
+    max-height: none;
+    overflow: visible;
+  }
+  .song {
+    grid-template-columns: 30px minmax(0, 1fr) 40px;
+    min-height: 58px;
+    padding: 5px 6px;
+  }
+  .songbuttons button.more {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+  .song-section-heading,
+  .section-manager summary,
+  .trackadd #trackAdd {
+    min-height: 44px;
+  }
+  .viewbar,
+  .stagebar,
+  .threebar {
+    max-width: 100%;
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+  .viewbar button,
+  .stagebar .smallbtn,
+  .threebar .smallbtn {
+    flex: none;
+    min-height: 44px;
+  }
+  .videohold {
+    height: min(56vw, 240px);
+    min-height: 190px;
+  }
+}
+
+/* S25 and other phones: expose every control and keep useful touch targets. */
+@media (max-width: 600px) {
+  :root {
+    --top-h: 56px;
+    --fs-body: 15px;
+    --fs-title: 14px;
+    --fs-small: 12px;
+    --fs-mono: 11px;
+  }
+  .top {
+    height: auto;
+    min-height: var(--top-h);
+    padding-block: 5px;
+    gap: 6px;
+  }
+  .top .tools .smallbtn {
+    min-height: 44px;
+  }
+  .mobile-actions-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 44px;
+    margin-left: auto;
+  }
+  .top .tools {
+    display: none;
+    position: absolute;
+    z-index: 12;
+    top: calc(100% + 6px);
+    right: 8px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    min-width: 168px;
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #141714;
+    box-shadow: 0 10px 24px rgb(0 0 0 / 35%);
+  }
+  .top.mobile-actions-open .tools {
+    display: flex;
+  }
+  .top .tools .smallbtn {
+    justify-content: flex-start;
+    min-height: 44px;
+  }
+  .panelhead h2 {
+    font-size: 17px;
+  }
+  .song-section-heading {
+    font-size: 14px;
+  }
+  .songdesc {
+    line-height: 1.4;
+  }
+  .playerbar .np strong {
+    font-size: 13px;
+  }
+  .playerbar .np small {
+    font-size: 12px;
+  }
+}
+
+/* Phone setlist: keep the fixed transport to one row; expand for seek and extra controls. */
+@media (max-width: 600px) {
+  .playerbar .player {
+    display: grid;
+    grid-template-columns: 44px 48px 44px minmax(0, 1fr) 40px 40px;
+    gap: 6px;
+    align-items: center;
+    padding: 5px 7px;
+    min-height: 58px;
+    border-radius: 10px;
+  }
+  .playerbar #prevSong { grid-column: 1; grid-row: 1; }
+  .playerbar #playBtn { grid-column: 2; grid-row: 1; }
+  .playerbar #nextSong { grid-column: 3; grid-row: 1; }
+  .playerbar .np { grid-column: 4; grid-row: 1; min-width: 0; }
+  .playerbar #playerExpand { grid-column: 5; grid-row: 1; }
+  .playerbar #playerHide { grid-column: 6; grid-row: 1; }
+  .playerbar #playerHide { display: inline-flex; }
+  .playerbar #autoNext,
+  .playerbar #versions,
+  .playerbar #tCur,
+  .playerbar #seek,
+  .playerbar #tDur,
+  .playerbar #muteBtn,
+  .playerbar #vol,
+  .playerbar #dockToggle {
+    display: none;
+  }
+  .playerbar.mobile-expanded .player {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .playerbar.mobile-expanded #autoNext,
+  .playerbar.mobile-expanded #tCur,
+  .playerbar.mobile-expanded #seek,
+  .playerbar.mobile-expanded #tDur,
+  .playerbar.mobile-expanded #muteBtn,
+  .playerbar.mobile-expanded #vol,
+  .playerbar.mobile-expanded #dockToggle {
+    display: initial;
+  }
+  .playerbar.mobile-expanded #versions {
+    display: flex;
+  }
+  .playerbar.mobile-expanded #playerExpand {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 900px) {
+  .player-hide { display: inline-flex; }
+  .playerbar.mobile-hidden { display: none; }
+  .player-restore {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    z-index: 16;
+    min-height: 44px;
+    padding: 8px 13px;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    background: #25201c;
+    color: var(--fg);
+    font: inherit;
+    box-shadow: 0 4px 14px rgb(0 0 0 / 32%);
+  }
+}
+.lightpanel .lp-fixrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.lightpanel .lp-fixrow select {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #111411;
+  color: var(--fg);
+  font: inherit;
 }

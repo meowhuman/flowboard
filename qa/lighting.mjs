@@ -47,6 +47,24 @@ R('揀本機檔 theatre-rig.mvr → 32 支', (await count()) === 32 && /theatre-
 fs.writeFileSync(path.join(TMP, 'bad.mvr'), 'not a zip at all');
 await p.setInputFiles('[data-mvr="file"]', path.join(TMP, 'bad.mvr')); await p.waitForTimeout(800);
 R('亂碼檔 → 顯示載入失敗、燈位唔變', /載入失敗/.test(await status()) && (await count()) === 32, await status());
+// ---- 燈光師存喺檔案入面嘅 look（scene_objects.mvr 有顏色）----
+await p.selectOption('[data-mvr="sel"]', 'scene_objects.mvr'); await p.waitForTimeout(3500);
+R('檔案有顏色 → 自動用「檔案原狀」，唔係我哋嘅 preset', (await p.getAttribute('[data-preset="@file"]', 'aria-pressed')) === 'true' && /已用檔案入面嘅顏色同亮度/.test(await status()), await status());
+const litFile = await p.evaluate(() => window.__stage3d.lighting.fixtures.filter((f) => f.group !== 'spot' && f.level > 0.05).length);
+R('檔案原狀：72 支燈按檔案顏色亮起', litFile >= 60, litFile);
+// ---- 淨係燈位冇 look（Capture）----
+await p.selectOption('[data-mvr="sel"]', 'capture_demo_show.mvr'); await p.waitForTimeout(2500);
+R('冇顏色嘅檔 → 提示 cue 唔喺 MVR，燈全部熄、燈位點見到', /冇顏色／亮度/.test(await status()) && (await p.evaluate(() => { const f = window.__stage3d.lighting.fixtures.filter((x) => x.group !== 'spot'); return f.every((x) => x.level < 0.02) && f.every((x) => x.marker); })), await status());
+// ---- 單支燈 ----
+const fid = await p.inputValue('[data-fx="sel"]');
+await p.evaluate(() => { const c = document.querySelector('[data-fx="color"]'); c.value = '#ff0000'; c.dispatchEvent(new Event('input', { bubbles: true })); const l = document.querySelector('[data-fx="level"]'); l.value = '8'; l.dispatchEvent(new Event('input', { bubbles: true })); });
+await p.waitForTimeout(2500);
+const one = await p.evaluate((id) => { const f = window.__stage3d.lighting.fixtures.find((x) => x.id === id); const others = window.__stage3d.lighting.fixtures.filter((x) => x.group !== 'spot' && x.id !== id && x.level > 0.05).length; return { color: f.color, level: f.level, others }; }, fid);
+R('單支燈：揀一支改紅色、強度 8 → 只有呢支亮、係紅色', one.color === '#ff0000' && one.level > 0.5 && one.others === 0, JSON.stringify(one));
+await p.click('[data-fx="reset"]'); await p.waitForTimeout(2500);
+R('還原呢支 → 熄返', (await p.evaluate((id) => window.__stage3d.lighting.fixtures.find((x) => x.id === id).level, fid)) < 0.05);
+await p.click('[data-fx="next"]');
+R('▶ 跳去下一支燈', (await p.inputValue('[data-fx="sel"]')) !== fid);
 await p.selectOption('[data-mvr="sel"]', ''); await p.waitForTimeout(1200);
 R('揀「預設燈位」→ 還原 76 支', (await count()) === 76, await status());
 R('冇 JS 錯誤', errs.length === 0, errs.join(' | '));

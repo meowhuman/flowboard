@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Lighting files: dots mark each light, per-light controls (on, colour, level), and a `檔案原狀` look that uses the colour and dimmer stored in the `.mvr`. A file with only positions loads with the lights off and says so.
 - Load `.mvr` lighting files in the board: pick from the `lighting/` folder or choose a file from your computer. New `lighting/` folder (all `.mvr`, the alignment map and `index.json`), `tools/mvr-index.py`, and two generated sample rigs.
 - Renamed from cuesheet-board to **Flowboard**. Browser storage keys change with the name, so a saved layout from the old name is not carried over.
 - Removed the Night rock sample loop; added moody sample loops.

@@ -5,13 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="data:," />
     <title>Flowboard</title>
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css?rev=20261126-mobile1" />
   </head>
   <body>
     <header class="top">
       <div class="brand"><b>C</b>UESHEET BOARD</div>
       <div class="meta">SAMPLE SET</div>
-      <div class="tools">
+      <button
+        class="smallbtn mobile-actions-toggle"
+        id="mobileActionsToggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="headerTools"
+      >
+        操作 <span aria-hidden="true">▾</span>
+      </button>
+      <div class="tools" id="headerTools">
         <a class="smallbtn" data-link="repo" hidden></a>
         <a class="smallbtn" data-link="scores" target="_blank" rel="noopener" hidden></a>
         <button class="smallbtn" id="export" aria-haspopup="dialog">輸出</button>
@@ -34,6 +43,15 @@
             placeholder="搜尋歌曲…"
           />
         </header>
+        <button
+          id="mobileToolsToggle"
+          class="mobile-tools-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="toolsPanel"
+        >
+          開啟排練工具（舞台、影片、譜、素材庫）
+        </button>
         <details class="section-manager" id="sectionManager">
           <summary>＋ 新增段落</summary>
           <div class="section-manager-body">
@@ -61,7 +79,8 @@
           <div class="mi-list-content" id="miListContent"></div>
         </details>
       </section>
-      <section class="panel center">
+      <section class="panel center mobile-tools-collapsed" id="toolsPanel">
+        <button id="mobileToolsClose" class="mobile-tools-close" type="button">返回歌單</button>
         <div class="now">
           <div class="nowtext">
             <strong id="nowTitle">選擇歌曲或影片</strong
@@ -155,9 +174,25 @@
       <button id="muteBtn" class="pbtn" aria-label="靜音" title="靜音"></button>
       <input id="vol" class="vol" type="range" min="0" max="100" value="100" aria-label="音量" />
       <button id="dockToggle" class="pbtn dockbtn" aria-expanded="true" aria-label="收埋下欄" title="收埋／展開下欄（loop 組合）"></button>
+      <button
+        id="playerHide"
+        class="pbtn player-hide"
+        type="button"
+        aria-label="隱藏播放列"
+        title="隱藏播放列"
+      >×</button>
+      <button
+        id="playerExpand"
+        class="pbtn player-expand"
+        type="button"
+        aria-expanded="false"
+        aria-label="展開播放控制"
+        title="展開播放控制"
+      >⌃</button>
       <audio id="audio" preload="none"></audio>
     </div>
     </div>
+    <button id="playerRestore" class="player-restore" type="button" hidden aria-label="顯示播放列">♫ 播放列</button>
     <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.min.js","three/addons/":"./vendor/three/examples/jsm/"}}</script>
     <script src="people.js"></script>
     <script src="stage.js"></script>

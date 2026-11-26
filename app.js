@@ -1356,10 +1356,35 @@ window.__showEmbed = { parse: EMBED.parse };
     }
     // 底部播放列高度 → --bar-h（版面同 toast 都靠呢個變數避開播放列）
     const playerbar = document.querySelector('#playerbar');
+    const playerExpand = document.querySelector('#playerExpand');
+    const playerHide = document.querySelector('#playerHide');
+    const playerRestore = document.querySelector('#playerRestore');
+    if (playerbar && playerExpand) {
+      playerExpand.addEventListener('click', () => {
+        const expanded = playerExpand.getAttribute('aria-expanded') !== 'true';
+        playerExpand.setAttribute('aria-expanded', String(expanded));
+        playerExpand.setAttribute('aria-label', expanded ? '收起播放控制' : '展開播放控制');
+        playerExpand.title = expanded ? '收起播放控制' : '展開播放控制';
+        playerExpand.textContent = expanded ? '⌄' : '⌃';
+        playerbar.classList.toggle('mobile-expanded', expanded);
+      });
+    }
     if (playerbar && window.ResizeObserver) {
       new ResizeObserver(() =>
         document.documentElement.style.setProperty('--bar-h', playerbar.offsetHeight + 'px'),
       ).observe(playerbar);
+    }
+    if (playerbar && playerHide && playerRestore) {
+      playerHide.addEventListener('click', () => {
+        playerbar.classList.add('mobile-hidden');
+        playerRestore.hidden = false;
+        document.documentElement.style.setProperty('--bar-h', '0px');
+      });
+      playerRestore.addEventListener('click', () => {
+        playerbar.classList.remove('mobile-hidden');
+        playerRestore.hidden = true;
+        document.documentElement.style.setProperty('--bar-h', playerbar.offsetHeight + 'px');
+      });
     }
     const toggleDock = () => {
       view.dock = view.dock === 'min' ? 'full' : 'min';
