@@ -10,6 +10,15 @@
   const NEUTRAL_LIGHT = ['#f2efe8', '#cfd3d8', '#8f9296'];
   const HAIR = ['#1c1512', '#3a2619', '#5a3a24', '#c9b27c'];
   const STYLES = { dress: '連身裙', skirt: '上衣＋裙', trousers: '上衣＋褲' };
+  // 預設服裝組合：一撳成隊換晒。top／bottom／shoes 係色；fStyle＝女樂手款式（dress 時下身跟上身同色）；髮色保留
+  const LOOKS = [
+    { id: 'black', name: '爵士全黑', top: '#1b1b1d', bottom: '#1b1b1d', shoes: '#0e0e10', fStyle: 'dress' },
+    { id: 'whiteblack', name: '白恤衫黑褲', top: '#f2efe8', bottom: '#1b1b1d', shoes: '#0e0e10', fStyle: 'skirt' },
+    { id: 'navy', name: '深藍西裝', top: '#2b3a5a', bottom: '#2b3a5a', shoes: '#1b1b1d', fStyle: 'trousers' },
+    { id: 'wine', name: '酒紅夜總會', top: '#7a1f2e', bottom: '#1b1b1d', shoes: '#1b1b1d', fStyle: 'dress' },
+    { id: 'vintage', name: '復古暖色', top: '#c9a24a', bottom: '#5a3a24', shoes: '#3a2619', fStyle: 'skirt' },
+    { id: 'casual', name: '街頭休閒', top: '#8f9296', bottom: '#2b3a5a', shoes: '#f2efe8', fStyle: 'trousers' },
+  ];
   let state = { palette: [...DEFAULT_PALETTE], seed: 1, people: {} };
   let plan = null;
   const listeners = [];
@@ -26,6 +35,18 @@
     } catch {}
   };
   const emit = () => listeners.forEach((f) => f());
+  function applyLook(id) {
+    const L = LOOKS.find((x) => x.id === id);
+    if (!L) return;
+    for (const it of performers()) {
+      const cur = state.people[it.id] || { gender: defGender(it), outfit: get(it.id).outfit },
+        g = cur.gender || defGender(it),
+        style = g === 'f' ? L.fStyle : 'trousers',
+        hair = (cur.outfit && cur.outfit.hair) || '#1c1512';
+      state.people[it.id] = { gender: g, outfit: { top: L.top, bottom: style === 'dress' ? L.top : L.bottom, shoes: L.shoes, hair, style } };
+    }
+    save(); emit();
+  }
   const isHex = (h) => /^#[0-9a-f]{6}$/i.test(h);
   const parseHexes = (txt) => [...new Set((String(txt).match(/#?[0-9a-fA-F]{6}\b/g) || []).map((h) => ('#' + h.replace('#', '')).toLowerCase()))];
 
@@ -99,6 +120,7 @@
       '<form method="dialog"><h2>人物／服裝</h2>' +
       `<p class="hint">${esc(PEOPLE_HINT)}</p>` +
       `<div class="pal"><input id="palIn" aria-label="主題色 hex" value="${esc(state.palette.join(' '))}"><span id="palSw">${state.palette.map((c) => `<i style="background:${esc(c)}" title="${esc(c)}"></i>`).join('')}</span></div>` +
+      `<div class="pbar lookbar" role="group" aria-label="服裝組合">${LOOKS.map((L) => `<button type="button" data-look="${L.id}" title="${esc(L.name)}"><i style="background:${L.top}"></i><i style="background:${L.bottom}"></i>${esc(L.name)}</button>`).join('')}</div>` +
       '<div class="pbar"><button type="button" data-a="gen">按主題色隨機配衣</button><button type="button" data-a="again">再抽一次（新 seed）</button><span id="seedTxt">seed ' + state.seed + '</span></div>' +
       '<div class="ptable"><table><thead><tr><th>樂手</th><th>性別</th><th>上身</th><th>下身</th><th>鞋</th><th>髮</th><th>款式</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
       '<div class="pbar"><button value="close">完成</button></div></form>';
@@ -117,6 +139,7 @@
       apply();
       openDialog();
     };
+    dlg.querySelectorAll('[data-look]').forEach((b) => (b.onclick = () => { applyLook(b.dataset.look); openDialog(); }));
     dlg.querySelector('[data-a="gen"]').onclick = () => regen(false);
     dlg.querySelector('[data-a="again"]').onclick = () => regen(true);
     dlg.querySelectorAll('tr[data-id] [data-f]').forEach((el) => {
@@ -141,6 +164,8 @@
     get,
     onChange(f) { listeners.push(f); },
     openDialog,
+    applyLook,
+    looks: () => LOOKS.map((x) => ({ ...x })),
     generate,
     palette: () => [...state.palette],
     export: () => JSON.parse(JSON.stringify(state)),

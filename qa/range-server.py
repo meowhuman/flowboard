@@ -21,6 +21,6 @@ class H(http.server.SimpleHTTPRequestHandler):
         self._left = None
     def end_headers(self):
         if not self._headers_buffer or b'Accept-Ranges' not in b''.join(self._headers_buffer): self.send_header('Accept-Ranges', 'bytes')
-        super().end_headers()
+        self.send_header('Cache-Control', 'no-store'); super().end_headers()
     def log_message(self, *a): pass
 os.chdir(sys.argv[2]); http.server.ThreadingHTTPServer(((sys.argv[3] if len(sys.argv) > 3 else '127.0.0.1'), int(sys.argv[1])), H).serve_forever()

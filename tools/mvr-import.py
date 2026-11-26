@@ -216,6 +216,12 @@ def unique_id(base: str, used: set) -> str:
     return f'{base}-{i}'
 
 
+def lift_by(h: float, m: dict) -> float:
+    """heightLift：吊高 >= fromM 嘅燈整體升 byM 米（MVR 嘅吊高同本場地唔配時校準；地面燈唔郁）。aim 唔受影響。"""
+    hl = m.get('heightLift')
+    return float(hl['byM']) if hl and h >= float(hl['fromM']) else 0.0
+
+
 def convert(fixtures, focuspoints, m, known_groups) -> dict:
     '''返回 {fixtures: [...], warnings: [...], stats: {...}}。'''
     out = []
@@ -261,7 +267,7 @@ def convert(fixtures, focuspoints, m, known_groups) -> dict:
             'group': group,
             'x': round(pos[0], 3),
             'y': round(pos[1], 3),
-            'h': round(pos[2], 3),
+            'h': round(pos[2] + lift_by(pos[2], m), 3),
             'aim': [round(aim[0], 3), round(aim[1], 3), round(aim[2], 3)],
             '_aimSource': source,
             '_name': fx['name'],

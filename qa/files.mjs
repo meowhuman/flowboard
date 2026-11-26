@@ -17,7 +17,7 @@ await p.goto(BASE); await p.waitForTimeout(1500);
 const R = (n, ok, x = '') => { if (!ok) bad++; console.log(ok ? 'PASS' : 'FAIL', '|', n, x); };
 // layout
 await p.click('.song[data-num="T3"]'); await p.waitForTimeout(800);
-await p.click('text=舞台'); await p.waitForTimeout(1200);
+await p.click('#viewbar [data-view="stage"]'); await p.waitForTimeout(1200);
 const sc = await p.evaluate(() => [...document.querySelectorAll('*')].filter((e) => /(auto|scroll)/.test(getComputedStyle(e).overflowY) && e.scrollHeight > e.clientHeight + 2 && !/songs|library/.test(e.id)).map((e) => e.id || e.className));
 R('track + 舞台：中欄無捲軸', sc.length === 0, JSON.stringify(sc));
 const sh = await p.$eval('#stagebox', (e) => Math.round(e.getBoundingClientRect().height));

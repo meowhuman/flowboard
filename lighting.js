@@ -123,7 +123,7 @@ export async function parseMvr(arrayBuffer, map) {
       const ga = map.groupAim[group];
       aim = ga ? [...ga] : [p[0], p[1], 0];
     }
-    const rec2 = { id: fid, group, x: mvrRound(p[0]), y: mvrRound(p[1]), h: mvrRound(p[2]), aim: aim.map(mvrRound), name: fx.name, type: (fx.spec.split(/[\\/]/).pop() || '').replace(/\.gdtf$/i, '') };
+    const rec2 = { id: fid, group, x: mvrRound(p[0]), y: mvrRound(p[1]), h: mvrRound(p[2] + (map.heightLift && p[2] >= map.heightLift.fromM ? map.heightLift.byM : 0)), aim: aim.map(mvrRound), name: fx.name, type: (fx.spec.split(/[\\/]/).pop() || '').replace(/\.gdtf$/i, '') };
     const cn = mvrNums(fx.color);                                   // 燈光師存喺檔案入面嘅顏色（xyY）同亮度；冇就唔寫
     if (cn.length >= 3) {
       const hex = mvrXyHex(cn[0], cn[1]);
@@ -142,11 +142,11 @@ export const mvrIndex = () => (mvrIndexP = mvrIndexP || mvrFetchJson('lighting/i
 
 export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHang }) {
   let cfg = null, cfgKey = '', snap = null, panel = null, lightBtn = null;
-  let st = { preset: null, mix: null, spot: null, fog: {}, fix: {}, markers: null };
+  let st = { preset: null, mix: null, spot: null, fog: {}, fix: {}, zone: {}, markers: null };
   const isObj = (v) => v && typeof v === 'object' && !Array.isArray(v);
   try {
     const s = JSON.parse(localStorage.getItem(KEY));
-    if (isObj(s)) st = { preset: s.preset || null, mix: isObj(s.mix) ? s.mix : null, spot: isObj(s.spot) ? s.spot : null, fog: isObj(s.fog) ? s.fog : {}, fix: isObj(s.fix) ? s.fix : {}, markers: typeof s.markers === 'boolean' ? s.markers : null };
+    if (isObj(s)) st = { preset: s.preset || null, mix: isObj(s.mix) ? s.mix : null, spot: isObj(s.spot) ? s.spot : null, fog: isObj(s.fog) ? s.fog : {}, fix: isObj(s.fix) ? s.fix : {}, zone: isObj(s.zone) ? s.zone : {}, markers: typeof s.markers === 'boolean' ? s.markers : null };
   } catch {}
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch {} };
   // ---- 燈光檔（.mvr）：按舞台方案記住揀咗邊個燈位（key＝原本 cfg 嘅雜湊，每個方案各自一份）----
@@ -155,14 +155,14 @@ export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHa
   const hashOf = (s) => { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return String(h >>> 0); };
   const mvrStore = () => { try { const s = JSON.parse(localStorage.getItem(MVR_KEY)); return isObj(s) ? s : {}; } catch { return {}; } };
   const mvrSave = (s) => { try { localStorage.setItem(MVR_KEY, JSON.stringify(s)); } catch {} };
-  const useFixtures = (list, meta) => { cfg = { ...origCfg, rig: { ...origCfg.rig, fixtures: list } }; mvrMeta = meta; st.fix = {}; selFix = null; buildRig(); };
-  const resetFixtures = () => { cfg = origCfg; mvrMeta = null; st.fix = {}; selFix = null; if (st.preset === '@file') { st.preset = null; st.mix = null; } save(); buildRig(); };
+  const useFixtures = (list, meta) => { cfg = { ...origCfg, rig: { ...origCfg.rig, fixtures: list } }; mvrMeta = meta; st.fix = {}; st.zone = {}; selFix = null; selZone = null; buildRig(); };
+  const resetFixtures = () => { cfg = origCfg; mvrMeta = null; st.fix = {}; st.zone = {}; selFix = null; selZone = null; if (st.preset === '@file') { st.preset = null; st.mix = null; } save(); buildRig(); };
 
   const root = new THREE.Group();
   scene.add(root);
   const b0 = { hemi: base.hemi.intensity, ambient: base.ambient.intensity, key: base.key.intensity };
   const fogObj = new THREE.FogExp2(0x0b0d0c, 0);               // density > 0 先掛上 scene（冇煙時 shader 同原本一樣）
-  let fixtures = [], machines = [];
+  let fixtures = [], machines = [], rods = null;
   const cur = { hemi: 1, ambient: 1, key: 1, haze: 0, density: 0 };
   const stats = { preset: null, base: {}, fixtures: [], fog: { density: 0, haze: 0, machines: [] } };
 
@@ -188,15 +188,37 @@ export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHa
     if (P.id === '@file' && !st.mix) return { color: def.color || '#ffffff', level: def.color ? (def.level ?? 1) : 0 };
     return { color: gp.color, level: gp.level || 0 };
   };
+  // 疊層：組設定 → 燈區 → 單支燈（後者蓋前者）
   const fixTarget = (def, P) => {
-    const t0 = baseTarget(def, P), o = st.fix[def.id];
-    if (o) { if (o.color) t0.color = o.color; if (o.level != null) t0.level = o.level; if (o.on === false) t0.level = 0; else if (o.on === true && !(t0.level > 0)) t0.level = 1; }
+    const t0 = baseTarget(def, P);
+    const apply = (o) => { if (!o) return; if (o.color) t0.color = o.color; if (o.level != null) t0.level = o.level; if (o.on === false) t0.level = 0; else if (o.on === true && !(t0.level > 0)) t0.level = 1; };
+    apply(st.zone[zones().of.get(def.id)]); apply(st.fix[def.id]);
     return t0;
   };
-  const markersOn = () => (st.markers != null ? st.markers : !!mvrMeta);
-  let selFix = null;
+  // 燈區：燈太多（例如 Capture 匯出 76 支）逐支調唔現實，所以每組按舞台深度（y）切成最多幾排，一排一區成區一齊調。參數喺 cfg.rig.zones（minFixtures／bands），冇就用預設
+  const zoneCache = { key: null, v: null };
+  function zones() {
+    const fx = cfg.rig.fixtures;
+    if (zoneCache.key === fx && zoneCache.v) return zoneCache.v;
+    const Z = cfg.rig.zones || {}, minN = Z.minFixtures || 6, bands = Z.bands || 3, list = [], of = new Map();
+    for (const g of GROUPS) {
+      const mem = fx.filter((f) => f.group === g);
+      if (!mem.length) continue;
+      const label = (cfg.rig.groups[g] || {}).label || g, k = mem.length >= minN ? Math.max(1, Math.min(bands, Math.floor(mem.length / 2))) : 1;
+      const sorted = [...mem].sort((a, b) => a.y - b.y || a.x - b.x);
+      for (let i = 0; i < k; i++) {
+        const part = sorted.slice(Math.round((i * sorted.length) / k), Math.round(((i + 1) * sorted.length) / k)), id = g + ':' + (i + 1), ys = part.map((f) => f.y);
+        list.push({ id, group: g, name: k > 1 ? `${label} · 第 ${i + 1} 排` : label, ids: part.map((f) => f.id), y0: Math.min(...ys), y1: Math.max(...ys) });
+        part.forEach((f) => of.set(f.id, id));
+      }
+    }
+    zoneCache.key = fx; zoneCache.v = { list, of, split: list.length > new Set(list.map((z) => z.group)).size };
+    return zoneCache.v;
+  }
+  const markersOn = () => !!st.markers;                              // 「顯示全部燈位點」；平時淨係見到揀咗嗰區／嗰支，唔會成面點
+  let selFix = null, selZone = null, fixOpen = false;     // fixOpen：「單支燈」摺疊區打開先標出揀咗嗰支
   const MARK = { wash: 0x6f8fb0, back: 0xa070b0, follow: 0xc0a050 };
-  const markGeo = new THREE.SphereGeometry(0.13, 10, 8);
+  const markGeo = new THREE.SphereGeometry(0.09, 10, 8);
   const fogState = (m) => ({ on: !!m.on, pos: m.pos, strength: m.strength, ...(st.fog[m.id] || {}) });
   // 追光：一組設定（顏色／強度／闊度）＋ 一份名單，名單入面每人一束光
   const spotState = () => { const d = (cfg && cfg.spots && cfg.spots.default) || {}; return { on: !!d.on, color: d.color, strength: d.strength, width: d.width, targets: [...(d.targets || [])], ...(st.spot || {}) }; };
@@ -211,6 +233,7 @@ export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHa
   function clearRig() {
     for (const f of fixtures) { root.remove(f.grp); if (f.spot) root.remove(f.spot, f.spot.target); f.beam.geometry.dispose(); f.mat.dispose(); if (f.marker) { root.remove(f.marker); f.marker.material.dispose(); } }
     for (const m of machines) for (const p of m.puffs) { root.remove(p.sprite); p.sprite.material.dispose(); }
+    if (rods) { root.remove(rods); rods.geometry.dispose(); rods.material.dispose(); rods = null; }
     fixtures = []; machines = [];
   }
 
@@ -253,6 +276,17 @@ export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHa
       fixtures.push({ marker, def, g, grp, spot, beam, mat, aim, custom, ang: g.angle, level: 0, color: new THREE.Color('#ffffff'), idx: fixtures.filter((f) => f.def.group === def.group).length });
     };
     cfg.rig.fixtures.forEach((def) => { const g = groups[def.group]; if (g) addFixture(def, g, 0, false); });
+    // 吊桿：每支吊高 >= minH 嘅燈拉一條幼線上去同一個高度（rig 頂 + over 米），睇落係吊住，唔係浮喺半空。參數喺 cfg.rig.truss
+    const TR = cfg.rig.truss || {}, hung = cfg.rig.fixtures.filter((d) => groups[d.group] && (hang ?? d.h) >= (TR.minH ?? 3));
+    if (hung.length >= 3) {
+      const top = Math.max(...hung.map((d) => hang ?? d.h)) + (TR.over ?? 0.5), pts = [];
+      hung.forEach((d) => { const h = hang ?? d.h; pts.push(d.x, h + 0.12, d.y, d.x, top, d.y); });
+      const rg = new THREE.BufferGeometry();
+      rg.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+      rods = new THREE.LineSegments(rg, new THREE.LineBasicMaterial({ color: TR.color || 0x6b7480, transparent: true, opacity: 0.5, fog: false }));
+      rods.frustumCulled = false;
+      root.add(rods);
+    }
     const sp = cfg.spots;
     if (sp) for (let k = 0; k < sp.max; k++) addFixture({ id: 'sp' + (k + 1), group: 'spot', x: 0, y: sp.hangY, h: sp.hangH, aim: [0, sp.hangY, 0] }, { peak: sp.peak, angle: sp.angleMax, penumbra: sp.penumbra, decay: sp.decay, beam: sp.beam }, sp.beamLength, true);
     const pp = cfg.fog.particles;
@@ -340,7 +374,7 @@ export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHa
     showCurrent();
     const busy = (b) => { sel.disabled = pick.disabled = b; };
     const done = (r, name) => {
-      status.textContent = `已載入：${name}（${r.n} 支，台上 ${r.inStage} 支）` + (r.look ? '。已用檔案入面嘅顏色同亮度' : '。呢個檔只有燈位，冇顏色／亮度（設計師嘅 cue 唔喺 MVR）：用 preset 或下面「單支燈」自己設') + (r.kept ? '' : '。檔太大，reload 後要重新揀') + (r.warnings && r.warnings.length ? `。${r.warnings.length} 項警告` : '');
+      status.textContent = `已載入：${name}（${r.n} 支，台上 ${r.inStage} 支）` + (r.look ? '。已用檔案入面嘅顏色同亮度' : '。呢個檔只有燈位，冇顏色／亮度（設計師嘅 cue 唔喺 MVR）：用 preset，或下面「' + (zones().split ? '燈區' : '單支燈') + '」自己設') + (r.kept ? '' : '。檔太大，reload 後要重新揀') + (r.warnings && r.warnings.length ? `。${r.warnings.length} 項警告` : '');
       refreshPanel();
     };
     sel.addEventListener('change', async () => {
@@ -363,11 +397,56 @@ export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHa
       input.value = ''; busy(false);
     });
   }
+  function renderZones() {
+    const box = panel && panel.querySelector('[data-zn="box"]');
+    if (!box || !cfg) return;
+    const Z = zones(), n = cfg.rig.fixtures.length;
+    box.hidden = !Z.split;
+    if (!Z.split) return;
+    const lv = LV();
+    box.querySelector('[data-zn="title"]').textContent = `燈區（${n} 支燈分成 ${Z.list.length} 區，成區一齊調）`;
+    box.querySelector('[data-zn="list"]').innerHTML = Z.list.map((z) => `<div class="lp-zrow" data-z="${esc(z.id)}"><button class="lp-zname" type="button" data-zn="pick" aria-pressed="${z.id === selZone}" title="y ${z.y0.toFixed(1)}–${z.y1.toFixed(1)} m">${esc(z.name)}<small>${z.ids.length} 支</small></button>` +
+      `<input type="checkbox" data-zk="on" aria-label="${esc(z.name)} 亮／熄"><input type="color" data-zk="color" aria-label="${esc(z.name)} 顏色"><input type="range" min="0" max="${lv}" step="1" data-zk="level" aria-label="${esc(z.name)} 強度 0 至 ${lv}"><output></output></div>`).join('');
+    syncZones();
+  }
+  function syncZones() {
+    if (!panel || !cfg) return;
+    const Z = zones(), lv = LV(), P = presetOf(), byId = new Map(cfg.rig.fixtures.map((f) => [f.id, f]));
+    panel.querySelectorAll('[data-z]').forEach((row) => {
+      const z = Z.list.find((q) => q.id === row.dataset.z);
+      if (!z || !P) return;
+      const ts = z.ids.map((id) => fixTarget(byId.get(id), P)), top = ts.reduce((a, b) => (b.level > a.level ? b : a), ts[0]), avg = ts.reduce((s, x) => s + x.level, 0) / ts.length;
+      row.querySelector('[data-zk="on"]').checked = avg > 0; row.querySelector('[data-zk="color"]').value = top.color;
+      row.querySelector('[data-zk="level"]').value = Math.round(avg * lv); row.querySelector('output').textContent = Math.round(avg * lv);
+      row.querySelector('[data-zn="pick"]').setAttribute('aria-pressed', String(z.id === selZone));
+    });
+    const m = panel.querySelector('[data-zn="markers"]'); if (m) m.checked = markersOn();
+  }
+  function wireZones() {
+    const box = panel.querySelector('[data-zn="box"]');
+    box.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-zn]'); if (!b) return;
+      if (b.dataset.zn === 'pick') { const id = b.closest('[data-z]').dataset.z; selZone = selZone === id ? null : id; selFix = null; renderFixList(); syncZones(); }
+      if (b.dataset.zn === 'reset') { st.zone = {}; st.fix = {}; save(); syncZones(); syncFix(); }
+    });
+    box.querySelector('[data-zn="markers"]').addEventListener('change', (e) => { st.markers = e.target.checked; save(); syncFix(); });
+    const edit = (e) => {
+      const k = e.target.dataset.zk, row = e.target.closest('[data-z]'); if (!k || !row) return;
+      const id = row.dataset.z, z = zones().list.find((q) => q.id === id), o = st.zone[id] || {}, lv = LV();
+      if (k === 'on') { o.on = e.target.checked; if (o.on && !(row.querySelector('[data-zk="level"]').value > 0)) o.level = 1; }
+      else if (k === 'color') { o.color = e.target.value; if (o.on === undefined) o.on = true; }
+      else { const v = clampLv(e.target.value); o.level = v / lv; if (v > 0) delete o.on; else o.on = false; row.querySelector('output').textContent = v; }
+      st.zone[id] = o; z.ids.forEach((fid) => delete st.fix[fid]);     // 區嘅設定係最新意思，蓋過呢區入面舊嘅單支設定
+      save();
+      if (k !== 'level') syncZones();
+    };
+    box.addEventListener('input', edit);
+  }
   function renderFixList() {
     const sel = panel && panel.querySelector('[data-fx="sel"]'), box = panel && panel.querySelector('[data-fx="box"]');
     if (!sel || !cfg) return;
-    const list = cfg.rig.fixtures;
-    box.hidden = !list.length;
+    const all = cfg.rig.fixtures, Z = zones(), list = selZone ? all.filter((f) => Z.of.get(f.id) === selZone) : all;
+    box.hidden = !all.length;
     sel.innerHTML = list.map((f) => `<option value="${esc(f.id)}">${esc(f.id)} · ${esc(f.name || f.type || '燈')} · ${esc((cfg.rig.groups[f.group] || {}).label || f.group)}</option>`).join('');
     if (!list.some((f) => f.id === selFix)) selFix = list.length ? list[0].id : null;
     sel.value = selFix || '';
@@ -382,14 +461,14 @@ export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHa
     q('info').textContent = `位置 x ${def.x} · y ${def.y} · 高 ${def.h} m${def.type ? ' · ' + def.type : ''}${def.color ? ' · 檔案有顏色' : ''}${st.fix[def.id] ? ' · 已手動改' : ''}`;
   }
   function wireFix() {
-    const q = (k) => panel.querySelector(`[data-fx="${k}"]`), ids = () => cfg.rig.fixtures.map((f) => f.id);
+    const q = (k) => panel.querySelector(`[data-fx="${k}"]`), ids = () => [...q('sel').options].map((o) => o.value);
     const step = (d) => { const a = ids(); if (!a.length) return; selFix = a[(Math.max(0, a.indexOf(selFix)) + d + a.length) % a.length]; q('sel').value = selFix; syncFix(); };
     q('sel').addEventListener('change', () => { selFix = q('sel').value; syncFix(); });
     q('prev').addEventListener('click', () => step(-1));
     q('next').addEventListener('click', () => step(1));
-    q('markers').addEventListener('change', () => { st.markers = q('markers').checked; save(); });
+    q('markers').addEventListener('change', () => { st.markers = q('markers').checked; save(); syncZones(); });
     q('reset').addEventListener('click', () => { delete st.fix[selFix]; save(); syncFix(); });
-    q('resetall').addEventListener('click', () => { st.fix = {}; save(); syncFix(); });
+    q('resetall').addEventListener('click', () => { st.fix = {}; st.zone = {}; save(); syncFix(); syncZones(); });
     const edit = (k) => {
       if (!selFix) return;
       const o = st.fix[selFix] || {};
@@ -398,6 +477,7 @@ export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHa
       else if (k === 'level') { const v = clampLv(q('level').value); o.level = v / LV(); if (v > 0) delete o.on; else o.on = false; q('out').textContent = v; }
       st.fix[selFix] = o; save();
       if (k !== 'level') syncFix();
+      syncZones();
     };
     for (const k of ['on', 'color', 'level']) q(k).addEventListener('input', () => edit(k));
   }
@@ -407,7 +487,7 @@ export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHa
     panel.querySelectorAll('[data-preset]').forEach((b) => b.setAttribute('aria-pressed', String(!!P && b.dataset.preset === P.id)));
     const fl = panel.querySelector('[data-lp="filelook"]'); if (fl) fl.hidden = !rigHasLook();
     const h = panel.querySelector('[data-lp="hint"]'); if (h) h.textContent = P ? P.hint || '' : '';
-    syncMix(); renderFixList();
+    syncMix(); renderZones(); renderFixList();
   }
   function buildPanel() {
     if (panel) panel.remove();
@@ -434,11 +514,14 @@ export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHa
       cfg.presets.map((p) => `<button class="smallbtn" data-preset="${esc(p.id)}" title="${esc(p.hint || '')}" aria-pressed="${P && P.id === p.id}">${esc(p.name)}</button>`).join('') +
       `<button class="smallbtn" data-preset="@file" data-lp="filelook"${rigHasLook() ? '' : ' hidden'} title="燈光檔入面存嘅顏色同亮度" aria-pressed="${!!P && P.id === '@file'}">檔案原狀</button>` +
       '</div><div class="lp-hint" data-lp="hint"></div></div>' +
-      '<div class="lp-sec lp-fix" data-fx="box" hidden><div class="lp-title">單支燈（逐支調顏色同亮度）</div>' +
+      '<div class="lp-sec lp-zones" data-zn="box" hidden><div class="lp-title" data-zn="title"></div><div data-zn="list"></div>' +
+      '<div class="lp-line lp-fixrow"><label class="lp-on"><input type="checkbox" data-zn="markers"> 顯示全部燈位點</label><button class="smallbtn" data-zn="reset" type="button">全部還原</button></div>' +
+      '<div class="lp-hint">撳區名會喺 3D 入面標出嗰區嘅燈位；平時唔顯示燈位點。</div></div>' +
+      '<details class="lp-sec lp-fix" data-fx="box" hidden><summary class="lp-title">進階：單支燈（逐支調顏色同亮度）</summary>' +
       '<div class="lp-line lp-fixrow"><select data-fx="sel" aria-label="揀燈"></select><button class="smallbtn" data-fx="prev" type="button" aria-label="上一支">◀</button><button class="smallbtn" data-fx="next" type="button" aria-label="下一支">▶</button></div>' +
       '<div class="lp-hint" data-fx="info"></div>' +
       `<div class="lp-line"><label class="lp-on"><input type="checkbox" data-fx="on"> 亮</label><input type="color" data-fx="color" aria-label="呢支燈顏色"><input type="range" min="0" max="${lv}" step="1" data-fx="level" aria-label="呢支燈強度 0 至 ${lv}"><output data-fx="out"></output></div>` +
-      '<div class="lp-line lp-fixrow"><label class="lp-on"><input type="checkbox" data-fx="markers"> 顯示燈位點</label><button class="smallbtn" data-fx="reset" type="button">還原呢支</button><button class="smallbtn" data-fx="resetall" type="button">全部還原</button></div></div>' +
+      '<div class="lp-line lp-fixrow"><label class="lp-on"><input type="checkbox" data-fx="markers"> 顯示燈位點</label><button class="smallbtn" data-fx="reset" type="button">還原呢支</button><button class="smallbtn" data-fx="resetall" type="button">全部還原</button></div></details>' +
       `<div class="lp-sec"><div class="lp-title">自訂顏色同強度（0＝熄，${lv}＝最亮）</div>${mixRows}<div class="lp-hint" data-lp="chase" hidden>顏色循環中：改顏色或強度會停止循環。撳 preset 可還原。</div></div>` +
       (sp ? `<div class="lp-sec"><div class="lp-title">追光（一組設定，名單入面每人一束光，最多 ${sp.max} 束）</div>${spotBox}</div>` : '') +
       '<div class="lp-sec"><div class="lp-title">煙霧機（強度 1–' + lv + '）</div>' +
@@ -454,8 +537,11 @@ export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHa
     syncMix();
     const hint = () => { const q = presetOf(); panel.querySelector('[data-lp="hint"]').textContent = q ? q.hint || '' : ''; };
     hint();
+    renderZones();
     renderFixList();
+    wireZones();
     wireFix();
+    panel.querySelector('details.lp-fix').addEventListener('toggle', (e) => { fixOpen = e.target.open; });
     wireMvr();
     panel.addEventListener('click', (e) => {
       const btn = e.target.closest('button'), d = (btn && btn.dataset) || {};
@@ -589,7 +675,7 @@ export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHa
             tc = P.chase.colors[(((step + f.idx) % n) + n) % n];
           }
           if (f.def.group === 'follow' && tg.length) { const t = tg[f.idx % tg.length]; want = new THREE.Vector3(t.x, 1.1, t.y); }
-          if (st.fix[f.def.id]) { const ft = fixTarget(f.def, P); tc = ft.color; tl = ft.level; }   // 單支燈覆蓋最大
+          if (st.fix[f.def.id] || st.zone[zones().of.get(f.def.id)]) { const ft = fixTarget(f.def, P); tc = ft.color; tl = ft.level; }   // 燈區、單支燈覆蓋組設定
         }
         f.level += (tl - f.level) * a;
         f.color.lerp(new THREE.Color(tc), Math.min(1, a * 2));
@@ -605,9 +691,10 @@ export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHa
         }
         f.mat.color.copy(f.color);
         if (f.marker) {
-          f.marker.visible = markersOn();
+          const inZone = !!selZone && zones().of.get(f.def.id) === selZone;
+          f.marker.visible = markersOn() || inZone || (fixOpen && f.def.id === selFix);
           f.marker.material.color.set(f.level > 0.03 ? f.color : MARK[f.def.group] || 0x888888);
-          f.marker.scale.setScalar(f.def.id === selFix ? 2.2 : 1);
+          f.marker.scale.setScalar(fixOpen && f.def.id === selFix ? 2.2 : inZone ? 1.6 : 1);
         }
         sumLevel += f.level;
         tint.add(f.color.clone().multiplyScalar(f.level));
@@ -671,6 +758,7 @@ export function createLighting({ THREE, scene, box, base, getBpm, getTime, getHa
       stats.mix = st.mix ? JSON.parse(JSON.stringify(st.mix)) : null;
       stats.base = { hemi: +base.hemi.intensity.toFixed(3), ambient: +base.ambient.intensity.toFixed(3), key: +base.key.intensity.toFixed(3) };
       stats.fixtures = fixtures.map((f) => ({ marker: !!(f.marker && f.marker.visible), id: f.def.id, group: f.def.group, level: +f.level.toFixed(3), color: '#' + f.color.getHexString(), angle: +f.ang.toFixed(3), h: +f.grp.position.y.toFixed(2), x: +f.grp.position.x.toFixed(2), intensity: f.spot ? +f.spot.intensity.toFixed(1) : 0, beam: +f.mat.opacity.toFixed(3), aim: [+f.aim.x.toFixed(2), +f.aim.z.toFixed(2)] }));
+      stats.rods = rods ? rods.geometry.attributes.position.count / 2 : 0;
       stats.fog = { density: +fogObj.density.toFixed(5), haze: +cur.haze.toFixed(3), machines: machines.map((m) => ({ id: m.def.id, on: m.s.on, pos: m.s.pos, x: m.pos.x, z: m.pos.y, strength: m.s.strength, puffs: m.n || 0, reach: +(m.reach || 0).toFixed(2), cx: +m.cx.toFixed(2), cz: +m.cz.toFixed(2) })) };
     },
   };

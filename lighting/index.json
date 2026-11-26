@@ -8,6 +8,30 @@
    "note": "One fixture. Smallest test file."
   },
   {
+   "file": "capture-look-chorus-warm.mvr",
+   "title": "Capture look · Chorus (warm)",
+   "fixtures": 76,
+   "note": "Test look: amber wash, magenta-to-orange backlight, warm follow spots."
+  },
+  {
+   "file": "capture-look-finale-rainbow.mvr",
+   "title": "Capture look · Finale (colour sweep)",
+   "fixtures": 76,
+   "note": "Test look: every light takes a colour from its left-right position."
+  },
+  {
+   "file": "capture-look-solo-spot.mvr",
+   "title": "Capture look · Solo (follow spots)",
+   "fixtures": 76,
+   "note": "Test look: stage nearly dark, follow spots at full."
+  },
+  {
+   "file": "capture-look-verse-blue.mvr",
+   "title": "Capture look · Verse (cool blue)",
+   "fixtures": 76,
+   "note": "Test look: dim blue wash, blue-to-violet backlight, follow spots off."
+  },
+  {
    "file": "capture_demo_show.mvr",
    "title": "Capture demo show",
    "fixtures": 76,

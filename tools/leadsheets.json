@@ -1,0 +1,22 @@
+{
+  "songs": [
+    {"slug": "ngo-mou-hok-waai", "title": "我冇學壞", "keysig": -1, "keyname": "F major", "beats": 4, "tempo": 70, "feel": "Neo-soul ballad", "seed": 11, "letters": true,
+     "bars": ["Fmaj7", ["Em7", "A7"], "Dm7", ["Gm7", "C7"], "Fmaj7", "D7", "Gm7", "C7",
+              "Bbmaj7", ["Am7", "D7"], "Gm7", "C7", "Fmaj7", ["Dm7", "G7"], ["Gm7", "C7"], "Fmaj7"]},
+    {"slug": "forgotten-dream-pop", "title": "被遺忘", "keysig": 2, "keyname": "D major", "beats": 4, "tempo": 84, "feel": "Dream pop", "seed": 22, "letters": true,
+     "bars": ["Dmaj7", "F#m7", "Bm7", ["Em7", "A7"], "Dmaj7", "Bm7", "Gmaj7", "A7sus",
+              "Gmaj7", "F#m7", "Bm7", "A7", "Dmaj7", "Gmaj7", ["Em7", "A7"], "Dmaj7"]},
+    {"slug": "floor-breathing", "title": "地板呼吸", "keysig": -3, "keyname": "C minor", "beats": 4, "tempo": 64, "feel": "Slow groove", "seed": 33, "letters": true,
+     "bars": ["Cm7", "Fm7", ["Dm7b5", "G7"], "Cm7", "Abmaj7", ["Fm7", "Bb7"], "Ebmaj7", "G7",
+              "Cm7", "Fm7", "Abmaj7", "G7", "Cm7", ["Dm7b5", "G7"], ["Cm7", "Fm7"], "Cm7"]},
+    {"slug": "saudade-do-teu-olhar", "title": "Saudade do Teu Olhar", "keysig": -1, "keyname": "D minor", "beats": 4, "tempo": 96, "feel": "Bossa nova", "seed": 44, "letters": true,
+     "bars": ["Dm7", "G7", "Cmaj7", "Fmaj7", "Bm7b5", "E7", "Am7", "A7",
+              "Dm7", "G7", "Cmaj7", "Fmaj7", "Bm7b5", "E7", ["Am7", "D7"], "Dm7"]},
+    {"slug": "le-dernier-bal", "title": "Le Dernier Bal", "keysig": -2, "keyname": "G minor", "beats": 3, "tempo": 108, "feel": "Valse musette", "seed": 55, "letters": true,
+     "bars": ["Gm", "Cm", "D7", "Gm", "Eb", "Cm", "D7", "Gm",
+              "Gm", "Cm", "F7", "Bb", "Eb", "Cm7", "D7", "Gm"]},
+    {"slug": "slow-dying-keep", "title": "Slow Dying Keep", "keysig": 1, "keyname": "E minor", "beats": 4, "tempo": 60, "feel": "Instrumental ballad", "seed": 66, "letters": true,
+     "bars": ["Em7", "Cmaj7", "Am7", "B7", "Em7", "Cmaj7", "Am7", "D7",
+              "Gmaj7", "Cmaj7", ["Bm7b5", "E7"], "Am7", "D7", "Gmaj7", "B7", "Em7"]}
+  ]
+}

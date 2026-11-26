@@ -276,7 +276,6 @@
   function viewBoxFor(cue, s) {
     const padding = plan().viewPadding;
     const full = [-K, -1.2 * K, (s.w + 2) * K, (s.d + 3) * K];
-    if (store.fit === false) return full;
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
     const add = (px, py) => { x0 = Math.min(x0, px); y0 = Math.min(y0, py); x1 = Math.max(x1, px); y1 = Math.max(y1, py); };
     for (const it of visibleItems(cue)) { const p = itemPos(it), r = RADIUS[it.type]; add(p.x - r, p.y - r); add(p.x + r, p.y + r); }
@@ -428,8 +427,8 @@
   function modeSeg() {
     const m = ctx.getMode ? ctx.getMode() : '';
     return '<span class="modeseg" role="group" aria-label="舞台視圖">' +
-      [['2d', '僅 2D'], ['3d', '僅 3D'], ['both', '2D + 3D'], ['off', '關閉舞台']]
-        .map(([k, l]) => `<button class="smallbtn" data-mode="${k}" aria-pressed="${k === 'off' ? !m : m === k}">${l}</button>`)
+      [['2d', '2D'], ['3d', '3D']]
+        .map(([k, l]) => `<button class="smallbtn" data-mode="${k}" aria-pressed="${k === '3d' ? m === '3d' || m === 'both' : m === k}">${l}</button>`)
         .join('') + '</span>';
   }
   const fmt = (t) => Math.floor(t / 60) + ':' + String(Math.floor(t % 60)).padStart(2, '0');
@@ -459,7 +458,6 @@
       '<div class="docbar stagebar">' +
       modeSeg() +
       '<button class="smallbtn" data-act="outfit" title="樂手性別同服裝（主題色隨機配衣）">服裝</button>' +
-      `<button class="smallbtn" data-act="fit" aria-pressed="${store.fit !== false}" title="畫面貼住器材放大／顯示成個舞台">聚焦</button>` +
       `<label class="venue-picker"><span>場地</span><select class="venuesel" data-planselect aria-label="選擇場地">${data.plans.map((p) => `<option value="${esc(p.id)}"${p.id === store.planId ? ' selected' : ''}>${esc(p.title)}</option>`).join('')}</select></label>` +
       '<span class="stagelegend"><i class="sw on"></i>台上 <i class="sw solo"></i>SOLO <i class="sw hl"></i>HIGHLIGHT</span>' +
       `<label class="showoff"><input type="checkbox" data-act="showoff" ${store.showOff ? 'checked' : ''}> 顯示休息樂手</label>` +

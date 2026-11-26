@@ -68,12 +68,13 @@ The sample set exercises every feature, so you can click through them before loa
 |---|---|
 | Sections and timeline | Pick any song. Song 01 has 11 sections with a lyric-driven timeline |
 | 2D plan, solo and highlight | Stage view. Grand Piano and Vocal are placed on the sample stage; the timeline colours show on-stage, solo and highlight |
-| 3D lighting with an imported rig | Stage view, `僅 3D`, then the lighting button. The `燈光檔` list in the panel switches between the five rigs in `lighting/`. 76 fixtures come from `lighting/capture_demo_show.mvr` |
+| 3D lighting with an imported rig | Stage view, the `3D` switch, then the lighting button. The `燈光檔` list in the panel switches between the nine files in `lighting/`: the Capture demo rig (76 fixtures), generated sample rigs, and four `capture-look-*` files that carry colour and level per fixture (Verse, Chorus, Solo, Finale), so you can see a file-supplied look |
 | Versions | Song 06 has instrumental and vocal audio versions |
 | Suno and Spotify tracks | Rows T1 and T2 are Suno songs, T3 and T4 are Spotify tracks. Each has a small mark and plays inside the board. Try `+ Add song` at the bottom of the list |
-| Venues | Stage view: the venue list next to `聚焦` (2D) or in the 3D toolbar: black box, jazz club, concert hall, open stage |
+| Venues | Stage view: the venue list in the stage bar (2D) or the 3D toolbar: black box, jazz club, concert hall, open stage |
 | Loops | Sample video loops (moody, no people) sit in the library on the right. Click one to play it, `+` assigns it to the current song, `+ Add video` adds your own |
-| Lyrics and form chart | Song 01 has lyrics and a generated form chart |
+| Lyrics and lead sheets | Song 01 has lyrics. Every sample song has a generated lead sheet (melody, chords, form) |
+| Musician outfits | 3D view, `服裝`: six outfit presets (all black, white shirt, navy suit, wine, vintage, casual) and per-musician colours |
 | One-click report | `輸出`, tick sections, get a self-contained HTML file |
 | Phone layout | Open it on a phone, or narrow the window to 390 px |
 
@@ -153,7 +154,7 @@ python3 tools/mvr-import.py lighting/capture_demo_show.mvr --apply
 - Alignment and grouping live in `lighting/mvr-map.json`: origin offset, rotation, flips, which fixture models go to the front, back or follow group, and default aim points. Edit that file, run the preview, and check how many fixtures land on the stage.
 - Aim comes from the file's focus points when there are any; otherwise from the fixture's direction when it points at the floor; otherwise from the group default. The summary shows which source each fixture used. Check the 3D view after the first import.
 - It reads only `GeneralSceneDescription.xml` from the zip, never extracts files, and rejects XML with a DOCTYPE.
-- `lighting/` is the folder for all your `.mvr` files. It holds three public test files (MIT, see `lighting/LICENSE-python-mvr.txt`) and two generated sample rigs. `capture_demo_show.mvr` is a Capture export with 76 fixtures; the sample stage uses it.
+- `lighting/` is the folder for all your `.mvr` files. It holds three public test files (MIT, see `lighting/LICENSE-python-mvr.txt`), two generated sample rigs and four generated looks (`tools/make-look-mvrs.py` builds them from `tools/looks.json`; they keep only the XML, no 3D meshes). `capture_demo_show.mvr` is a Capture export with 76 fixtures; the sample stage uses it.
 
 ## Use your own set
 
@@ -166,7 +167,7 @@ Everything is data files at the repo root. No build step.
 | `stage-plans.json` | The stage plan (items and positions), `partItems` (which instrument codes light up which items), lighting presets and rig, export defaults, page title, header links |
 | `source-materials/drive-video-inventory.json` | The video loop list. Files live in `media/loops/<fileId>.mp4`, thumbnails in `source-materials/thumbnails/<fileId>.jpg` |
 
-`tools/make-demo-data.py` shows one way to generate these files from audio: it detects sections from loudness changes (or reads lyric section tags) and writes sample cues and a form chart per song. The sample cues it produces are placeholders. Edit them to your arrangement in the board; changes are saved in your browser, and the stage panel's Export button saves them as JSON so you can put them back into `stage-cues.json`.
+`tools/make-demo-data.py` shows one way to generate these files from audio: it detects sections from loudness changes (or reads lyric section tags) and writes sample cues per song; `tools/make-leadsheets.py` draws a lead sheet from `tools/leadsheets.json`. The sample cues it produces are placeholders. Edit them to your arrangement in the board; changes are saved in your browser, and the stage panel's Export button saves them as JSON so you can put them back into `stage-cues.json`.
 
 ## Tests
 
@@ -176,7 +177,7 @@ npm run serve &        # range-capable static server on :9424
 npm test               # Playwright smoke test and the add-songs/videos test
 ```
 
-`qa/lighting.mjs` checks the lighting file list, loading a file from the folder and from your computer, remembering it per venue, and a broken file. `qa/files.mjs` checks adding an audio file and a video from the board, that they survive a reload and can be removed, and that the middle column has no scroll bars. The smoke test checks: no external network requests, audio and video load, lyrics, charts and timeline render, the 3D view mounts with the imported rig and the lighting presets light fixtures, Suno and Spotify rows play in a player that appears and is removed again, pasting a link adds a row (the iframe target is faked, so no network is used), the venue list changes the stage and the light positions, the song-list button works, the report exports as a self-contained file, the phone layout does not overflow, and the repository contains no leftover private strings.
+`qa/figures.mjs` sweeps every song and section and checks that each musician faces their instrument or the audience and that no held arm floats without its player. `qa/lighting.mjs` checks the lighting file list, loading a file from the folder and from your computer, remembering it per venue, and a broken file. `qa/files.mjs` checks adding an audio file and a video from the board, that they survive a reload and can be removed, and that the middle column has no scroll bars. The smoke test checks: no external network requests, audio and video load, lyrics, charts and timeline render, the 3D view mounts with the imported rig and the lighting presets light fixtures, Suno and Spotify rows play in a player that appears and is removed again, pasting a link adds a row (the iframe target is faked, so no network is used), the venue list changes the stage and the light positions, the song-list button works, the report exports as a self-contained file, the phone layout does not overflow, and the repository contains no leftover private strings.
 
 ## Roadmap
 

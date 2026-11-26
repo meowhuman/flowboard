@@ -2,8 +2,8 @@
  {
   "number": "01",
   "title": "我冇學壞",
-  "section": "Sample set",
-  "credit": "Sample · Suno generation, 2026-06",
+  "section": "",
+  "credit": "",
   "notes": "Bilingual Cantopop neo-soul sample. Lyric sections drive the cue names.",
   "instrumentation": "quintet",
   "parts": [
@@ -16,7 +16,7 @@
   "demo": "media/music/ngo-mou-hok-waai.mp3",
   "demoLabel": "mix",
   "charts": {
-   "form": "media/charts/ngo-mou-hok-waai-form.svg"
+   "lead": "media/charts/ngo-mou-hok-waai-lead.svg"
   },
   "bpm": 70,
   "lyrics": {
@@ -26,8 +26,8 @@
  {
   "number": "02",
   "title": "被遺忘",
-  "section": "Sample set",
-  "credit": "Sample · Suno generation, 2026-05",
+  "section": "",
+  "credit": "",
   "notes": "Dream pop sample. Cue boundaries detected from loudness.",
   "instrumentation": "quintet",
   "parts": [
@@ -40,14 +40,14 @@
   "demo": "media/music/forgotten-dream-pop.mp3",
   "demoLabel": "mix",
   "charts": {
-   "form": "media/charts/forgotten-dream-pop-form.svg"
+   "lead": "media/charts/forgotten-dream-pop-lead.svg"
   }
  },
  {
   "number": "03",
   "title": "地板呼吸",
-  "section": "Sample set",
-  "credit": "Sample · Suno generation, 2026-05",
+  "section": "",
+  "credit": "",
   "notes": "Sample. Cue boundaries detected from loudness.",
   "instrumentation": "quintet",
   "parts": [
@@ -60,14 +60,14 @@
   "demo": "media/music/floor-breathing.mp3",
   "demoLabel": "mix",
   "charts": {
-   "form": "media/charts/floor-breathing-form.svg"
+   "lead": "media/charts/floor-breathing-lead.svg"
   }
  },
  {
   "number": "04",
   "title": "Saudade do Teu Olhar",
-  "section": "Sample set",
-  "credit": "Sample · Suno generation, 2026-06",
+  "section": "",
+  "credit": "",
   "notes": "Portuguese-language sample. Cue boundaries detected from loudness.",
   "instrumentation": "quintet",
   "parts": [
@@ -80,14 +80,14 @@
   "demo": "media/music/saudade-do-teu-olhar.mp3",
   "demoLabel": "mix",
   "charts": {
-   "form": "media/charts/saudade-do-teu-olhar-form.svg"
+   "lead": "media/charts/saudade-do-teu-olhar-lead.svg"
   }
  },
  {
   "number": "05",
   "title": "Le Dernier Bal",
-  "section": "Sample set",
-  "credit": "Sample · Suno generation, 2026-06",
+  "section": "",
+  "credit": "",
   "notes": "French-language sample. Cue boundaries detected from loudness.",
   "instrumentation": "quintet",
   "parts": [
@@ -100,14 +100,14 @@
   "demo": "media/music/le-dernier-bal.mp3",
   "demoLabel": "mix",
   "charts": {
-   "form": "media/charts/le-dernier-bal-form.svg"
+   "lead": "media/charts/le-dernier-bal-lead.svg"
   }
  },
  {
   "number": "06",
   "title": "Slow Dying Keep",
-  "section": "Sample set",
-  "credit": "Sample · Suno generation, 2025-11",
+  "section": "",
+  "credit": "",
   "notes": "Instrumental and vocal versions. Shows the version switcher; the loudest section gets a guitar solo.",
   "instrumentation": "quartet",
   "parts": [
@@ -119,7 +119,7 @@
   "demo": "media/music/slow-dying-keep-instrumental.mp3",
   "demoLabel": "Instrumental",
   "charts": {
-   "form": "media/charts/slow-dying-keep-form.svg"
+   "lead": "media/charts/slow-dying-keep-lead.svg"
   },
   "instrumental": true,
   "alternates": [

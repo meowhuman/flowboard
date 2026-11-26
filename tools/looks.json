@@ -1,0 +1,38 @@
+{
+  "_說明": "測試用「燈光 look」：由 lighting/capture_demo_show.mvr 嘅燈位出發，每個檔寫入每支燈嘅顏色（Color，CIE xyY）同亮度（Dimmer）。MVR 只存一個靜態畫面，所以一個 look 一個檔；cue 順序唔喺 MVR 入面。gradient＝沿舞台左右（x）漸變，stops 可以多過兩個。",
+  "base": "capture_demo_show.mvr",
+  "looks": [
+    {
+      "file": "capture-look-verse-blue.mvr",
+      "title": "Capture look · Verse (cool blue)",
+      "note": "Test look: dim blue wash, blue-to-violet backlight, follow spots off.",
+      "wash": { "color": "#4c6ef5", "level": 0.35 },
+      "back": { "gradient": ["#1e3a8a", "#7c3aed"], "level": 0.55 },
+      "follow": { "color": "#ffffff", "level": 0 }
+    },
+    {
+      "file": "capture-look-chorus-warm.mvr",
+      "title": "Capture look · Chorus (warm)",
+      "note": "Test look: amber wash, magenta-to-orange backlight, warm follow spots.",
+      "wash": { "color": "#ffb347", "level": 0.8 },
+      "back": { "gradient": ["#ff3d71", "#ff9f1c"], "level": 0.9 },
+      "follow": { "color": "#fff1d6", "level": 0.6 }
+    },
+    {
+      "file": "capture-look-solo-spot.mvr",
+      "title": "Capture look · Solo (follow spots)",
+      "note": "Test look: stage nearly dark, follow spots at full.",
+      "wash": { "color": "#1b2a6b", "level": 0.12 },
+      "back": { "color": "#274690", "level": 0.25 },
+      "follow": { "color": "#ffe9c7", "level": 1.0 }
+    },
+    {
+      "file": "capture-look-finale-rainbow.mvr",
+      "title": "Capture look · Finale (colour sweep)",
+      "note": "Test look: every light takes a colour from its left-right position.",
+      "wash": { "gradient": ["#ff0040", "#ffd000", "#00e060", "#00c8ff", "#5030ff", "#ff00c8"], "level": 0.7 },
+      "back": { "gradient": ["#ff0040", "#ffd000", "#00e060", "#00c8ff", "#5030ff", "#ff00c8"], "level": 0.8 },
+      "follow": { "gradient": ["#ff0040", "#ffd000", "#00e060", "#00c8ff", "#5030ff", "#ff00c8"], "level": 0.5 }
+    }
+  ]
+}

@@ -65,5 +65,10 @@
       1.0
     ]
   },
-  "fixtureAims": {}
+  "fixtureAims": {},
+  "_heightLift": "整體吊高校準：吊高 >= fromM 嘅燈升 byM 米，令主力燈架喺投影幕頂附近（Capture demo 嘅吊高 5–7.8 m 比幕頂 9.5 m 低）。地面燈（< fromM）唔郁。要取消就刪走 heightLift。",
+  "heightLift": {
+    "fromM": 3,
+    "byM": 2
+  }
 }

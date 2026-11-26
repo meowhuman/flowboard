@@ -44,7 +44,7 @@ if (await p.locator('[data-view="lyrics"]').getAttribute('aria-pressed') === 'tr
 
 await p.click('[data-view="charts"]'); await p.waitForTimeout(600);
 const ch = await p.evaluate(async () => { const el = document.querySelector('[data-pane="charts"] .docframe'); if (!el) return null; const r = await fetch(el.getAttribute('src')); return { tag: el.tagName, src: el.getAttribute('src'), status: r.status, svg: (await r.text()).startsWith('<svg') }; });
-ok('譜：form chart（SVG）載到', ch && ch.status === 200 && ch.svg, JSON.stringify(ch));
+ok('譜：lead sheet（SVG）載到', ch && ch.status === 200 && ch.svg, JSON.stringify(ch));
 await p.click('[data-view="charts"]');
 
 await p.click('[data-view="timeline"]'); await p.waitForTimeout(700);
@@ -68,9 +68,20 @@ ok('3D：canvas 出現', (await p.locator('#threebox canvas').count()) === 1);
 const nfix = await p.evaluate(() => window.__stage3d.lighting.fixtures.length);
 const plan = await p.evaluate(() => fetch('stage-plans.json').then((r) => r.json()));
 ok('燈光：舞台燈位由 MVR（Capture 匯出）匯入，76 支', nfix >= 76 && plan.lighting.mvrImport && plan.lighting.mvrImport.fixtureCount === 76 && plan.lighting.rig.hangAt !== 'screenTop', 'fixtures=' + nfix + ' ' + JSON.stringify(plan.lighting.mvrImport || {}).slice(0, 120));
+const heights = plan.lighting.rig.fixtures.map((f) => f.h);
+ok('燈光：主力燈架校準到幕頂附近（最高 >= 9 m），地面燈（< 3 m）保留', Math.max(...heights) >= 9 && Math.max(...heights) <= plan.plans[0].room.h && heights.some((h) => h < 3), Math.min(...heights).toFixed(1) + ' – ' + Math.max(...heights).toFixed(1));
+ok('燈光：每支吊燈有吊桿（幼線）', (await p.evaluate(() => window.__stage3d.lighting.rods)) >= 50, String(await p.evaluate(() => window.__stage3d.lighting.rods)));
 await p.click('.threebar [data-light]'); await p.click('[data-preset="warm"]'); await p.waitForTimeout(2500);
 const lit = await p.evaluate(() => window.__stage3d.lighting.fixtures.filter((f) => f.level > 0.05).length);
 ok('燈光：揀「暖色 Jazz」→ 多支燈亮起', lit >= 20, 'lit=' + lit);
+const bar3 = await p.$$eval('.threebar .modeseg button', (e) => e.map((x) => x.textContent));
+ok('舞台視圖：3D 工具列只有一個 2D／3D 切換（冇「僅 2D」「2D + 3D」「關閉舞台」）', bar3.join() === '2D,3D', bar3.join());
+await p.click('.threebar [data-outfit]'); await p.waitForSelector('#peopleDlg [data-look]');
+const looks = await p.$$eval('#peopleDlg [data-look]', (e) => e.map((x) => x.dataset.look));
+await p.click('#peopleDlg [data-look="wine"]'); await p.waitForTimeout(1200);
+const wine = await p.evaluate(() => { const o = Object.values(window.People.export().people); return o.length && o.every((x) => x.outfit.top === '#7a1f2e'); });
+ok('服裝：有 ' + looks.length + ' 個預設組合；撳「酒紅夜總會」→ 全隊上身換成酒紅', looks.length >= 5 && wine, looks.join());
+await p.click('#peopleDlg [value="close"]'); await p.waitForTimeout(300);
 const venues = await p.$$eval('.threebar .venuesel option', (e) => e.map((x) => x.value));
 ok('場地選單：3D 工具列有 4 個場地（黑箱／club／hall／open）', venues.join() === 'A,club,hall,open', venues.join());
 const fx0 = await p.evaluate(() => window.__stage3d.lighting.fixtures[0].x);
@@ -82,6 +93,17 @@ ok('場地選單：揀 open（冇牆）→ 仍然有 76 支燈、冇錯誤', (aw
 await p.selectOption('.threebar .venuesel', 'A'); await p.waitForTimeout(1500);
 await p.click('#viewbar [data-view="stage"]');
 
+await p.click('#viewbar [data-view="stage"]'); await p.waitForTimeout(600);
+ok('2D 工具列：冇「聚焦」掣、只有 2D／3D 切換', (await p.locator('.stagebar [data-act="fit"]').count()) === 0 && (await p.$$eval('.stagebar .modeseg button', (e) => e.map((x) => x.textContent))).join() === '2D,3D');
+ok('停止影片掣用圖示（冇文字）', (await p.locator('#clearVideo svg').count()) === 1 && (await p.locator('#clearVideo').innerText()).trim() === '');
+await p.click('#viewbar [data-view="stage"]');
+await p.click('.song[data-num="01"]'); await p.waitForTimeout(400);
+const meta = await p.locator('#nowMeta').innerText();
+ok('歌曲標題下面冇「Sample · Suno generation／Sample set」字樣', !/Sample|Suno generation/.test(meta), JSON.stringify(meta));
+await p.click('#viewbar [data-view="charts"]'); await p.waitForTimeout(800);
+const chartSrc = await p.$$eval('#chartBox iframe, .scoredock iframe, #scoredock iframe', (e) => e.map((x) => x.getAttribute('src')));
+ok('譜：sample 用 lead sheet（五線譜）', chartSrc.some((s) => /-lead\.svg(#|$)/.test(s || '')), chartSrc.join());
+await p.click('#viewbar [data-view="charts"]');
 await p.click('#export'); await p.waitForSelector('.exp-card');
 await p.click('[data-all="0"]'); await p.check('.exp-card [data-song="01"]');
 for (const id of ['order', 'matrix', 'stage2d', 'three', 'timeline', 'light', 'people']) await p.locator(`[data-sec="${id}"]`).setChecked(['order', 'stage2d', 'timeline'].includes(id));

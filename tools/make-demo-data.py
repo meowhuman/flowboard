@@ -121,11 +121,10 @@ def main():
                     c['hl'] = [CFG['leadItem']]
             cl.append(c)
         cues[num] = cl
-        chart = f'media/charts/{s["slug"]}-form.svg'
-        (ROOT / chart).write_text(form_chart_svg(s['title'], edges, names, tier_list, db), encoding='utf-8')
-        song = {'number': num, 'title': s['title'], 'section': s['section'], 'credit': s['credit'],
+        chart = f'media/charts/{s["slug"]}-lead.svg'      # lead sheet 由 tools/make-leadsheets.py 生成
+        song = {'number': num, 'title': s['title'], 'section': s['section'], 'credit': s.get('credit', ''),
                 'notes': s['notes'], 'instrumentation': s['instrumentation'], 'parts': s['parts'],
-                'demo': s['audio'], 'demoLabel': s.get('demoLabel', 'mix'), 'charts': {'form': chart}}
+                'demo': s['audio'], 'demoLabel': s.get('demoLabel', 'mix'), 'charts': {'lead': chart}}
         if s.get('bpm'): song['bpm'] = s['bpm']
         if s.get('instrumental'): song['instrumental'] = True
         if s.get('alternates'): song['alternates'] = s['alternates']

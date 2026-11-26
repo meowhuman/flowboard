@@ -3420,3 +3420,72 @@ html {
   color: var(--fg);
   font: inherit;
 }
+
+/* 停止影片＝圖示掣 */
+.iconbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  padding: 0 8px;
+}
+
+/* 燈區（燈多嘅 rig 按排分區，成區一齊調） */
+.lightpanel .lp-zrow {
+  display: grid;
+  grid-template-columns: minmax(96px, 1.3fr) auto auto minmax(60px, 1fr) 1.4em;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+}
+.lightpanel .lp-zname {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  padding: 3px 8px;
+  border: 1px solid var(--line, #444);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.lightpanel .lp-zname small {
+  opacity: 0.65;
+  font-size: 11px;
+}
+.lightpanel .lp-zname[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.lightpanel .lp-zrow input[type='color'] {
+  width: 30px;
+  height: 24px;
+  padding: 0;
+}
+.lightpanel .lp-zrow input[type='range'] {
+  width: 100%;
+}
+.lightpanel details.lp-fix > summary {
+  cursor: pointer;
+  list-style: revert;
+}
+
+/* 服裝組合 */
+.peopledlg .lookbar {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.peopledlg .lookbar button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.peopledlg .lookbar i {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(128, 128, 128, 0.5);
+}

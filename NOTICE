@@ -18,9 +18,10 @@ The Suno and Spotify chips embed players from suno.com and open.spotify.com.
 Their content and terms belong to those services.
 
 Sample media (media/, source-materials/)
-The sample set exists so the board has something to show. It is not part of the
-MIT grant. Reuse it only for trying out this software unless you have checked
-the terms yourself.
+The sample set exists so the board has something to show. It is for demo and
+trial use only, not commercial use, and it is not part of the MIT grant. Do not
+re-publish, sell or use it in a product. If you are a rights holder and want
+something removed, open an issue and it will be taken down.
 - media/music: tracks generated with Suno on the author's account (the files
   carry "made with suno" metadata). Generated 2025-11 to 2026-06. Commercial use
   of Suno output depends on the plan active when it was generated.

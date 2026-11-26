@@ -9,7 +9,7 @@ import { createLighting } from './lighting.js';
 const MODELS = 'media/3d';
 // v2 人形（TRELLIS 圖生 3D）正面係 +Z，唔係 −Z：由觀眾側近鏡睇到背面（2026-11-07 實測）。
 // 值 = 模型正面相對 −Z 轉咗幾多弧度；換人形模型時要重新量（qa/stage3d.mjs 有朝向檢查）。
-const FIGURE_FRONT_YAW = Math.PI;
+const FIGURE_FRONT_YAW = 0;
 // 2D item type → 器材模型；人形站／坐；人形喺器材「前面」（朝觀眾方向）嘅偏移（米）
 const MODEL_OF = { piano: 'piano', keyboard: 'keyboard', 'guitar-e': 'guitar-e', bass: 'bass', drums: 'drums', 'vocal-main': 'mic-stand', 'vocal-back': 'mic-stand' };
 const SEATED = new Set(['piano', 'keyboard', 'drums']);
@@ -41,7 +41,7 @@ export async function mount(box, api) {
   const canvas = document.createElement('canvas');
   const bar = document.createElement('div');
   bar.className = 'threebar';
-  bar.innerHTML = '<span class="modeseg" role="group" aria-label="舞台視圖"><button data-mode="2d" class="smallbtn">僅 2D</button><button data-mode="3d" class="smallbtn">僅 3D</button><button data-mode="both" class="smallbtn">2D + 3D</button><button data-mode="off" class="smallbtn">關閉舞台</button></span><button data-cam-cycle="1" class="smallbtn" aria-label="切換預設視角">視角：觀眾席</button><button data-labels="1" class="smallbtn" aria-pressed="true">名牌</button><button data-outfit="1" class="smallbtn" title="樂手性別同服裝">服裝</button><button data-light="1" class="smallbtn" aria-pressed="false" title="燈光 preset 同煙霧機（試吓感覺）" hidden>燈光</button>';
+  bar.innerHTML = '<span class="modeseg" role="group" aria-label="舞台視圖"><button data-mode="2d" class="smallbtn">2D</button><button data-mode="3d" class="smallbtn">3D</button></span><button data-cam-cycle="1" class="smallbtn" aria-label="切換預設視角">視角：觀眾席</button><button data-labels="1" class="smallbtn" aria-pressed="true">名牌</button><button data-outfit="1" class="smallbtn" title="樂手性別同服裝">服裝</button><button data-light="1" class="smallbtn" aria-pressed="false" title="燈光 preset 同煙霧機（試吓感覺）" hidden>燈光</button>';
   const note = document.createElement('div');
   note.className = 'threenote';
   note.textContent = '載入模型中…';
@@ -453,7 +453,7 @@ export async function mount(box, api) {
     touched = false;
   controls.addEventListener('start', () => (touched = true));
   let lastStage = null;
-  const syncModeBtns = () => bar.querySelectorAll('[data-mode]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === 'off' ? !api.getMode() : api.getMode() === b.dataset.mode)));
+  const syncModeBtns = () => bar.querySelectorAll('[data-mode]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === '3d' ? api.getMode() === '3d' || api.getMode() === 'both' : api.getMode() === b.dataset.mode)));
   const CAMERAS = [['aud', '觀眾席'], ['top', '俯視'], ['seat', '座位視角'], ['side', '側面']];
   const syncCamBtns = () => {
     const button = bar.querySelector('[data-cam-cycle]'),
@@ -660,7 +660,7 @@ export async function mount(box, api) {
 
   // ---- 人物：性別（女＝較矮、長髮、可着裙）同服裝（按身體高度分帶上色）----
   const figs = [];
-  const SKIN = new THREE.Color('#cfc9c0');
+  const SKIN = new THREE.Color('#d9b093');
   const flagged = (root, key) => { let r = null; root.traverse((o) => { if (!r && o.userData[key]) r = o; }); return r; };
   // 拎住嘅器材：切走模型本地 y < cut 嘅三角形（腳架）。geometry 係 cache 共用，所以先 clone
   function cutLow(inst, cut) {
@@ -707,7 +707,7 @@ export async function mount(box, api) {
       // 頭部範圍（t > 0.86）：用嚟擺長髮
       let hx0 = 1e9, hx1 = -1e9, hz0 = 1e9, hz1 = -1e9, hy1 = -1e9;
       for (const { pts } of meshes) for (let i = 0; i < pts.length; i += 3) if ((pts[i + 1] - ymin) / H > 0.86) { hx0 = Math.min(hx0, pts[i]); hx1 = Math.max(hx1, pts[i]); hz0 = Math.min(hz0, pts[i + 2]); hz1 = Math.max(hz1, pts[i + 2]); hy1 = Math.max(hy1, pts[i + 1]); }
-      f.prep = { meshes, ymin, H, cx: sx / n, cz: sz / n, head: { cx: (hx0 + hx1) / 2, cz: (hz0 + hz1) / 2, r: Math.max((hx1 - hx0) / 2, 0.05), top: hy1 } };
+      f.prep = { meshes, ymin, H, cx: sx / n, cz: sz / n, head: { cx: (hx0 + hx1) / 2, cz: (hz0 + hz1) / 2, front: hz0, r: Math.max((hx1 - hx0) / 2, 0.05), top: hy1 } };
       const mk = (geo) => { const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.8, side: THREE.DoubleSide })); m.userData.extra = true; m.userData.hasEmissive = true; root.add(m); return m; };
       f.hair = mk(new THREE.SphereGeometry(1, 14, 10));
       f.skirt = mk(new THREE.CylinderGeometry(1, 1, 1, 18, 1, true));
@@ -756,6 +756,7 @@ export async function mount(box, api) {
     stats.figures[f.itemId + ':' + f.kind] = { gender, hair: f.hair.visible, skirt: f.skirt.visible, scale: root.scale.x, style: outfit.style, top: outfit.top, vcTop: vcTop ? '#' + vcTop.clone().multiplyScalar(1 / 1.25).getHexString() : null };
   }
   const dressAll = () => figs.forEach(dressFigure);
+  Object.defineProperty(stats, '_qa', { value: { camera, controls, figs, THREE }, enumerable: false });   // 測試用（截圖近鏡）
   if (window.People) People.onChange(dressAll);
 
   // 共用樂手：同一個人彈鋼琴同 Keyboard。邊件樂器狀態最「突出」（SOLO > HIGHLIGHT > 台上）佢就喺邊度；打平就鋼琴
@@ -842,6 +843,8 @@ export async function mount(box, api) {
         const stool = it.chair && it.sitWhen && s.items.find((i) => i.id === it.chair),
           sit = !!stool && it.sitWhen.includes(st) && active;
         for (const fg of n.persons) fg.visible = n.persons.length === 2 ? active && (fg.userData.pose === 'seated') === sit : active;
+        const anyPerson = n.persons.some((q) => q.visible);                 // 樂手收埋，佢拎住器材嘅手臂同手掌都要一齊收（否則剩低浮空嘅波）
+        n.group.traverse((o) => { if (o.userData.heldArm) o.visible = anyPerson; });
         if (n.body) {
           if (sit) {
             const th = Math.PI - (it.rot * Math.PI) / 180, dx = stool.x - it.x, dz = stool.y - it.y;   // 凳位置轉返器材本地座標
