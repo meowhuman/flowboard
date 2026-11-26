@@ -69,7 +69,7 @@ The sample set exercises every feature, so you can click through them before loa
 | Sections and timeline | Pick any song. Song 01 has 11 sections with a lyric-driven timeline |
 | 2D plan, solo and highlight | Stage view. Grand Piano and Vocal are placed on the sample stage; the timeline colours show on-stage, solo and highlight |
 | 3D lighting with an imported rig | Stage view, the `3D` switch, then the lighting button. The `燈光檔` list in the panel switches between the nine files in `lighting/`: the Capture demo rig (76 fixtures), generated sample rigs, and four `capture-look-*` files that carry colour and level per fixture (Verse, Chorus, Solo, Finale), so you can see a file-supplied look |
-| Versions | Song 06 has instrumental and vocal audio versions |
+| Versions | Song 06 has an instrumental and a vocal audio version. The sample audio is a generated click-and-pad track, not music; the Suno rows T1 and T2 play real songs |
 | Suno and Spotify tracks | Rows T1 and T2 are Suno songs, T3 and T4 are Spotify tracks. Each has a small mark and plays inside the board. Try `+ Add song` at the bottom of the list |
 | Venues | Stage view: the venue list in the stage bar (2D) or the 3D toolbar: black box, jazz club, concert hall, open stage |
 | Loops | Sample video loops (moody, no people) sit in the library on the right. Click one to play it, `+` assigns it to the current song, `+ Add video` adds your own |

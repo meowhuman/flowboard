@@ -14,7 +14,7 @@
    "voc"
   ],
   "demo": "media/music/ngo-mou-hok-waai.mp3",
-  "demoLabel": "mix",
+  "demoLabel": "click track",
   "charts": {
    "lead": "media/charts/ngo-mou-hok-waai-lead.svg"
   },
@@ -38,7 +38,7 @@
    "voc"
   ],
   "demo": "media/music/forgotten-dream-pop.mp3",
-  "demoLabel": "mix",
+  "demoLabel": "click track",
   "charts": {
    "lead": "media/charts/forgotten-dream-pop-lead.svg"
   }
@@ -58,7 +58,7 @@
    "voc"
   ],
   "demo": "media/music/floor-breathing.mp3",
-  "demoLabel": "mix",
+  "demoLabel": "click track",
   "charts": {
    "lead": "media/charts/floor-breathing-lead.svg"
   }
@@ -78,7 +78,7 @@
    "voc"
   ],
   "demo": "media/music/saudade-do-teu-olhar.mp3",
-  "demoLabel": "mix",
+  "demoLabel": "click track",
   "charts": {
    "lead": "media/charts/saudade-do-teu-olhar-lead.svg"
   }
@@ -98,7 +98,7 @@
    "voc"
   ],
   "demo": "media/music/le-dernier-bal.mp3",
-  "demoLabel": "mix",
+  "demoLabel": "click track",
   "charts": {
    "lead": "media/charts/le-dernier-bal-lead.svg"
   }
