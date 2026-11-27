@@ -1,7 +1,7 @@
 {
   "name": "flowboard",
   "version": "0.1.0",
-  "description": "Per-song, per-section stage and lighting board for live music sets. 2D plan, 3D lighting preview, rehearsal audio and video loops, one-click report.",
+  "description": "Show preparation board for live music: stage plan, solos and lighting for every song section, with rehearsal audio and video loops. 2D plan, 3D lighting preview, MVR rigs, one-click report.",
   "license": "MIT",
   "private": false,
   "scripts": {
