@@ -33,12 +33,12 @@
  },
  "songs": [
   {
-   "title": "我冇學壞",
-   "slug": "ngo-mou-hok-waai",
-   "audio": "media/music/ngo-mou-hok-waai.mp3",
+   "title": "Late Train Home",
+   "slug": "late-train-home",
+   "audio": "media/music/late-train-home.mp3",
    "section": "",
-   "bpm": 70,
-   "notes": "Bilingual Cantopop neo-soul sample. Lyric sections drive the cue names.",
+   "bpm": 72,
+   "notes": "Jazz quartet sample generated with Lyria RealTime. Lyric sections drive the cue names.",
    "instrumentation": "quintet",
    "parts": [
     "pf",
@@ -48,14 +48,15 @@
     "voc"
    ],
    "lyricsSource": true,
-   "lyricsLang": "zh"
+   "lyricsLang": "en"
   },
   {
-   "title": "被遺忘",
-   "slug": "forgotten-dream-pop",
-   "audio": "media/music/forgotten-dream-pop.mp3",
+   "title": "Blue Hour",
+   "slug": "blue-hour",
+   "audio": "media/music/blue-hour.mp3",
    "section": "",
-   "notes": "Dream pop sample. Cue boundaries detected from loudness.",
+   "bpm": 76,
+   "notes": "Dream pop sample generated with Lyria RealTime. Cue boundaries detected from loudness.",
    "instrumentation": "quintet",
    "parts": [
     "pf",
@@ -66,11 +67,12 @@
    ]
   },
   {
-   "title": "地板呼吸",
-   "slug": "floor-breathing",
-   "audio": "media/music/floor-breathing.mp3",
+   "title": "Floor Lamp",
+   "slug": "floor-lamp",
+   "audio": "media/music/floor-lamp.mp3",
    "section": "",
-   "notes": "Sample. Cue boundaries detected from loudness.",
+   "bpm": 92,
+   "notes": "Jazz funk sample generated with Lyria RealTime. Cue boundaries detected from loudness.",
    "instrumentation": "quintet",
    "parts": [
     "pf",
@@ -78,14 +80,48 @@
     "bs",
     "dr",
     "voc"
+   ],
+   "sections": [
+    [
+     "Intro",
+     0,
+     0
+    ],
+    [
+     "Groove A",
+     28,
+     1
+    ],
+    [
+     "Groove B",
+     56,
+     2
+    ],
+    [
+     "Solo",
+     84,
+     1,
+     1
+    ],
+    [
+     "Groove C",
+     112,
+     2
+    ],
+    [
+     "Outro",
+     140,
+     0
+    ]
    ]
   },
   {
-   "title": "Saudade do Teu Olhar",
-   "slug": "saudade-do-teu-olhar",
-   "audio": "media/music/saudade-do-teu-olhar.mp3",
+   "title": "Slow Harbour",
+   "slug": "slow-harbour",
+   "audio": "media/music/slow-harbour.mp3",
    "section": "",
-   "notes": "Portuguese-language sample. Cue boundaries detected from loudness.",
+   "bpm": 100,
+   "notes": "Bossa nova sample generated with Lyria RealTime. Cue boundaries detected from loudness.",
    "instrumentation": "quintet",
    "parts": [
     "pf",
@@ -93,14 +129,48 @@
     "bs",
     "dr",
     "voc"
+   ],
+   "sections": [
+    [
+     "Intro",
+     0,
+     0
+    ],
+    [
+     "Theme",
+     25,
+     1
+    ],
+    [
+     "Variation",
+     60,
+     2
+    ],
+    [
+     "Solo",
+     100,
+     1,
+     1
+    ],
+    [
+     "Theme 2",
+     135,
+     2
+    ],
+    [
+     "Outro",
+     170,
+     0
+    ]
    ]
   },
   {
-   "title": "Le Dernier Bal",
-   "slug": "le-dernier-bal",
-   "audio": "media/music/le-dernier-bal.mp3",
+   "title": "Midnight Waltz",
+   "slug": "midnight-waltz",
+   "audio": "media/music/midnight-waltz.mp3",
    "section": "",
-   "notes": "French-language sample. Cue boundaries detected from loudness.",
+   "bpm": 66,
+   "notes": "Slow waltz sample generated with Lyria RealTime. Cue boundaries detected from loudness.",
    "instrumentation": "quintet",
    "parts": [
     "pf",
@@ -108,15 +178,49 @@
     "bs",
     "dr",
     "voc"
+   ],
+   "sections": [
+    [
+     "Intro",
+     0,
+     0
+    ],
+    [
+     "Waltz A",
+     24,
+     1
+    ],
+    [
+     "Waltz B",
+     64,
+     2
+    ],
+    [
+     "Solo",
+     104,
+     1,
+     1
+    ],
+    [
+     "Waltz A 2",
+     144,
+     2
+    ],
+    [
+     "Outro",
+     168,
+     0
+    ]
    ]
   },
   {
-   "title": "Slow Dying Keep",
-   "slug": "slow-dying-keep",
-   "audio": "media/music/slow-dying-keep-instrumental.mp3",
+   "title": "Slow Burn",
+   "slug": "slow-burn",
+   "audio": "media/music/slow-burn-sparse.mp3",
    "section": "",
-   "demoLabel": "Instrumental",
-   "notes": "Instrumental and vocal versions. Shows the version switcher; the loudest section gets a guitar solo.",
+   "bpm": 60,
+   "demoLabel": "Sparse",
+   "notes": "Two versions of one idea (sparse and full band). Shows the version switcher; the loudest section gets a guitar solo.",
    "instrumentation": "quartet",
    "parts": [
     "pf",
@@ -127,8 +231,8 @@
    "instrumental": true,
    "alternates": [
     {
-     "label": "Vocals",
-     "src": "media/music/slow-dying-keep-vocals.mp3"
+     "label": "Full band",
+     "src": "media/music/slow-burn-full.mp3"
     }
    ]
   }
@@ -163,22 +267,6 @@
  "tracks": [
   {
    "number": "T1",
-   "title": "我冇學壞 v2",
-   "section": "Suno",
-   "track": {
-    "url": "https://suno.com/song/55167b0c-fcec-4005-aa47-7fb32c81d1a2"
-   }
-  },
-  {
-   "number": "T2",
-   "title": "被遺忘 v2",
-   "section": "Suno",
-   "track": {
-    "url": "https://suno.com/song/557e3cb8-6d92-4362-8b05-c8508c007717"
-   }
-  },
-  {
-   "number": "T3",
    "title": "Moanin'",
    "section": "Spotify",
    "track": {
@@ -186,7 +274,7 @@
    }
   },
   {
-   "number": "T4",
+   "number": "T2",
    "title": "Plastic Love",
    "section": "Spotify",
    "track": {

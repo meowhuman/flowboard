@@ -6,78 +6,6 @@
     "at": 0,
     "on": [
      "i1",
-     "i6"
-    ],
-    "solo": [],
-    "hl": [],
-    "note": "Sample cue, edit to your arrangement."
-   },
-   {
-    "name": "Verse 1 continued",
-    "at": 32,
-    "on": [
-     "i1",
-     "i6"
-    ],
-    "solo": [],
-    "hl": [],
-    "note": "Sample cue, edit to your arrangement."
-   },
-   {
-    "name": "Pre-Chorus 1",
-    "at": 58,
-    "on": [
-     "i1",
-     "i3",
-     "i4",
-     "i6"
-    ],
-    "solo": [],
-    "hl": [],
-    "note": "Sample cue, edit to your arrangement."
-   },
-   {
-    "name": "Verse 2",
-    "at": 70,
-    "on": [
-     "i1",
-     "i6"
-    ],
-    "solo": [],
-    "hl": [],
-    "note": "Sample cue, edit to your arrangement."
-   },
-   {
-    "name": "Bridge",
-    "at": 83,
-    "on": [
-     "i1",
-     "i3",
-     "i4",
-     "i6"
-    ],
-    "solo": [],
-    "hl": [],
-    "note": "Sample cue, edit to your arrangement."
-   },
-   {
-    "name": "Break",
-    "at": 96,
-    "on": [
-     "i1",
-     "i3",
-     "i4",
-     "i6"
-    ],
-    "solo": [],
-    "hl": [],
-    "note": "Sample cue, edit to your arrangement."
-   },
-   {
-    "name": "Verse 3",
-    "at": 103,
-    "on": [
-     "i1",
      "i3",
      "i4",
      "i6"
@@ -88,7 +16,7 @@
    },
    {
     "name": "Chorus",
-    "at": 129,
+    "at": 30,
     "on": [
      "i1",
      "i3",
@@ -103,24 +31,8 @@
     "note": "Sample cue, edit to your arrangement."
    },
    {
-    "name": "Reprise",
-    "at": 154,
-    "on": [
-     "i1",
-     "i3",
-     "i4",
-     "i5",
-     "i6",
-     "i7",
-     "i8"
-    ],
-    "solo": [],
-    "hl": [],
-    "note": "Sample cue, edit to your arrangement."
-   },
-   {
-    "name": "Chorus 2",
-    "at": 161,
+    "name": "Verse 2",
+    "at": 61,
     "on": [
      "i1",
      "i3",
@@ -137,8 +49,43 @@
     "note": "Sample cue, edit to your arrangement."
    },
    {
+    "name": "Chorus",
+    "at": 92,
+    "on": [
+     "i1",
+     "i3",
+     "i4",
+     "i6"
+    ],
+    "solo": [],
+    "hl": [],
+    "note": "Sample cue, edit to your arrangement."
+   },
+   {
+    "name": "Bridge",
+    "at": 123,
+    "on": [
+     "i1",
+     "i6"
+    ],
+    "solo": [],
+    "hl": [],
+    "note": "Sample cue, edit to your arrangement."
+   },
+   {
+    "name": "Chorus",
+    "at": 153,
+    "on": [
+     "i1",
+     "i6"
+    ],
+    "solo": [],
+    "hl": [],
+    "note": "Sample cue, edit to your arrangement."
+   },
+   {
     "name": "Outro",
-    "at": 187,
+    "at": 184,
     "on": [
      "i1",
      "i6"
@@ -154,6 +101,8 @@
     "at": 0,
     "on": [
      "i1",
+     "i3",
+     "i4",
      "i6"
     ],
     "solo": [],
@@ -167,32 +116,6 @@
      "i1",
      "i3",
      "i4",
-     "i6"
-    ],
-    "solo": [],
-    "hl": [],
-    "note": "Sample cue, edit to your arrangement."
-   },
-   {
-    "name": "Section C",
-    "at": 50,
-    "on": [
-     "i1",
-     "i3",
-     "i4",
-     "i6"
-    ],
-    "solo": [],
-    "hl": [],
-    "note": "Sample cue, edit to your arrangement."
-   },
-   {
-    "name": "Section D",
-    "at": 135,
-    "on": [
-     "i1",
-     "i3",
-     "i4",
      "i5",
      "i6",
      "i7",
@@ -205,8 +128,32 @@
     "note": "Sample cue, edit to your arrangement."
    },
    {
+    "name": "Section C",
+    "at": 83,
+    "on": [
+     "i1",
+     "i3",
+     "i4",
+     "i6"
+    ],
+    "solo": [],
+    "hl": [],
+    "note": "Sample cue, edit to your arrangement."
+   },
+   {
+    "name": "Section D",
+    "at": 152,
+    "on": [
+     "i1",
+     "i6"
+    ],
+    "solo": [],
+    "hl": [],
+    "note": "Sample cue, edit to your arrangement."
+   },
+   {
     "name": "Section E",
-    "at": 184,
+    "at": 172,
     "on": [
      "i1",
      "i6"
@@ -218,7 +165,7 @@
   ],
   "03": [
    {
-    "name": "Section A",
+    "name": "Intro",
     "at": 0,
     "on": [
      "i1",
@@ -229,8 +176,8 @@
     "note": "Sample cue, edit to your arrangement."
    },
    {
-    "name": "Section B",
-    "at": 45,
+    "name": "Groove A",
+    "at": 28,
     "on": [
      "i1",
      "i3",
@@ -242,19 +189,8 @@
     "note": "Sample cue, edit to your arrangement."
    },
    {
-    "name": "Section C",
-    "at": 72,
-    "on": [
-     "i1",
-     "i6"
-    ],
-    "solo": [],
-    "hl": [],
-    "note": "Sample cue, edit to your arrangement."
-   },
-   {
-    "name": "Section D",
-    "at": 97,
+    "name": "Groove B",
+    "at": 56,
     "on": [
      "i1",
      "i3",
@@ -265,18 +201,45 @@
      "i8"
     ],
     "solo": [],
-    "hl": [
-     "i6"
-    ],
+    "hl": [],
     "note": "Sample cue, edit to your arrangement."
    },
    {
-    "name": "Section E",
-    "at": 123,
+    "name": "Solo",
+    "at": 84,
     "on": [
      "i1",
      "i3",
      "i4",
+     "i6"
+    ],
+    "solo": [
+     "i3"
+    ],
+    "hl": [],
+    "note": "Sample cue, edit to your arrangement."
+   },
+   {
+    "name": "Groove C",
+    "at": 112,
+    "on": [
+     "i1",
+     "i3",
+     "i4",
+     "i5",
+     "i6",
+     "i7",
+     "i8"
+    ],
+    "solo": [],
+    "hl": [],
+    "note": "Sample cue, edit to your arrangement."
+   },
+   {
+    "name": "Outro",
+    "at": 140,
+    "on": [
+     "i1",
      "i6"
     ],
     "solo": [],
@@ -286,7 +249,7 @@
   ],
   "04": [
    {
-    "name": "Section A",
+    "name": "Intro",
     "at": 0,
     "on": [
      "i1",
@@ -297,19 +260,8 @@
     "note": "Sample cue, edit to your arrangement."
    },
    {
-    "name": "Section B",
-    "at": 10,
-    "on": [
-     "i1",
-     "i6"
-    ],
-    "solo": [],
-    "hl": [],
-    "note": "Sample cue, edit to your arrangement."
-   },
-   {
-    "name": "Section C",
-    "at": 44,
+    "name": "Theme",
+    "at": 25,
     "on": [
      "i1",
      "i3",
@@ -321,8 +273,8 @@
     "note": "Sample cue, edit to your arrangement."
    },
    {
-    "name": "Section D",
-    "at": 132,
+    "name": "Variation",
+    "at": 60,
     "on": [
      "i1",
      "i3",
@@ -333,15 +285,55 @@
      "i8"
     ],
     "solo": [],
-    "hl": [
+    "hl": [],
+    "note": "Sample cue, edit to your arrangement."
+   },
+   {
+    "name": "Solo",
+    "at": 100,
+    "on": [
+     "i1",
+     "i3",
+     "i4",
      "i6"
     ],
+    "solo": [
+     "i3"
+    ],
+    "hl": [],
+    "note": "Sample cue, edit to your arrangement."
+   },
+   {
+    "name": "Theme 2",
+    "at": 135,
+    "on": [
+     "i1",
+     "i3",
+     "i4",
+     "i5",
+     "i6",
+     "i7",
+     "i8"
+    ],
+    "solo": [],
+    "hl": [],
+    "note": "Sample cue, edit to your arrangement."
+   },
+   {
+    "name": "Outro",
+    "at": 170,
+    "on": [
+     "i1",
+     "i6"
+    ],
+    "solo": [],
+    "hl": [],
     "note": "Sample cue, edit to your arrangement."
    }
   ],
   "05": [
    {
-    "name": "Section A",
+    "name": "Intro",
     "at": 0,
     "on": [
      "i1",
@@ -352,8 +344,8 @@
     "note": "Sample cue, edit to your arrangement."
    },
    {
-    "name": "Section B",
-    "at": 54,
+    "name": "Waltz A",
+    "at": 24,
     "on": [
      "i1",
      "i3",
@@ -365,21 +357,8 @@
     "note": "Sample cue, edit to your arrangement."
    },
    {
-    "name": "Section C",
-    "at": 89,
-    "on": [
-     "i1",
-     "i3",
-     "i4",
-     "i6"
-    ],
-    "solo": [],
-    "hl": [],
-    "note": "Sample cue, edit to your arrangement."
-   },
-   {
-    "name": "Section D",
-    "at": 134,
+    "name": "Waltz B",
+    "at": 64,
     "on": [
      "i1",
      "i3",
@@ -390,14 +369,43 @@
      "i8"
     ],
     "solo": [],
-    "hl": [
-     "i6"
-    ],
+    "hl": [],
     "note": "Sample cue, edit to your arrangement."
    },
    {
-    "name": "Section E",
-    "at": 178,
+    "name": "Solo",
+    "at": 104,
+    "on": [
+     "i1",
+     "i3",
+     "i4",
+     "i6"
+    ],
+    "solo": [
+     "i3"
+    ],
+    "hl": [],
+    "note": "Sample cue, edit to your arrangement."
+   },
+   {
+    "name": "Waltz A 2",
+    "at": 144,
+    "on": [
+     "i1",
+     "i3",
+     "i4",
+     "i5",
+     "i6",
+     "i7",
+     "i8"
+    ],
+    "solo": [],
+    "hl": [],
+    "note": "Sample cue, edit to your arrangement."
+   },
+   {
+    "name": "Outro",
+    "at": 168,
     "on": [
      "i1",
      "i6"
@@ -413,8 +421,6 @@
     "at": 0,
     "on": [
      "i1",
-     "i3",
-     "i4",
      "i6"
     ],
     "solo": [],
@@ -423,42 +429,7 @@
    },
    {
     "name": "Section B",
-    "at": 76,
-    "on": [
-     "i1",
-     "i3",
-     "i4",
-     "i6"
-    ],
-    "solo": [],
-    "hl": [],
-    "note": "Sample cue, edit to your arrangement."
-   },
-   {
-    "name": "Section C",
-    "at": 129,
-    "on": [
-     "i1",
-     "i6"
-    ],
-    "solo": [],
-    "hl": [],
-    "note": "Sample cue, edit to your arrangement."
-   },
-   {
-    "name": "Section D",
-    "at": 149,
-    "on": [
-     "i1",
-     "i6"
-    ],
-    "solo": [],
-    "hl": [],
-    "note": "Sample cue, edit to your arrangement."
-   },
-   {
-    "name": "Section E",
-    "at": 192,
+    "at": 13,
     "on": [
      "i1",
      "i3",
@@ -471,6 +442,19 @@
     "solo": [
      "i3"
     ],
+    "hl": [],
+    "note": "Sample cue, edit to your arrangement."
+   },
+   {
+    "name": "Section C",
+    "at": 170,
+    "on": [
+     "i1",
+     "i3",
+     "i4",
+     "i6"
+    ],
+    "solo": [],
     "hl": [],
     "note": "Sample cue, edit to your arrangement."
    }

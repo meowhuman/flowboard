@@ -3,7 +3,7 @@
 <p align="center"><strong>Who is on stage, who solos and how it is lit, song by song, tied to the rehearsal audio.</strong></p>
 
 <p align="center">
-  <a href="https://cuesheet-board-demo.netlify.app/">Live sample</a> ·
+  <a href="https://flowboard-sample.netlify.app/">Live sample</a> ·
   <a href="#try-it">Run it</a> ·
   <a href="#use-your-own-set">Use your own set</a> ·
   <a href="CONTRIBUTING.md">Contribute</a> ·
@@ -46,7 +46,7 @@ Early and honest:
 
 ## Try it
 
-Live sample (unlisted, not indexed): https://cuesheet-board-demo.netlify.app/
+Live sample (unlisted, not indexed): https://flowboard-sample.netlify.app/
 
 Or run it yourself:
 
@@ -66,14 +66,14 @@ The sample set exercises every feature, so you can click through them before loa
 
 | Feature | Where to look |
 |---|---|
-| Sections and timeline | Pick any song. Song 01 has 11 sections with a lyric-driven timeline |
+| Sections and timeline | Pick any song. Song 01 has 7 sections with a lyric-driven timeline |
 | 2D plan, solo and highlight | Stage view. Grand Piano and Vocal are placed on the sample stage; the timeline colours show on-stage, solo and highlight |
 | 3D lighting with an imported rig | Stage view, the `3D` switch, then the lighting button. The `燈光檔` list in the panel switches between the nine files in `lighting/`: the Capture demo rig (76 fixtures), generated sample rigs, and four `capture-look-*` files that carry colour and level per fixture (Verse, Chorus, Solo, Finale), so you can see a file-supplied look |
-| Versions | Song 06 has an instrumental and a vocal audio version. The sample audio is a generated click-and-pad track, not music; the Suno rows T1 and T2 play real songs |
-| Suno and Spotify tracks | Rows T1 and T2 are Suno songs, T3 and T4 are Spotify tracks. Each has a small mark and plays inside the board. Try `+ Add song` at the bottom of the list |
+| Versions | Song 06 has two audio versions (sparse and full band) behind the version switcher |
+| Suno and Spotify tracks | Rows T1 and T2 are Spotify tracks with a small mark; they play inside the board. Try `+ Add song` at the bottom of the list and paste a Suno or Spotify link (a Suno link only plays for others if the song is public) |
 | Venues | Stage view: the venue list in the stage bar (2D) or the 3D toolbar: black box, jazz club, concert hall, open stage |
 | Loops | Sample video loops (moody, no people) sit in the library on the right. Click one to play it, `+` assigns it to the current song, `+ Add video` adds your own |
-| Lyrics and lead sheets | Song 01 has lyrics. Every sample song has a generated lead sheet (melody, chords, form) |
+| Lyrics and lead sheets | Song 01 has lyrics (original sample text). Every sample song has a generated lead sheet (melody, chords, form) |
 | Musician outfits | 3D view, `服裝`: six outfit presets (all black, white shirt, navy suit, wine, vintage, casual) and per-musician colours |
 | One-click report | `輸出`, tick sections, get a self-contained HTML file |
 | Phone layout | Open it on a phone, or narrow the window to 390 px |

@@ -6,3 +6,4 @@ logs/
 tools/.mvr-import/
 *.bak-*
 __pycache__/
+.claude/

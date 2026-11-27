@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Sample audio is now generated (`tools/make-sample-audio.py`): a click-and-pad track per song, so the repository holds no Suno files. Suno rows stay as links.
+- Sample audio is now instrumental tracks generated with Lyria RealTime (prompts in `tools/sample-audio-prompts.md`), with original sample lyrics. No Suno files or private Suno links in the repository; paste your own Suno or Spotify link with `+ Add song`.
 - 3D view: one `2D`/`3D` switch instead of three mode buttons; the `聚焦` button and the sample caption are gone; the stop-video button is an icon.
 - Musicians: outfit presets and custom colours (`服裝`); each musician faces their instrument (the vocalist faces the audience); no floating hands when a player is off stage. New `qa/figures.mjs` checks this for every section.
 - Lighting: dots show only for the zone or light you are editing; lights split into depth zones (`燈區`); `heightLift` in `lighting/mvr-map.json` raises hung fixtures to the screen top and the 3D view draws hanging rods. Four generated looks (`capture-look-*.mvr`) carry colour and level.

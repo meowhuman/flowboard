@@ -45,7 +45,7 @@ def parse_lyrics(md_path):
     secs = []
     for line in block.splitlines():
         if line.startswith('['):
-            secs.append([line[1:].split('|')[0].strip(), []])
+            secs.append([line[1:].split('|')[0].strip().rstrip(']').strip(), []])
         elif line.strip() and secs:
             secs[-1][1].append(line.strip())
     return secs
@@ -106,7 +106,13 @@ def main():
             s['lyrics'] = {s['lyricsLang']: '\n\n'.join(f'[{n}]\n' + '\n'.join(l) for n, l in secs)}
         else:
             bounds = detect_boundaries(db, seg['window'], seg['minSeparation'], seg['maxBoundaries'])
+        if names is None and s.get('sections'):          # 音訊太平均、偵測唔到段落時，手動指定
+            names = [m[0] for m in s['sections']]
+            bounds = [int(m[1]) for m in s['sections'][1:]]
         edges, tier_list, _ = tiers(db, bounds, dur)
+        manual = s.get('sections') if (s.get('sections') and len(s['sections'][0]) > 2) else None
+        if manual:                                           # 手動指定每段上台級別（0 少 · 2 全隊）同 solo
+            tier_list = [m[2] for m in manual]
         if names is None:
             names = [f'Section {chr(65 + i)}' for i in range(len(tier_list))]
         top = max(range(len(tier_list)), key=lambda i: tier_list[i] * 1000 + i)
@@ -114,7 +120,11 @@ def main():
         for i, name in enumerate(names):
             c = {'name': name, 'at': edges[i], 'on': list(tier_on[tier_list[i]]), 'solo': [], 'hl': [],
                  'note': CFG['cueNote']}
-            if i == top:
+            if manual and len(manual[i]) > 3 and manual[i][3]:
+                c['solo'] = [CFG['soloItem']]
+            elif manual:
+                pass
+            elif i == top:
                 if s.get('instrumental'):
                     c['solo'] = [CFG['soloItem']]
                 else:
