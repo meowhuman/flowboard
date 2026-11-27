@@ -53,29 +53,19 @@ R('檔案有顏色 → 自動用「檔案原狀」，唔係我哋嘅 preset', (a
 const litFile = await p.evaluate(() => window.__stage3d.lighting.fixtures.filter((f) => f.group !== 'spot' && f.level > 0.05).length);
 R('檔案原狀：72 支燈按檔案顏色亮起', litFile >= 60, litFile);
 // ---- 測試 look 檔（Capture 燈位 + 每支燈顏色／亮度）----
-// 燈光亮度係漸變嘅：慢機器（例如 CI 軟件渲染）渲染幀數少，固定等待會量到中途值。改為等到數值穩定先量。
-const levelsNow = () => p.evaluate(() => window.__stage3d.lighting.fixtures.filter((x) => x.group !== 'spot').map((x) => x.level));
-async function settle(maxMs = 40000) {
-  let prev = await levelsNow(); const t0 = Date.now(); let still = 0;
-  while (Date.now() - t0 < maxMs) {
-    await p.waitForTimeout(700);
-    const cur = await levelsNow();
-    const d = Math.max(...cur.map((v, i) => Math.abs(v - (prev[i] ?? 0))));
-    still = d < 0.004 ? still + 1 : 0; prev = cur;
-    if (still >= 3) return;
-  }
-}
-const look = async (file) => { await p.selectOption('[data-mvr="sel"]', file); await p.waitForTimeout(1500); await settle(); return p.evaluate(() => { const f = window.__stage3d.lighting.fixtures.filter((x) => x.group !== 'spot'); const by = (g) => f.filter((x) => x.group === g); const avg = (a) => a.reduce((s, x) => s + x.level, 0) / (a.length || 1); return { n: f.length, wash: avg(by('wash')), back: avg(by('back')), follow: avg(by('follow')), cols: [...new Set(f.map((x) => x.color))].length, filePreset: document.querySelector('[data-preset="@file"]').getAttribute('aria-pressed') }; }); };
-let lk = await look('capture-look-chorus-warm.mvr');
+// 燈光亮度係漸變嘅：慢機器（例如 CI 軟件渲染）每秒幀數少，固定等待會量到中途值。改為等到條件成立先量（最長 90 秒）。
+const until = (fn, arg, ms = 90000) => p.waitForFunction(fn, arg, { timeout: ms, polling: 500 }).catch(() => {});
+const look = async (file, want) => { await p.selectOption('[data-mvr="sel"]', file); await p.waitForTimeout(1000); await until((w) => { const f = window.__stage3d.lighting.fixtures.filter((x) => x.group !== 'spot'); const avg = (g) => { const a = f.filter((x) => x.group === g); return a.reduce((t, x) => t + x.level, 0) / (a.length || 1); }; return Math.abs(avg('wash') - w.wash) < 0.03 && Math.abs(avg('back') - w.back) < 0.03 && Math.abs(avg('follow') - w.follow) < 0.03; }, want); return p.evaluate(() => { const f = window.__stage3d.lighting.fixtures.filter((x) => x.group !== 'spot'); const by = (g) => f.filter((x) => x.group === g); const avg = (a) => a.reduce((s, x) => s + x.level, 0) / (a.length || 1); return { n: f.length, wash: avg(by('wash')), back: avg(by('back')), follow: avg(by('follow')), cols: [...new Set(f.map((x) => x.color))].length, filePreset: document.querySelector('[data-preset="@file"]').getAttribute('aria-pressed') }; }); };
+let lk = await look('capture-look-chorus-warm.mvr', { wash: 0.8, back: 0.9, follow: 0.6 });
 R('Chorus look：用檔案原狀、76 支燈、面光 0.8／逆光 0.9／追光 0.6', lk.filePreset === 'true' && lk.n === 76 && Math.abs(lk.wash - 0.8) < 0.1 && Math.abs(lk.back - 0.9) < 0.1 && Math.abs(lk.follow - 0.6) < 0.1, JSON.stringify(lk));
-lk = await look('capture-look-solo-spot.mvr');
+lk = await look('capture-look-solo-spot.mvr', { wash: 0.12, back: 0.25, follow: 1 });
 R('Solo look：追光全亮、面光／逆光好暗', lk.follow > 0.9 && lk.wash < 0.2 && lk.back < 0.35, JSON.stringify(lk));
-lk = await look('capture-look-verse-blue.mvr');
+lk = await look('capture-look-verse-blue.mvr', { wash: 0.35, back: 0.55, follow: 0 });
 R('Verse look：追光熄、其餘暗藍', lk.follow < 0.02 && lk.wash > 0.25 && lk.wash < 0.45, JSON.stringify(lk));
-lk = await look('capture-look-finale-rainbow.mvr');
+lk = await look('capture-look-finale-rainbow.mvr', { wash: 0.7, back: 0.8, follow: 0.5 });
 R('Finale look：每支燈按位置有唔同顏色（>= 15 種）', lk.cols >= 15, JSON.stringify(lk));
 // ---- 淨係燈位冇 look（Capture）----
-await p.selectOption('[data-mvr="sel"]', 'capture_demo_show.mvr'); await p.waitForTimeout(2500);
+await p.selectOption('[data-mvr="sel"]', 'capture_demo_show.mvr'); await p.waitForTimeout(1000); await until(() => window.__stage3d.lighting.fixtures.filter((x) => x.group !== 'spot').every((x) => x.level < 0.02));
 R('冇顏色嘅檔 → 提示 cue 唔喺 MVR，燈全部熄、燈位點預設唔顯示', /冇顏色／亮度/.test(await status()) && (await p.evaluate(() => { const f = window.__stage3d.lighting.fixtures.filter((x) => x.group !== 'spot'); return f.every((x) => x.level < 0.02) && f.every((x) => !x.marker); })), await status());
 // ---- 燈區：76 支燈分成幾排，成區一齊調 ----
 const zrows = await p.$$eval('[data-z]', (e) => e.map((x) => x.dataset.z));
@@ -84,19 +74,19 @@ await p.click('[data-z="' + zrows[0] + '"] [data-zn="pick"]'); await p.waitForTi
 const zsel = await p.evaluate(() => { const f = window.__stage3d.lighting.fixtures.filter((x) => x.group !== 'spot'); return { shown: f.filter((x) => x.marker).length, total: f.length }; });
 R('撳區名 → 3D 只標出嗰區嘅燈位點（唔係成面點）', zsel.shown > 0 && zsel.shown < zsel.total / 2, JSON.stringify(zsel));
 await p.evaluate((id) => { const r = document.querySelector('[data-z="' + id + '"]'); const c = r.querySelector('[data-zk="color"]'); c.value = '#ff0000'; c.dispatchEvent(new Event('input', { bubbles: true })); const l = r.querySelector('[data-zk="level"]'); l.value = '8'; l.dispatchEvent(new Event('input', { bubbles: true })); }, zrows[0]);
-await p.waitForTimeout(2500);
+await p.waitForTimeout(800); await until((n) => window.__stage3d.lighting.fixtures.filter((x) => x.group !== 'spot' && x.level > 0.05).length >= n, zsel.shown);
 const zlit = await p.evaluate(() => window.__stage3d.lighting.fixtures.filter((x) => x.group !== 'spot' && x.level > 0.05).map((x) => x.color));
 R('調一個區 → 只有嗰區嘅燈亮、係紅色', zlit.length === zsel.shown && zlit.every((c) => c === '#ff0000'), zlit.length + ' lit, ' + zsel.shown + ' in zone');
-await p.click('[data-zn="reset"]'); await p.click('[data-z="' + zrows[0] + '"] [data-zn="pick"]'); await p.waitForTimeout(2500);
+await p.click('[data-zn="reset"]'); await p.click('[data-z="' + zrows[0] + '"] [data-zn="pick"]'); await p.waitForTimeout(800); await until(() => window.__stage3d.lighting.fixtures.filter((x) => x.group !== 'spot').every((x) => x.level < 0.05 && !x.marker));
 R('全部還原 → 熄返、點隱藏', await p.evaluate(() => window.__stage3d.lighting.fixtures.filter((x) => x.group !== 'spot').every((x) => x.level < 0.05 && !x.marker)));
 // ---- 單支燈 ----
 await p.evaluate(() => { document.querySelector('details.lp-fix').open = true; });
 const fid = await p.inputValue('[data-fx="sel"]');
 await p.evaluate(() => { const c = document.querySelector('[data-fx="color"]'); c.value = '#ff0000'; c.dispatchEvent(new Event('input', { bubbles: true })); const l = document.querySelector('[data-fx="level"]'); l.value = '8'; l.dispatchEvent(new Event('input', { bubbles: true })); });
-await p.waitForTimeout(800); await settle();
+await p.waitForTimeout(800); await until((id) => window.__stage3d.lighting.fixtures.find((x) => x.id === id).level > 0.5, fid);
 const one = await p.evaluate((id) => { const f = window.__stage3d.lighting.fixtures.find((x) => x.id === id); const others = window.__stage3d.lighting.fixtures.filter((x) => x.group !== 'spot' && x.id !== id && x.level > 0.05).length; return { color: f.color, level: f.level, others }; }, fid);
 R('單支燈：揀一支改紅色、強度 8 → 只有呢支亮、係紅色', one.color === '#ff0000' && one.level > 0.5 && one.others === 0, JSON.stringify(one));
-await p.click('[data-fx="reset"]'); await p.waitForTimeout(2500);
+await p.click('[data-fx="reset"]'); await p.waitForTimeout(800); await until((id) => window.__stage3d.lighting.fixtures.find((x) => x.id === id).level < 0.05, fid);
 R('還原呢支 → 熄返', (await p.evaluate((id) => window.__stage3d.lighting.fixtures.find((x) => x.id === id).level, fid)) < 0.05);
 await p.click('[data-fx="next"]');
 R('▶ 跳去下一支燈', (await p.inputValue('[data-fx="sel"]')) !== fid);
