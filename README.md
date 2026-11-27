@@ -169,6 +169,33 @@ Everything is data files at the repo root. No build step.
 
 `tools/make-demo-data.py` shows one way to generate these files from audio: it detects sections from loudness changes (or reads lyric section tags) and writes sample cues per song; `tools/make-leadsheets.py` draws a lead sheet from `tools/leadsheets.json`. The sample cues it produces are placeholders. Edit them to your arrangement in the board; changes are saved in your browser, and the stage panel's Export button saves them as JSON so you can put them back into `stage-cues.json`.
 
+## Why no build step
+
+Flowboard is plain files: clone it, open `index.html`, and it works for a guitarist or a lighting tech, with nothing to install first. That is a deliberate trade-off: there is no tree shaking, no type checking, and updating a vendored library is a manual step in `vendor/`. The gaps a build step would catch are covered by the Playwright suite in `qa/`: 43 smoke checks plus file, lighting and facing sweeps, run with `npm test` locally and on every push. If the code ever grows too large to stay plain, an optional build step will be added for contributors; it will not be made required.
+
+## Using an npm package
+
+`index.html` ships an import map, so browser code can use bare specifiers that resolve to files in the repo: `import * as THREE from 'three'` maps to `./vendor/three/build/three.module.min.js`. To use an npm package, install it and point the import map at it:
+
+```bash
+npm install some-lib
+```
+
+```html
+<script type="importmap">
+  { "imports": {
+      "three": "./vendor/three/build/three.module.min.js",
+      "some-lib": "./node_modules/some-lib/index.js"
+  } }
+</script>
+```
+
+```js
+import x from 'some-lib'
+```
+
+`node_modules` is not committed. If the package should work in a bare clone, copy the needed files into `vendor/` and point the import map there instead, the same way `three` is vendored.
+
 ## Tests
 
 ```bash

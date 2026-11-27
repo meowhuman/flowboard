@@ -20,6 +20,7 @@
 - Stage view fits the middle column without extra scroll bars; songs without a loop no longer show an empty video box.
 - `tools/add-venues.py` builds the extra venues from the first stage plan.
 - Branding: logo, social preview, CONTRIBUTING, TRADEMARKS.
+- GitHub Actions runs the Playwright tests on every push; README explains why there is no build step and how to use an npm package.
 
 ## 0.1.0
 
