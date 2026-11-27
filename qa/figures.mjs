@@ -2,7 +2,7 @@
 // 用法：PW_FROM=<有 playwright 嘅目錄> BASE=http://127.0.0.1:9424/index.html node qa/figures.mjs
 import { createRequire } from 'node:module';
 const { chromium } = createRequire(process.env.PW_FROM || import.meta.url)('playwright');
-const BASE = process.env.BASE || 'http://127.0.0.1:9450/index.html';
+const BASE = process.env.BASE || 'http://127.0.0.1:9424/index.html';
 const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const p = await (await b.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
 await p.goto(BASE); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(1500);
