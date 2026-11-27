@@ -1695,7 +1695,7 @@
         "mvrImport": {
           "map": "lighting/mvr-map.json",
           "source": "capture_demo_show.mvr",
-          "importedAt": "2026-11-26T22:45:47+08:00",
+          "importedAt": "2026-11-27T14:44:44+08:00",
           "fixtureCount": 76,
           "aimSources": {
             "focus": 0,
@@ -3107,7 +3107,7 @@
         "mvrImport": {
           "map": "lighting/mvr-map.json",
           "source": "capture_demo_show.mvr",
-          "importedAt": "2026-11-26T22:45:47+08:00",
+          "importedAt": "2026-11-27T14:44:44+08:00",
           "fixtureCount": 76,
           "aimSources": {
             "focus": 0,
@@ -4514,7 +4514,7 @@
         "mvrImport": {
           "map": "lighting/mvr-map.json",
           "source": "capture_demo_show.mvr",
-          "importedAt": "2026-11-26T22:45:47+08:00",
+          "importedAt": "2026-11-27T14:44:44+08:00",
           "fixtureCount": 76,
           "aimSources": {
             "focus": 0,
@@ -5791,7 +5791,7 @@
     "mvrImport": {
       "map": "lighting/mvr-map.json",
       "source": "capture_demo_show.mvr",
-      "importedAt": "2026-11-26T22:45:47+08:00",
+      "importedAt": "2026-11-27T14:44:44+08:00",
       "fixtureCount": 76,
       "aimSources": {
         "focus": 0,

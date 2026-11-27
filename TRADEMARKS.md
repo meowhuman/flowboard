@@ -2,7 +2,7 @@
 
 The code in this repository is MIT licensed. The licence covers the code. It does not cover the name or the logo.
 
-**Marks:** "Flowboard", "Mono Labs", and the logo files in `docs/` (`logo.svg`, `logo-mark.svg`, `social-preview.png`).
+**Marks:** "Flowboard", "Mono Labs", and the logo files in `docs/` (`logo.svg`, `logo-dark.svg`, `logo-mark.svg`, `logo-mark-dark.svg`, `social-preview.png`) and `favicon.svg`.
 
 ## You may
 
