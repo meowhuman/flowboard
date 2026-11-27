@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- New logo: a rounded stage frame with a blue brush stroke flowing through it; light and dark versions, a favicon, and a new social preview image.
+- New logo: a rounded stage frame with a terracotta brush stroke flowing through it, in the board's own accent colour; light and dark versions, a favicon, and a new social preview image.
 - Sample audio is now instrumental tracks generated with Lyria RealTime (prompts in `tools/sample-audio-prompts.md`), with original sample lyrics. No Suno files or private Suno links in the repository; paste your own Suno or Spotify link with `+ Add song`.
 - 3D view: one `2D`/`3D` switch instead of three mode buttons; the `聚焦` button and the sample caption are gone; the stop-video button is an icon.
 - Musicians: outfit presets and custom colours (`服裝`); each musician faces their instrument (the vocalist faces the audience); no floating hands when a player is off stage. New `qa/figures.mjs` checks this for every section.
