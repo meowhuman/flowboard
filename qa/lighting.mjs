@@ -53,7 +53,19 @@ R('檔案有顏色 → 自動用「檔案原狀」，唔係我哋嘅 preset', (a
 const litFile = await p.evaluate(() => window.__stage3d.lighting.fixtures.filter((f) => f.group !== 'spot' && f.level > 0.05).length);
 R('檔案原狀：72 支燈按檔案顏色亮起', litFile >= 60, litFile);
 // ---- 測試 look 檔（Capture 燈位 + 每支燈顏色／亮度）----
-const look = async (file) => { await p.selectOption('[data-mvr="sel"]', file); await p.waitForTimeout(7000); return p.evaluate(() => { const f = window.__stage3d.lighting.fixtures.filter((x) => x.group !== 'spot'); const by = (g) => f.filter((x) => x.group === g); const avg = (a) => a.reduce((s, x) => s + x.level, 0) / (a.length || 1); return { n: f.length, wash: avg(by('wash')), back: avg(by('back')), follow: avg(by('follow')), cols: [...new Set(f.map((x) => x.color))].length, filePreset: document.querySelector('[data-preset="@file"]').getAttribute('aria-pressed') }; }); };
+// 燈光亮度係漸變嘅：慢機器（例如 CI 軟件渲染）渲染幀數少，固定等待會量到中途值。改為等到數值穩定先量。
+const levelsNow = () => p.evaluate(() => window.__stage3d.lighting.fixtures.filter((x) => x.group !== 'spot').map((x) => x.level));
+async function settle(maxMs = 40000) {
+  let prev = await levelsNow(); const t0 = Date.now(); let still = 0;
+  while (Date.now() - t0 < maxMs) {
+    await p.waitForTimeout(700);
+    const cur = await levelsNow();
+    const d = Math.max(...cur.map((v, i) => Math.abs(v - (prev[i] ?? 0))));
+    still = d < 0.004 ? still + 1 : 0; prev = cur;
+    if (still >= 3) return;
+  }
+}
+const look = async (file) => { await p.selectOption('[data-mvr="sel"]', file); await p.waitForTimeout(1500); await settle(); return p.evaluate(() => { const f = window.__stage3d.lighting.fixtures.filter((x) => x.group !== 'spot'); const by = (g) => f.filter((x) => x.group === g); const avg = (a) => a.reduce((s, x) => s + x.level, 0) / (a.length || 1); return { n: f.length, wash: avg(by('wash')), back: avg(by('back')), follow: avg(by('follow')), cols: [...new Set(f.map((x) => x.color))].length, filePreset: document.querySelector('[data-preset="@file"]').getAttribute('aria-pressed') }; }); };
 let lk = await look('capture-look-chorus-warm.mvr');
 R('Chorus look：用檔案原狀、76 支燈、面光 0.8／逆光 0.9／追光 0.6', lk.filePreset === 'true' && lk.n === 76 && Math.abs(lk.wash - 0.8) < 0.1 && Math.abs(lk.back - 0.9) < 0.1 && Math.abs(lk.follow - 0.6) < 0.1, JSON.stringify(lk));
 lk = await look('capture-look-solo-spot.mvr');
@@ -81,7 +93,7 @@ R('全部還原 → 熄返、點隱藏', await p.evaluate(() => window.__stage3d
 await p.evaluate(() => { document.querySelector('details.lp-fix').open = true; });
 const fid = await p.inputValue('[data-fx="sel"]');
 await p.evaluate(() => { const c = document.querySelector('[data-fx="color"]'); c.value = '#ff0000'; c.dispatchEvent(new Event('input', { bubbles: true })); const l = document.querySelector('[data-fx="level"]'); l.value = '8'; l.dispatchEvent(new Event('input', { bubbles: true })); });
-await p.waitForTimeout(2500);
+await p.waitForTimeout(800); await settle();
 const one = await p.evaluate((id) => { const f = window.__stage3d.lighting.fixtures.find((x) => x.id === id); const others = window.__stage3d.lighting.fixtures.filter((x) => x.group !== 'spot' && x.id !== id && x.level > 0.05).length; return { color: f.color, level: f.level, others }; }, fid);
 R('單支燈：揀一支改紅色、強度 8 → 只有呢支亮、係紅色', one.color === '#ff0000' && one.level > 0.5 && one.others === 0, JSON.stringify(one));
 await p.click('[data-fx="reset"]'); await p.waitForTimeout(2500);
