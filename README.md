@@ -18,7 +18,7 @@ Open it, pick a song, press play. The 2D plan, the 3D lighting preview and the s
 
 > A [Mono Labs](https://github.com/meowhuman) tool. Not related to other projects that happen to be called Flowboard. Built by a working music director for a real festival set, then cleaned up and published with a sample set so you can try it.
 
-![Desktop: song list, 2D stage plan, section timeline, loop library and player](docs/board-desktop.png)
+![Desktop: song list, the 3D stage with the video loop projected on the screen, and the loop library](docs/board-desktop.png)
 
 ## Status
 
